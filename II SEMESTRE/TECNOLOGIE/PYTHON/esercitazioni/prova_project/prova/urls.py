@@ -22,5 +22,6 @@ urlpatterns = [
     re_path(r"^$|^/$|^home/$", views.home_page, name='homepage'),
     path("elencoparametri/",views.elenca_params, name='params'),
     path("welcome/<str:nome>/<int:eta>/", views.welcome_path, name="welcomepathj"),
+    path("hellotemplate/", views.hello_template, name="hellotemplate"),
     path('admin/', admin.site.urls),
 ]
