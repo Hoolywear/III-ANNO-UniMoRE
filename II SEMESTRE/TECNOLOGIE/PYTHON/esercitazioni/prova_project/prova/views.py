@@ -17,6 +17,9 @@ def home_page(request):
 def elenca_params(request):
     response=''
     for k in request.GET:
-        response += request.GET[k]
+        response += request.GET[k] + ' '
 
     return HttpResponse(response)
+
+def welcome_path(request,nome,eta):
+    return HttpResponse(f'Richiesta da {nome} che ha {str(eta)} anni.')
