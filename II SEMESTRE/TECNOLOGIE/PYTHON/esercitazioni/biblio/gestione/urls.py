@@ -22,4 +22,5 @@ app_name = 'gestione'
 
 urlpatterns = [
     path('listalibri/', lista_libri, name='listalibri'),
+    path('mattoni/', mattoni, name='mattoni'),
 ]
