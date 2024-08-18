@@ -33,15 +33,30 @@ def mattoni(request):
     return render(request, templ, ctx)
 
 
+def autore_list(request):
+    if "autore" in request.GET:
+        aut = request.GET["autore"]
+        titolo = f'Libri di {aut}'
+        sq = Libro.objects.all().filter(autore__exact=aut)
+    else:
+        titolo = "Autore non valido"
+        sq = None
+
+    ctx = {
+        "title": titolo,
+        "listalibri": sq
+    }
+
+    return render(request, 'gestione/listalibri.html', ctx)
+
+
 def autore_path(request, autore):
     templ = 'gestione/listalibri.html'
 
-    aut = autore
-
-    filtered_list = Libro.objects.all().filter(autore__icontains=aut)
+    filtered_list = Libro.objects.all().filter(autore__exact=autore)
 
     ctx = {
-        "title": f"Libri di {aut}",
+        "title": f"Libri di {autore}",
         "listalibri": filtered_list
     }
     return render(request, templ, ctx)

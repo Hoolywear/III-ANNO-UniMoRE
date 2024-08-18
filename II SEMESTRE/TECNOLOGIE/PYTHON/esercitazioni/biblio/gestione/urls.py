@@ -23,6 +23,7 @@ app_name = 'gestione'
 urlpatterns = [
     path('listalibri/', lista_libri, name='listalibri'),
     path('mattoni/', mattoni, name='mattoni'),
+    path('autore/', autore_list, name='autorelist'),
     path('autore/<str:autore>/', autore_path, name='autorepath'),
     path('crealibro/',crea_libro, name='crealibro'),
 ]
