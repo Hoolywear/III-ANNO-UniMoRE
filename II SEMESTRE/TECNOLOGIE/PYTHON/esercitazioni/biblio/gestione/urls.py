@@ -21,6 +21,5 @@ from gestione import views
 app_name = 'gestione'
 
 urlpatterns = [
-    path('', views.home, name='home'),
-    path('admin/', admin.site.urls),
+    path('listalibri/', views.lista_libri, name='listalibri'),
 ]
