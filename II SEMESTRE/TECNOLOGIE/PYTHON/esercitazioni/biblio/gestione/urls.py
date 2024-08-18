@@ -16,10 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from gestione import views
+from .views import *
 
 app_name = 'gestione'
 
 urlpatterns = [
-    path('listalibri/', views.lista_libri, name='listalibri'),
+    path('listalibri/', lista_libri, name='listalibri'),
 ]
