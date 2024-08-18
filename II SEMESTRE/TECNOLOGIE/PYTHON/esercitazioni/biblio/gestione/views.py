@@ -30,3 +30,17 @@ def mattoni(request):
     }
 
     return render(request, templ, ctx)
+
+
+def autore_path(request, autore):
+    templ = 'gestione/listalibri.html'
+
+    aut = autore
+
+    filtered_list = Libro.objects.all().filter(autore__icontains=aut)
+
+    ctx = {
+        "title": f"Libri di {aut}",
+        "listalibri": filtered_list
+    }
+    return render(request, templ, ctx)
