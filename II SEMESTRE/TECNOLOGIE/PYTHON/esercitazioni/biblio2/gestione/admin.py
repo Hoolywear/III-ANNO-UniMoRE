@@ -4,4 +4,5 @@ from gestione.models import *
 # Register your models here.
 
 admin.site.register(Libro)
+admin.site.register(Copia)
 
