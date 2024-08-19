@@ -1,4 +1,4 @@
-from gestione.models import Libro
+from gestione.models import *
 from django.utils import timezone
 from datetime import datetime
 
@@ -29,6 +29,8 @@ def init_db():
         "date": [func_time(y, m, d) for y in range(2) for m in range(2) for d in range(2)]
     }
 
+    date = [func_time(y, m, d) for y in range(2) for m in range(2) for d in range(2)]
+
     # for k in libridict:
     #    print(str(libridict[k]))
 
@@ -45,6 +47,12 @@ def init_db():
                 l.data_prestito = libridict[k][i]
                 # print(l)
         l.save()
+        for d in date:
+            c = Copia()
+            c.scaduto = False
+            c.libro = l
+            c.data_prestito = d
+            c.save()
 
     print("DUMP DB")
     print(Libro.objects.all())  # controlliamo
