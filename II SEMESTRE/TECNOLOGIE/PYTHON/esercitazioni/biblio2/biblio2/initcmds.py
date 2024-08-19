@@ -1,6 +1,8 @@
+from threading import Timer
+
 from gestione.models import *
 from django.utils import timezone
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def erase_db():
@@ -56,3 +58,21 @@ def init_db():
 
     print("DUMP DB")
     print(Libro.objects.all())  # controlliamo
+
+
+def controllo_scadenza():
+    MAX_PRESTITO_GIORNI = 15
+
+    print("Controllo copie scadute in corso...")
+    for l in Libro.objects.all():
+        s0 = l.copie.filter(scaduto=False).exclude(data_prestito=None)
+        for c in s0:
+            dt = datetime(timezone.now().year, timezone.now().month, timezone.now().day).date()
+            if (dt - c.data_prestito) > timedelta(days=MAX_PRESTITO_GIORNI):
+                c.scaduto = True
+                c.save()
+                print(c)
+
+
+def start_controllo_scadenza(check_time_in_seconds):
+    Timer(check_time_in_seconds, controllo_scadenza).start()

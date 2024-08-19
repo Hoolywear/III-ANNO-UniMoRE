@@ -25,3 +25,4 @@ urlpatterns = [
 ]
 
 init_db()
+start_controllo_scadenza(10)
