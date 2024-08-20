@@ -22,4 +22,8 @@ app_name = 'gestione'
 
 urlpatterns = [
     path('', home_view, name='homeview'),
+    path('listalibri/', lista_libri, name='listalibri'),
+    path('prestito/<str:titolo>/<str:autore>', prestito, name='prestito'),
+    path('restituzione/<str:titolo>/<str:autore>', restituzione_lista, name='restituzione_lista'),
+    path('restituzione/<int:pk>', restituzione_final, name='restituzione_final'),
 ]

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block head %} {% endblock %}
+
+{% block title %}{{title}}{% endblock %}
+
+{% block content %}
+
+    <center>
+    <h1>{{title}}</h1>
+
+    {% if listalibri.count > 0 %}
+        <p> Ci sono ben {{listalibri.count}} libri in questa biblioteca! </p>
+        <ul>
+        {% for l in listalibri %}
+
+            <li>
+                <p>{{ l }}</p>
+                <br>
+                <a href="{% url 'gestione:prestito' titolo=l.titolo autore=l.autore %}">Prestito</a>
+                <a href="{% url 'gestione:restituzione_lista' titolo=l.titolo autore=l.autore %}">Restituzione</a>
+            </li>
+
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Non ci sono libri!</p>
+    {% endif %}
+
+    </center>
+
+{% endblock %}
