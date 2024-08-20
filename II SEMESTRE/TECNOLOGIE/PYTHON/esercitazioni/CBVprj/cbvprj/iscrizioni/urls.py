@@ -21,4 +21,5 @@ app_name = 'iscrizioni'
 
 urlpatterns = [
     path('listastudenti/', ListaStudentiView.as_view(), name='listastudenti'),
+    path('listainsegnamenti/', ListaInsegnamentiView.as_view(), name='listainsegnamenti'),
 ]

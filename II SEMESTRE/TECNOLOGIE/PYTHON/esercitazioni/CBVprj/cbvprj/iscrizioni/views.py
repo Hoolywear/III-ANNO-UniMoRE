@@ -8,3 +8,6 @@ class ListaStudentiView(ListView):
     model = Studente
     template_name = 'iscrizioni/lista_studenti.html'
 
+class ListaInsegnamentiView(ListView):
+    model = Insegnamento
+    template_name = 'iscrizioni/lista_insegnamenti.html'
