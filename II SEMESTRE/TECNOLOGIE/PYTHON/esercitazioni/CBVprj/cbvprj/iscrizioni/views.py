@@ -54,4 +54,10 @@ class CreateStudenteView(CreateView):
     fields = '__all__'
     success_url = reverse_lazy('iscrizioni:listastudenti')
 
+class CreateInsegnamentoView(CreateView):
+    model = Insegnamento
+    template_name = 'iscrizioni/crea_insegnamento.html'
+    fields = '__all__'
+    success_url = reverse_lazy('iscrizioni:listainsegnamenti')
+
 
