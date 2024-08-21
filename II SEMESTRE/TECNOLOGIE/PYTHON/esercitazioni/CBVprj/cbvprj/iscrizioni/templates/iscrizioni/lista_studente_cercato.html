@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %} {{titolo}} {% endblock %}
+
+{% block content %}
+
+<h1> {{ titolo }} </h1>
+
+    {% if object_list.count == 0 %}
+        <em>Nessun risultato</em>
+    {% else %}
+        <h2>Studenti trovati</h2>
+    {% for p in object_list %}
+        <ul>
+            {{p.name}} {{p.surname}}
+        </ul>
+    {% endfor %}
+    
+    <h2>Insegnamenti a cui sono iscritti</h2>
+    {% for i in set_ins %}
+        <a href="{% url 'iscrizioni:insegnamento' pk=i.pk %}">{{ i }}</a>
+    {% endfor %}{% endif %}
+    
+  
+{% endblock %}

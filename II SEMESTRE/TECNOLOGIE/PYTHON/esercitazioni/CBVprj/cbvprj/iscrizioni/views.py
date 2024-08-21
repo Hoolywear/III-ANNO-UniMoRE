@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -123,3 +123,54 @@ class DeleteStudenteView(DeleteEntitaView):
 
 class DeleteInsegnamentoView(DeleteEntitaView):
     model = Insegnamento
+
+
+def cercastudente(request):
+    if request.method == 'GET':
+        return render(request, template_name='iscrizioni/cerca_studente.html')
+    else:
+        if len(request.POST['name']) < 1:
+            nome = 'null'
+        else:
+            nome = request.POST['name']
+
+        if len(request.POST['surname']) < 1:
+            cognome = 'null'
+        else:
+            cognome = request.POST['surname']
+
+        return redirect("iscrizioni:studentecercato", name=nome, surname=cognome)
+
+
+class SearchStudenteView(ListView):
+    model = Studente
+    template_name = 'iscrizioni/lista_studente_cercato.html'
+
+    def get_queryset(self):
+
+        try:
+            arg = self.kwargs['name']
+            qs_name = self.model.objects.filter(name__iexact=arg)
+        except:
+            qs_name = self.model.objects.none()
+
+        try:
+            arg = self.kwargs['surname']
+            qs_surname = self.model.objects.filter(surname__iexact=arg)
+        except:
+            qs_surname = self.model.objects.none()
+
+        return qs_name | qs_surname
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['titolo'] = 'Studenti e loro insegnamenti'
+        ls = set()
+        for s in self.get_queryset():
+            for i in Insegnamento.objects.all():
+                if s in i.studenti.all():
+                    ls.add(i)
+
+        ctx['set_ins'] = ls
+
+        return ctx
