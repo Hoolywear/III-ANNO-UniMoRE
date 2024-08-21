@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
 from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic.detail import DetailView
 from .models import *
 
 
@@ -48,11 +49,13 @@ class ListaStudentiIscritti(ListView):
             count += i.studenti.all().count()
         return count
 
+
 class CreateStudenteView(CreateView):
     model = Studente
     template_name = 'iscrizioni/crea_studente.html'
     fields = '__all__'
     success_url = reverse_lazy('iscrizioni:listastudenti')
+
 
 class CreateInsegnamentoView(CreateView):
     model = Insegnamento
@@ -61,3 +64,42 @@ class CreateInsegnamentoView(CreateView):
     success_url = reverse_lazy('iscrizioni:listainsegnamenti')
 
 
+class DetailInsegnamentoView(DetailView):
+    model = Insegnamento
+    template_name = 'iscrizioni/insegnamento.html'
+
+
+class UpdateInsegnamentoView(UpdateView):
+    model = Insegnamento
+    template_name = "iscrizioni/update_insegnamento.html"
+    fields = "__all__"
+
+    def get_success_url(self):
+        pk = self.get_context_data()["object"].pk
+        return reverse("iscrizioni:insegnamento", kwargs={'pk': pk})
+
+
+class DeleteEntitaView(DeleteView):
+    template_name = 'iscrizioni/cancella_entry.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        entita = "Studente"
+        if self.model == Insegnamento:
+            entita = "Insegnamento"
+        ctx['entita'] = entita
+        return ctx
+
+    def get_success_url(self):
+        if self.model == Studente:
+            return reverse('iscrizioni:listastudenti')
+        else:
+            return reverse('iscrizioni:listainsegnamenti')
+
+
+class DeleteStudenteView(DeleteEntitaView):
+    model = Studente
+
+
+class DeleteInsegnamentoView(DeleteEntitaView):
+    model = Insegnamento

@@ -26,4 +26,8 @@ urlpatterns = [
     path('studentiiscritti/', ListaStudentiIscritti.as_view(), name='studentiiscritti'),
     path('creastudente/', CreateStudenteView.as_view(), name='creastudente'),
     path('creainsegnamento/', CreateInsegnamentoView.as_view(), name='creainsegnamento'),
+    path('insegnamento/<pk>/', DetailInsegnamentoView.as_view(), name='insegnamento'),
+    path('updateinsegnamento/<pk>/', UpdateInsegnamentoView.as_view(), name='updateinsegnamento'),
+    path('cancellastudente/<pk>/', DeleteStudenteView.as_view(), name='cancellastudente'),
+    path('cancellainsegnamento/<pk>/', DeleteInsegnamentoView.as_view(), name='cancellainsegnamento'),
 ]

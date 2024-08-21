@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %} Cancella {{ object.entita }} {% endblock %}
+
+{% block content %}
+
+<h1> Cancella {{ object.entita }} </h1>
+
+    <em>Sicuro di voler cancellare {{ object }} ?</em>
+    
+<form method="post">{% csrf_token %}
+  <input type="submit" value="Delete">
+</form>
+
+{% endblock %}
