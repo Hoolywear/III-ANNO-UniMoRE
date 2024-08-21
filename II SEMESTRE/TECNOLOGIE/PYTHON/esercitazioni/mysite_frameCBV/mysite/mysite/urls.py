@@ -22,5 +22,5 @@ urlpatterns = [
     path('polls/', include('polls.urls')),
 ]
 
-#erase_db()
+# erase_db()
 init_db()
