@@ -30,4 +30,5 @@ urlpatterns = [
     path('updateinsegnamento/<pk>/', UpdateInsegnamentoView.as_view(), name='updateinsegnamento'),
     path('cancellastudente/<pk>/', DeleteStudenteView.as_view(), name='cancellastudente'),
     path('cancellainsegnamento/<pk>/', DeleteInsegnamentoView.as_view(), name='cancellainsegnamento'),
+    path('studente/<str:surname>/', ListaStudenteBySurname.as_view(), name='studente'),
 ]

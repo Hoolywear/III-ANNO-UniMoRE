@@ -13,6 +13,13 @@ class ListaStudentiView(ListView):
     template_name = 'iscrizioni/lista_studenti.html'
 
 
+class ListaStudenteBySurname(ListaStudentiView):
+    def get_queryset(self):
+        arg = self.kwargs['surname']
+        qs = self.model.objects.filter(surname__iexact=arg)
+        return qs
+
+
 class ListaInsegnamentiView(ListView):
     model = Insegnamento
     template_name = 'iscrizioni/lista_insegnamenti.html'
