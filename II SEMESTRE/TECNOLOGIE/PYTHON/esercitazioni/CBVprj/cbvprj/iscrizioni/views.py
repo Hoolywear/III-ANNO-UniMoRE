@@ -50,18 +50,31 @@ class ListaStudentiIscritti(ListView):
         return count
 
 
-class CreateStudenteView(CreateView):
+class CreateEntitaView(CreateView):
+    template_name = 'iscrizioni/crea_entry.html'
+    fields = '__all__'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        entita = "Studente"
+        if self.model == Insegnamento:
+            entita = "Insegnamento"
+        ctx['entita'] = entita
+        return ctx
+
+    def get_success_url(self):
+        if self.model == Studente:
+            return reverse('iscrizioni:listastudenti')
+        else:
+            return reverse('iscrizioni:listainsegnamenti')
+
+
+class CreateStudenteView(CreateEntitaView):
     model = Studente
-    template_name = 'iscrizioni/crea_studente.html'
-    fields = '__all__'
-    success_url = reverse_lazy('iscrizioni:listastudenti')
 
 
-class CreateInsegnamentoView(CreateView):
+class CreateInsegnamentoView(CreateEntitaView):
     model = Insegnamento
-    template_name = 'iscrizioni/crea_insegnamento.html'
-    fields = '__all__'
-    success_url = reverse_lazy('iscrizioni:listainsegnamenti')
 
 
 class DetailInsegnamentoView(DetailView):
