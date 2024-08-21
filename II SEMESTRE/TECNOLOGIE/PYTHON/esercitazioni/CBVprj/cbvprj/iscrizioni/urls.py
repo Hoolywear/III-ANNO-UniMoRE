@@ -22,4 +22,7 @@ app_name = 'iscrizioni'
 urlpatterns = [
     path('listastudenti/', ListaStudentiView.as_view(), name='listastudenti'),
     path('listainsegnamenti/', ListaInsegnamentiView.as_view(), name='listainsegnamenti'),
+    path('insegnamentiattivi/', ListaInsegnamentiAttivi.as_view(), name='insegnamentiattivi'),
+    path('studentiiscritti/', ListaStudentiIscritti.as_view(), name='studentiiscritti'),
+    path('creastudente/', CreateStudenteView.as_view(), name='creastudente'),
 ]
