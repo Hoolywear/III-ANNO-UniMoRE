@@ -9,6 +9,6 @@
         {% endfor %}
     </ul>
 
-    <a href="">Give an answer!</a>
+    <a href="{% url 'polls:vote' pk=object.pk %}">Give an answer!</a>
 
 {% endblock %}

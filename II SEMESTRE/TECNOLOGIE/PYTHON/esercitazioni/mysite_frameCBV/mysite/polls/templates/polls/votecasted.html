@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <h1>{{ object.question_text }}</h1>
+    <p>Your answer was:</p>
+    <p>{{ answer }}</p>
+    <em>{{ message }}</em>
+    <p><a href="{%  url 'polls:index' %}">Homepage</a></p>
+
+{% endblock %}

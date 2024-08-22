@@ -17,9 +17,9 @@
         <br>
         <a href="{% url 'polls:search' %}"> Search a question! </a>
         <br>
-        <a href=""> Create a question! </a>
+        <a href="{% url 'polls:createquestion' %}"> Create a question! </a>
         <br>
-        <a href=""> Create an answer! </a>
+        <a href="{% url 'polls:createchoice' %}"> Create an answer! </a>
         <br>
     </footer>
 
