@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %} Search Results Page {% endblock %}
+
+{% block content %}
+
+<h1>Results for your search</h1>
+
+{% if object_list %}
+        <ul>
+            {% for question in object_list %}
+                <li>
+                    {{ question.question_text }}<br>
+                    <ul>
+                        {% for choice in question.choices.all %}
+                        	<li>{{ choice.choice_text }}</li>
+                        {% endfor %}
+                        
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No questions matching your criteria.</p>
+    {% endif %}
+
+{% endblock %}
