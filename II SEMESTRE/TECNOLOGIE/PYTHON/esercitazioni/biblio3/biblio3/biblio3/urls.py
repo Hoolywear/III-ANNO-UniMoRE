@@ -20,7 +20,7 @@ from .views import *
 from .initcmds import *
 
 urlpatterns = [
-    path('', home, name='home'),
+    path('', biblio3_home, name='home'),
     path('gestione/', include('gestione.urls')),
     path('admin/', admin.site.urls),
 ]
