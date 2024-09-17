@@ -18,15 +18,28 @@
 \usepackage[noend]{algpseudocode}
 \usepackage{wrapfig}
 \usepackage{graphicx}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+    }
+
+\urlstyle{same}
 \graphicspath{ {./images/} }
 
 \input{\COLORSDIR/colors_4}
 
 \usepackage{listings}
 
-\definecolor{codeblue}{HTML}{074099}
-\definecolor{codepurple}{HTML}{850075}
-\definecolor{codered}{HTML}{98000f}
+\definecolor{codeblue}{HTML}{1e66f5}
+\definecolor{codepurple}{HTML}{8839ef}
+\definecolor{codered}{HTML}{d20f39}
+\definecolor{darkbluenord}{HTML}{232731}
+\definecolor{lightbluenord}{HTML}{b1bfe3}
 
 \lstdefinestyle{code}{
     backgroundcolor=\color{gray!10},   
@@ -48,8 +61,7 @@
     keywordstyle=\color{codepurple},
     stringstyle=\color{codered}
 }
-
-\lstset{style=sql}
+\lstset{style=code,language=python,commentstyle=\color{codeblue},keywordstyle=\color{codepurple},stringstyle=\color{codered}}
 
 \usepackage{mdframed}
 
