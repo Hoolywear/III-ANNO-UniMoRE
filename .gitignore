@@ -5,3 +5,22 @@ II SEMESTRE/TECNOLOGIE/PYTHON/esercitazioni/biblio/.idea/misc.xml
 II SEMESTRE/TECNOLOGIE/PYTHON/esercitazioni/biblio/.idea/modules.xml
 II SEMESTRE/TECNOLOGIE/PYTHON/esercitazioni/biblio/.idea/vcs.xml
 *.pyc
+
+## Core latex/pdflatex auxiliary files:
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+.*.lb
+
+## Intermediate documents:
+*.dvi
+*.xdv
+*-converted-to.*
