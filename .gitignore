@@ -24,3 +24,7 @@ II SEMESTRE/TECNOLOGIE/PYTHON/esercitazioni/biblio/.idea/vcs.xml
 *.dvi
 *.xdv
 *-converted-to.*
+
+# minted
+_minted*
+*.pyg
