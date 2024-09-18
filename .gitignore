@@ -28,3 +28,38 @@ II SEMESTRE/TECNOLOGIE/PYTHON/esercitazioni/biblio/.idea/vcs.xml
 # minted
 _minted*
 *.pyg
+
+
+# Idea, PyCharm, Intellij
+
+# User-specific stuff
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+
+# Generated files
+.idea/**/contentModel.xml
+
+# Sensitive or high-churn files
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
+
+# File-based project format
+*.iws
+
+
+# *.iml
+# modules.xml
+# .idea/misc.xml
+# *.ipr
+
+# Cache file creation bug
+# See https://youtrack.jetbrains.com/issue/JBR-2257
+.idea/$CACHE_FILE$
