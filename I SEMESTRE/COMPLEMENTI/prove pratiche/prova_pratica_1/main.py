@@ -31,7 +31,8 @@ def stampa_menu_operazioni(user):
         print('2. Ritorna al menu principale')
     else:
         print('2. Fai una nuova richiesta\n'
-              '3. Ritorna al menu principale')
+              '3. Visualizza totale ore accettate\n'
+              '4. Ritorna al menu principale')
 
 
 def menu_operazioni(user):
@@ -42,24 +43,67 @@ def menu_operazioni(user):
         except ValueError:
             print('Inserisci un numero!')
         else:
-            if op == 1:
-                user.stampa_richieste()
-            elif isinstance(user, Responsabile):
-                if op == 2:
+            if isinstance(user, Responsabile):
+                if op == 1:
+                    user.stampa_richieste()
+                    while True:
+                        try:
+                            ric = int(input('Scegli la richiesta da gestire (0 per uscire): '))
+                            if ric == 0:
+                                break
+                            richiesta_mod = user.richieste[ric - 1]
+                        except ValueError:
+                            print('Inserisci un numero!')
+                        except IndexError:
+                            print('Numero richiesta non valido!')
+                        else:
+                            if user.richieste[ric - 1].stato in Richiesta.STATI[1:2]:
+                                print('Richiesta già gestita! ')
+                                break
+                            menu_richieste(richiesta_mod)
+                            break
+                elif op == 2:
                     break
                 else:
                     print('Scelta non valida')
             else:
-                if op == 2:
+                if op == 1:
+                    user.stampa_richieste()
+                elif op == 2:
                     try:
                         ore_rich = int(input('Inserisci il numero di ore: '))
                         aggiungi_richiesta(user, ore_rich)
                     except ValueError:
                         print('Inserisci un numero!')
                 elif op == 3:
+                    print(user.ore_accettate())
+                elif op == 4:
                     break
                 else:
                     print('Scelta non valida')
+
+
+def menu_richieste(req):
+    while True:
+        print('<------------------------------------------->\n'
+              f'{req.user.nome} {req.user.cognome} {req}\n'
+              '1. Accetta la richiesta\n'
+              '2. Nega la richiesta\n'
+              '3. Torna indietro')
+        try:
+            ch = int(input('Scegli l\'operazione da eseguire: '))
+            if ch == 1:
+                print(req.accetta())
+                break
+            elif ch == 2:
+                print(req.nega())
+                break
+            elif ch == 3:
+                break
+            else:
+                print('Scelta non valida')
+        except ValueError:
+            print('Inserisci un numero!')
 
 
 # Main menu loop

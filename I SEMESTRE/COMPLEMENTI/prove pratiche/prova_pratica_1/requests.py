@@ -1,11 +1,8 @@
-from users import *
-
-
 class Richiesta:
-    __STATI = ['In attesa', 'Accettato', 'Negato']
+    STATI = ['In attesa', 'Accettato', 'Negato']
 
     def __init__(self, user, resp, ore):
-        self.__stato = 'In attesa'
+        self.__stato = self.STATI[0]
         self.__user = user
         self.__responsabile = resp
         self.__ore = ore
@@ -17,13 +14,6 @@ class Richiesta:
     @property
     def stato(self):
         return self.__stato
-
-    @stato.setter
-    def stato(self, stato):
-        if stato not in self.__STATI:
-            raise ValueError(f'Lo stato della richiesta deve essere uno tra {self.__STATI}')
-        else:
-            self.__stato = stato
 
     @property
     def user(self):
@@ -40,6 +30,14 @@ class Richiesta:
     @property
     def compenso(self):
         return self.__compenso
+
+    def accetta(self):
+        self.__stato = self.STATI[1]
+        return self.__stato
+
+    def nega(self):
+        self.__stato = self.STATI[2]
+        return self.__stato
 
 
 def aggiungi_richiesta(user, ore):

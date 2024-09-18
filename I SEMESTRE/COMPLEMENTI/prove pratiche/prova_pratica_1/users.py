@@ -1,3 +1,6 @@
+from requests import Richiesta
+
+
 class Utente:
     def __init__(self, nome, cognome, stipendio):
         self.nome = nome
@@ -25,6 +28,15 @@ class Subordinato(Utente):
         else:
             print('Nessuna richiesta presente')
 
+    def ore_accettate(self):
+        tot_ore = 0
+        tot_imp = 0
+        for richiesta in filter(lambda x: x.stato == Richiesta.STATI[1], self.richieste):
+            print(richiesta)
+            tot_ore += richiesta.ore
+            tot_imp += richiesta.compenso
+        return f'Totale ore accettate: {tot_ore}\nTotale importo ricevuto: {tot_imp} €'
+
 
 class Responsabile(Utente):
     def __str__(self):
@@ -34,7 +46,8 @@ class Responsabile(Utente):
         print('<---- Richieste di pagamento ---->')
         if len(self.richieste) > 0:
             for ind in range(len(self.richieste)):
-                print(f'{ind + 1}. {self.richieste[ind].user.nome} {self.richieste[ind].user.cognome} {self.richieste[ind]}')
+                print(
+                    f'{ind + 1}. {self.richieste[ind].user.nome} {self.richieste[ind].user.cognome} {self.richieste[ind]}')
         else:
             print('Nessuna richiesta presente')
 
