@@ -54,11 +54,10 @@ _minted*
 # File-based project format
 *.iws
 
-
-# *.iml
-# modules.xml
-# .idea/misc.xml
-# *.ipr
+*.iml
+modules.xml
+**/.idea/misc.xml
+*.ipr
 
 # Cache file creation bug
 # See https://youtrack.jetbrains.com/issue/JBR-2257
