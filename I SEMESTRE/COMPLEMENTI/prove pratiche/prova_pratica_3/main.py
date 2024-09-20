@@ -1,7 +1,20 @@
 from pazienti import *
 from datetime import date
+import pickle
 
 pazienti = [Paziente('gino','suppancig'), Paziente('paolo', 'de marchis')]
+
+
+def backup(lista, file):
+    with open(file, 'wb') as f:
+        pickle.dump(lista,f)
+    print(pickle.dumps(lista))
+
+
+def get_backup(file):
+    with open(file, 'rb') as f:
+        global pazienti
+        pazienti = pickle.load(f)
 
 
 def operazioni_paziente(p):
@@ -89,12 +102,35 @@ def crea_scheda():
             print('Alcuni campi sono rimasti vuoti')
 
 
+def menu_bkp():
+    while True:
+        try:
+            fn = input('Inserisci il path: ').strip()
+            if len(fn) == 0:
+                raise ValueError
+            backup(pazienti, fn)
+            break
+        except ValueError:
+            print('Vuoto')
+
+
+def menu_get_bkp():
+    while True:
+        try:
+            fn = input('Inserisci il path: ').strip()
+            if len(fn) == 0:
+                raise ValueError
+            get_backup(fn)
+            break
+        except ValueError:
+            print('Vuoto')
+
 def esci():
     print('\nUscita dal programma')
     quit()
 
 
-OPERAZIONI = [visualizza_pazienti, crea_scheda, esci]
+OPERAZIONI = [visualizza_pazienti, crea_scheda, menu_bkp, menu_get_bkp, esci]
 
 # main loop
 
@@ -102,10 +138,12 @@ while True:
     print('Casa di cura - distribuzione farmaci\n'
           '1. Visualizza i pazienti in cura\n'
           '2. Crea una scheda paziente\n'
-          '3. Esci')
+          '3. Fai backup\n'
+          '4. Importa backup\n'
+          '5. Esci')
     try:
         op = int(input('Inserisci l\'operazione: '))
-        if not 1 <= op <= 3:
+        if not 1 <= op <= 5:
             raise IndexError
         print('******')
         OPERAZIONI[op - 1]()
