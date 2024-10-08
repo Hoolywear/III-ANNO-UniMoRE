@@ -1,0 +1,107 @@
+Prova Teorica Complementi di Programmazione
+(10/01/2024)
+	•	Come si possono dichiarare degli argomenti opzionali in una funzione Python?
+	•	In Python non è consentito dichiarare argomenti opzionali
+	•	<nome argomento>=<valore di default>
+	•	!<nome argomento>
+	•	(<nome_argomento>)
+
+	•	Gli attributi di istanza in oggetto Python si definiscono
+	•	Nella classe prima dei metodi
+	•	All’interno del costruttore
+	•	Utilizzando un decoratore
+	•	Dentro il metodo 
+
+	•	In Python quando si utilizza un decoratore su una funzione
+	•	La funzione cambia il suo nome
+	•	La funzione diventa una lambda
+	•	Il decoratore viene invocato passando la funzione come argomento
+	•	La funzione viene invocata passandogli il decoratore come argomento extra
+
+	•	Certi linguaggi consentono di passare come argomento alle funzioni altre funzioni. Questa caratteristica prende il nome di
+	•	Programmazione di ordine superiore
+	•	First class entry
+	•	Lambda
+	•	Duck Typing
+
+	•	Quale di queste affermazioni su Python è falsa
+	•	È un linguaggio dinamico
+	•	È un linguaggio completamente ad oggetti
+	•	I tipi primitivi non sono oggetti
+	•	È un linguaggio ad alto livello
+
+	•	Qual è il modo standard in Python per implementare uno switch case?
+	•	Esiste il costrutto switch apposito
+	•	Con un ciclo while
+	•	Con if/elif/else
+	•	Importando un’apposita libreria
+
+	•	Quale di questi è un elemento essenziale della ricorsione
+	•	La condizione di stop
+	•	Il conteggio delle chiamate
+	•	La presenza di un ciclo
+	•	La presenza di un print()
+
+	•	Dentro un metodo di una classe ci si riferisce, in Python, all’oggetto stesso utilizzando
+	•	this
+	•	self
+	•	super
+	•	child
+
+	•	Cosa contraddistingue un linguaggio di programmazione statico?
+	•	È un tipo di linguaggio di programmazione in cui i tipi delle variabili e delle espressioni sono verificati a tempo di compilazione
+	•	È un tipo di linguaggio di programmazione in cui i tipi delle variabili e delle espressioni sono verificati a tempo di esecuzione
+	•	È un tipo di linguaggio di programmazione in cui le variabili non possono cambiare il loro valore durante l’esecuzione
+	•	È un tipo di linguaggio di programmazione in cui il numero delle variabili non può cambiare durante l’esecuzione
+
+	•	I metodi statici di una classe di definiscono utilizzando
+	•	Il decoratore @staticmethod
+	•	Il decoratore @classmethod
+	•	La parola chiave static
+	•	Non mettendo self tra gli argomenti
+
+	•	Qual è l’output del seguente ciclo (\n è il ritorno a capo):  FOR A IN ‘ABCD’:   print(A)
+	•	a\nb\nc\nd\n
+	•	abcd
+	•	a\nb\nc\nd
+	•	abcd\nabcd\nabcd\nabcd\n
+
+	•	I linguaggi interpretati tendono ad avere performance peggiori rispetto ai linguaggi compilati. Uno dei motivi è
+	•	I linguaggio interpretati non hanno prestazioni inferiori
+	•	L’interprete deve valutare e controllare ogni istruzione
+	•	Il sistema operativo interrompe frequentemente l’interprete per assicurarsi che non stia eseguendo codice malevolo
+	•	La RAM è un collo di bottiglia per le istruzioni interpretate
+
+	•	In cosa consiste il Duck Typing
+	•	Quando si chiama un metodo su un oggetto, l’interprete controlla minuziosamente la struttura dell’oggetto stesso
+	•	Quando si chiama un metodo su un oggetto, l’interprete controlla solamente che quell’oggetto abbia quel metodo
+	•	I tipi di dati di un operazione vengono convertiti in automatico
+	•	È un sistema per stabilire l’ereditarietà dei metodi
+
+	•	In Python le eccezioni si sollevano utilizzando la parola chiave
+	•	throw
+	•	raise 
+	•	except 
+	•	In Python non esistono le eccezioni
+
+	•	Quale di queste non è una caratteristica delle funzioni pure
+	•	Stesso input implica stesso output
+	•	Gli argomenti in input non vengono modificati
+	•	La funzione non utilizza variabili globali
+	•	Al suo interno non vi sono print()
+
+	•	Per definire un generatore in Python è necessario
+	•	Che contenga la parola chiave yield
+	•	Istanziarlo dall’apposita classe
+	•	Utilizzare una compressione di lista
+	•	In Python non esistono i generatori
+
+	•	Per poter essere inserito in un ciclo for e poter iterare su di esso, un oggetto deve:
+	•	Avere un metodo  che restituisce un iterabile
+	•	Avere un metodo  che restituisce l’elemento successivo
+	•	Essere una lista
+	•	Far parte del modulo itertools
+
+Ogni risposta giusta vale 1 punto, poi ci sono 3 domande aperte, ciascuna da 5 punti (totale: 32 punti).
+
+
