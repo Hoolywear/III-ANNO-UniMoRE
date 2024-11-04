@@ -1,0 +1,77 @@
+\input{../../../preamble}
+
+\title{%
+Protocolli e Architetture di Rete\\
+\large Appunti di laboratorio}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+\section*{Marionnet}
+\addcontentsline{toc}{section}{Marionnet}
+
+\noindent
+\begin{minipage}[c]{.5\textwidth}
+Software per la simulazione di reti di calcolatori che offre un frontend grafico, basato su UML e altri tools, includendo
+\begin{itemize}
+  \item host di rete
+  \item hub e switch
+  \item router
+  \item gateway Internet
+\end{itemize}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{.3\textwidth}
+\includegraphics[width=\textwidth]{marionnet_intro_img.png}
+\end{minipage}
+
+\subsection*{Utilizzo durante il corso}
+\addcontentsline{toc}{subsection}{Utilizzo durante il corso}
+
+Tramite VM remote FIM, o installando il sistema in locale dai link su Moodle
+
+Si consiglia l'uso del sistema \lstinline|aapar2|
+
+\begin{warning}
+    Per il momento i sistemi presenti nei laboratori e nelle distribuzioni \textbf{non sono compatibili tra loro}
+\end{warning}
+
+\subsection*{Nuovo progetto e configurazione base}
+\addcontentsline{toc}{subsection}{Nuovo progetto e configurazione base}
+
+\lstinline|Project -> New| e ci ritroviamo sulla schermata iniziale del nuovo workspace\\
+Per inserire una nuova macchina, usiamo l'icona a sinistra oppure \lstinline|Ctrl + M|. Nel menu a comparsa abbiamo la possibilit\`a di modificare
+
+\noindent
+\begin{minipage}[c]{.5\textwidth}
+\begin{itemize}
+  \item \lstinline|name|: deve essere univoco nel network
+  \item \lstinline|label|: descrizione opzionale
+  \item \lstinline|memory|: la RAM (tipicamente 100MB o pi\`u)
+  \item \lstinline|ethernet cards|: numero di schede ethernet
+  \item \lstinline|distribution|: usiamo \lstinline|aapar2|, creata dal prof per il corso
+  \item \lstinline|variant|: modifiche persistenti alla macchina
+  \item \lstinline|kernel|: usiamo \lstinline|aapar2|
+\end{itemize}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{.2\textwidth}
+\includegraphics[height=150px]{marionnet_add_machine.png}
+\end{minipage}
+
+
+\subsection*{Cavi}
+\addcontentsline{toc}{subsection}{Cavi}
+
+\begin{itemize}
+  \item cavi \textbf{crossover} (incrociati): connessioni tra dispositivi di rete dello \textbf{stesso livello dello stack}
+  \item cavi \textbf{straight} (dritti): connessioni tra disp. di livello differente
+\end{itemize}
+
+\begin{example}[frametitle={Esempio base: collegare due macchine tra loro}]
+  Creo due macchine e le collego mediante crossover cables. Per attivare le shell delle macchine, clicchiamo su \lstinline|Start all|
+\end{example}
+
+
+\end{document}
