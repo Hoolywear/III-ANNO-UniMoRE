@@ -44,6 +44,8 @@
 \lstdefinestyle{code}{
     backgroundcolor=\color{gray!10},   
     basicstyle=\ttfamily,
+    commentstyle=\color{codeblue},
+    keywordstyle=\color{codered},
     breakatwhitespace=false,         
     breaklines=true,                 
     captionpos=b,                    
@@ -61,14 +63,26 @@
     keywordstyle=\color{codepurple},
     stringstyle=\color{codered}
 }
-\lstset{style=code,language=python,commentstyle=\color{codeblue},keywordstyle=\color{codepurple},stringstyle=\color{codered}}
 
-\usepackage{mdframed}
+\lstdefinestyle{python}{
+    style=code,
+    language=python,
+    commentstyle=\color{codeblue},
+    keywordstyle=\color{codepurple},
+    stringstyle=\color{codered}
+}
+
+\lstset{style=code,language=C++}
+
+\usepackage[framemethod=TikZ]{mdframed}
+
+\mdfsetup{%
+  roundcorner=8pt}
 
 % styles
 \def\Clinewidth{.8pt}
 \mdfdefinestyle{titlerule}{%
-  frametitlerule=true,roundcorner=5pt,%
+  frametitlerule=true,%
   frametitlerulewidth=\Clinewidth,%
   subtitleaboveline=true,subtitlebelowline=true,%
   subtitleabovelinewidth=\Clinewidth,subtitlebelowlinewidth=\Clinewidth,%
@@ -76,8 +90,7 @@ subtitlebackgroundcolor=obs,linewidth=1pt}
 \mdfdefinestyle{emphasize}{%
   style=titlerule,%
   frametitle=,%
-  linecolor=gray!50,linewidth=3pt,backgroundcolor=gray!10,%
-  topline=false,bottomline=false,rightline=false}
+  linecolor=gray!50,linewidth=1pt,backgroundcolor=gray!10}
 
 % verbatim environment
 \surroundwithmdframed[backgroundcolor=gray!5,hidealllines=true,%
