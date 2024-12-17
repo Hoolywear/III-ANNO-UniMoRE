@@ -1,0 +1,4 @@
+external f(x)
+function g(x y)
+   f(x)*y
+end

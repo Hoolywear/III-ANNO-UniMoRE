@@ -1,0 +1,65 @@
+deflist   : def otherdef
+otherdef  : EPS
+otherdef  : def otherdef
+def       : extdef
+def       : funcdef
+extdef    : 'external' prototype
+funcdef   : 'function' prototype expression 'end'
+prototype : 'id' '(' params ')'
+params    : EPS
+params    : 'id' params
+expression: numerexpr
+expression: condexpr
+expression: letexpr
+numerexpr : term numer
+numer     : '+' term numer
+numer     : '-' term numer
+numer     : EPS
+term      : factor termprime
+termprime : '*' factor termprime
+termprime : '/' factor termprime
+termprime : EPS
+factor    : '-' factor
+factor    : atom
+atom      : 'id' id
+id        : EPS
+id        : '(' arglist ')'
+atom      : 'int'
+atom      : '(' numerexpr ')'
+arglist   : EPS
+arglist   : expression args
+args      : EPS
+args      : ',' expression args
+condexpr  : 'if' pairs 'end'
+pairs     : pair otherpairs
+otherpairs: '|' pair otherpairs
+otherpairs: EPS
+pair      : boolexpr ';' numerexpr
+boolexpr  : andexpr orprime
+andexpr   : basebool andprime
+andprime  : 'and' basebool andprime
+andprime  : EPS
+orprime   : 'or' andexpr orprime
+orprime   : EPS
+basebool  : 'not' basebool
+basebool  : literal
+basebool  : relational
+literal   : 'true'
+literal   : 'false'
+relational: numerexpr relop numerexpr
+relop     : '='
+relop     : '<='
+relop     : '>='
+relop     : '<'
+relop     : '>'
+letexpr   : 'let' bindings 'in' ncexpr
+ncexpr    : condexpr
+ncexpr    : numerexpr
+bindings  : bind otherb
+otherb    : ',' bind otherb
+otherb    : EPS
+bind      : 'id' '=' numerexpr
+mainf     : expression
+mainf     : EPS
+lfmprog   : mainf
+lfmprog   : deflist mainf

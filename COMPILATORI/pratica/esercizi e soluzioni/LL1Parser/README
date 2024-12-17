@@ -1,0 +1,22 @@
+L'installazione richiede la disponibilità di python3, oltreché di make
+e del compilatore clang++ (alternativamente si può usare g++).
+I programmi python sono stati testati e funzionano
+sicuramente con la versione 3.8 (o maggiore).
+
+File contenuti nella cartella
+1) first_and_follow.py: programma per il calcolo degli omonimi insiemi
+2) makell1parser.py: programma che crea il file .hpp con la definizione
+   delle strutture dati per la grammatica specificata e il file
+   con i token condiviso tra parser e lexer
+3) ll1parser.cpp: parte strettamente "algoritmica" del parser. Viene specializzata
+   su una data grammatica con l'inclusione dei file creati da makell1parser.py
+4) file con la grammatica del linguaggio funzionale minimo (lfm) e il relativo
+   file .l per l'analizzatore lessicale 
+5) symbtbl_lfm.h: file con la definizione del tipo degli elementi della
+   symbol table. La symbol table al momento "non serve"
+6) Makefile per la compilazione dell'intero progetto.
+   USO: make GRAMMAR=lfm   (o il nome di un'altra grammatica)
+   Per la "pulizia": make clean GRAMMAR=lfm
+   
+Esempio per "testare" l'installazione:
+> echo "function f(a b) let x=a+b in x*x end" | ./ll1parser
