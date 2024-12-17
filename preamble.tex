@@ -3,7 +3,7 @@
 \newcommand{\COLORSDIR}{/Users/hoolywear/Desktop/UNIMORE/II ANNO/II SEMESTRE/colors}
 
 \usepackage[italian]{babel}
-\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage[usenames,dvipsnames,table]{xcolor}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{soul}
@@ -27,8 +27,11 @@
     pdftitle={Overleaf Example},
     pdfpagemode=FullScreen,
     }
-
 \urlstyle{same}
+\usepackage{caption}
+\usepackage{capt-of}
+\captionsetup[figure]{name=Fig.}
+\renewcommand{\thefigure}{\arabic{section}.\arabic{figure}}
 \graphicspath{ {./images/} }
 
 \input{\COLORSDIR/colors_4}
@@ -56,13 +59,6 @@
     tabsize=2,
     mathescape=true %dollar signs act as inline math delimiters
 }
-\lstdefinestyle{sql}{
-    style=code,
-    language=SQL,
-    commentstyle=\color{codeblue},
-    keywordstyle=\color{codepurple},
-    stringstyle=\color{codered}
-}
 
 \lstdefinestyle{python}{
     style=code,
@@ -87,15 +83,11 @@
   subtitleaboveline=true,subtitlebelowline=true,%
   subtitleabovelinewidth=\Clinewidth,subtitlebelowlinewidth=\Clinewidth,%
 subtitlebackgroundcolor=obs,linewidth=1pt}
+
 \mdfdefinestyle{emphasize}{%
   style=titlerule,%
   frametitle=,%
   linecolor=gray!50,linewidth=1pt,backgroundcolor=gray!10}
-
-% verbatim environment
-\surroundwithmdframed[backgroundcolor=gray!5,hidealllines=true,%
-                      innerleftmargin=1pt,innerrightmargin=1pt%
-                      frametitle={}]{verbatim}
 
 % algorithmic environment
 \surroundwithmdframed[backgroundcolor=gray!10,hidealllines=true,%
@@ -107,26 +99,30 @@ frametitle={}]{algorithmic}
 % example environment
 \newmdenv[frametitle=Esempio,style=titlerule]{example}
 
-% definition environment
-\newmdenv[frametitle=Definizione,style=titlerule,%
-          linecolor=def]{definition}
-
-% theorem environment
-\newmdenv[frametitle=Teorema,style=titlerule,%
-          linecolor=the]{theorem}
-
 % emphasize environment
 \newmdenv[style=emphasize,%
           linecolor=emp!70!red,backgroundcolor=emp]{emphasize}
 
-% observation environment
-\newmdenv[frametitle=Osservazione,%
-          backgroundcolor=white,linecolor=obs,%
-          frametitlebackgroundcolor=obs]{observation}
-
-% warning environment
+% blue emphasize environment
 \newmdenv[style=emphasize,%
-          backgroundcolor=war!10,linecolor=war]{warning}
+          linecolor=obs!70,backgroundcolor=obs!20]{emphasize-blue}
+
+%% NOT USED IN III ANNO
+%% % definition environment
+%% \newmdenv[frametitle=Definizione,style=titlerule,%
+%%           linecolor=def]{definition}
+%% 
+%% % theorem environment
+%% \newmdenv[frametitle=Teorema,style=titlerule,%
+%%           linecolor=the]{theorem}
+%% % observation environment
+%% \newmdenv[frametitle=Osservazione,%
+%%           backgroundcolor=white,linecolor=obs,%
+%%           frametitlebackgroundcolor=obs]{observation}
+%% 
+%% % warning environment
+%% \newmdenv[style=emphasize,%
+%%           backgroundcolor=war!10,linecolor=war]{warning}
 
 \author{Iacopo Ruzzier}
 \date{Ultimo aggiornamento: \today}
