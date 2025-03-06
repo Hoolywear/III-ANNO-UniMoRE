@@ -1,0 +1,115 @@
+\input{../../../preamble}
+
+\title{%
+  Progetto del Software\\
+\large Appunti redatti}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section*{Introduzione}
+\addcontentsline{toc}{section}{Introduzione}
+
+Il corso tratta metodologie di progetto del software, diversificate per le varie necessit\`a e solitamente riconducibili a poche famiglie $\rightarrow$ strutturazione e automatizzazione del processo
+
+vedremo
+\begin{itemize}
+  \item documentazione (su sw di larga scala si lavora in molti) - come usare, modificare, testare, rilasciare i nostri artefatti sw; licensing
+  \item requisiti, KPI, test-driven design
+  \item tool di collaborazione
+  \item design tools (UML, E/R d., ...)
+  \item design pattern
+  \item strutturazione codice (programmazione avanzata)
+  \item alcuni use-cases
+\end{itemize}
+
+\newpage
+\part{Collaborative tools - Git \& friends}
+\section{VCS, git}
+
+vcs: sistema che traccia le modifiche fatte ad un progetto e permette di ritornare a stati precedenti
+\begin{itemize}
+  \item permette lo sviluppo collaborativo (modifiche "firmate")
+  \item obbliga a seguire flussi di sviluppo noti
+  \item fornisce set di strumenti per automatizzare testing, integrazione, sviluppo (CI/CD)
+  \item modo semplice per scrivere documentazione
+  \item permette di concentrarsi sulla scrittura del codice "senza pensieri"
+\end{itemize}
+
+\subsection{git}
+
+vcs pi\`u usato, basato su repo distribuiti (2005 torvalds, per supportare sviluppo kernel linux): a partire da repo remote contenenti la codebase ("origin") gli utenti clonano la repo in locale, la mantengono aggiornata tramite pull, la aggiornano tramite push
+
+\section{Workflow base}
+
+progetto come \textbf{sequenza di commit}: snapshot del codice in un dato istante, con commit identificati da hashcode, contenenti riferimento al commit precedente, e commento obbligatorio\\
+$\rightarrow$ i commit tracciano cambiamenti incrementali della codebase, con granularit\`a a discrezione dei programmatori
+
+\begin{emphasize}
+    \begin{itemize}
+      \item prima di un commit devo aggiungere i file nella staging area
+      \item rinominare file significa elimino+riaggiungo
+    \end{itemize}
+\end{emphasize}
+
+\begin{lstlisting}[language=bash]
+git clone <URL>
+git log #log di tutti i commit fatti
+git diff #per visualizzare le differenze tra due commit
+git add <file>[<file>...] #staging
+git commit # -m "msg"
+git commit -a # bypassa staging, ma non considera i file appena aggiunti
+			        # non ancora tracciati
+git commit --amend # ritorno al commit precedente se ho dimenticato qualcosa
+git push [origin] [master]
+git pull [origin] [master]\end{lstlisting}
+
+IMG schema git
+
+\begin{emphasize}
+    pulling e auto-merging: la storia locale \`e aggiornata in base al timestamp del commit. in particolare viene modificata automaticamente includendo sia i cambiamenti locali che quelli remoti (merge in automatico)
+\end{emphasize}
+
+\subsection{Merge e conflitti}
+
+git lavora sulla singola riga $\rightarrow$ conflitto se viene modificata da pi\`u utenti diversi, con repo locale che resta in stato conflicting in caso di \textbf{merge conflicts} $\rightarrow$ vanno risolti localmente e va fatto il merge manuale (flag appropriati)
+
+consigli:
+\begin{itemize}
+  \item pull frequenti
+  \item assicurarsi che il codice funzioni (testing automations)
+  \item commit piccoli, suddivisi per area di lavoro (codice, makefile, script) $\rightarrow$ forza a mantenere lo spazio di lavoro pulito e strutturato
+\end{itemize}
+
+\begin{lstlisting}[language=bash]
+git checkout/reset # unstaging/deletion modifiche o commit locali
+git revert # per ritornare ad un commit specifico
+git cherry-pick # essendo i commit incrementali (tracciano la
+# differenza rispetto al genitore), possiamo applicare la stessa
+# logica ma rispetto ad un commit diverso\end{lstlisting}
+
+\section{Struttura tipica di un progetto con versioning}
+
+tipicamente molto rigida
+\begin{itemize}
+  \item branch principale contenente ultima versione rilasciata (e intera cronologia commit)
+  \item branch multiple corrispondenti a sottoprogetti specifici
+  \item libert\`a totale sulle branch, tipicam.~regole aziendali (\lstinline|develop,bugfix/,hotfix/,features/,.pb_<smth>|)
+  \item push su main branch non permesso $\rightarrow$ fork di main o dev, e poi PR (gestita dal maintainer)
+  \item regole di accesso e vari ruoli utente (a liv.~repo e branch)
+\end{itemize}
+
+flow tipico:
+\begin{enumerate}
+  \item dev clona una branch della repo remota aggiornata
+  \item dev inizia a lavorare, nuovi commit in lcoale, nel mentre commit nuovi anche in remoto
+  \item una volta pronto, il dev fa una pull da remoto, con la responsabilit\`a di rendere consistenti i propri commit con la cronologia principale (implica retesting)
+  \item dopo il merge, si crea il "final commit", si pusha sul cloud e si fa una PR
+  \item (tipicamente) la richiesta viene accettata, e le modifiche sono applicate alla branch \lstinline|Developer|
+  \item ultimo pull per rendere consistente la copia locale, e (tipicamente) eliminiamo l'altra branch
+\end{enumerate}
+
+
+\end{document}

@@ -1,0 +1,1802 @@
+\input{../../../preamble}
+\usepackage{csquotes}
+\usepackage{minted}
+\usemintedstyle{manni}
+%\setminted{bgcolor=darkbluenord}
+%\setmintedinline{bgcolor=,style=manni}
+\surroundwithmdframed[backgroundcolor=lightbluenord]{displayquote}
+\graphicspath{ {/Users/hoolywear/Library/Mobile Documents/iCloud~com~logseq~logseq/Documents/hlywr-main/assets/} }
+
+\title{%
+  Complementi di programmazione \\
+\large Appunti redatti}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\part{introduzione ai linguaggi dinamici}
+
+\section{cenni storici}
+
+gli sviluppi nei linguaggi rispecchiano esigenze ed epoca storica
+\textbf{sistemi mainframe} $\rightarrow$ applicazioni per calcolo scientifico, interfacce testuali, amministrazione in forma di script per automatizzare compiti
+C $\rightarrow$ prestazioni elevate, ma meno portabile
+Assembly $\rightarrow$ veloce, scarsamente portabile, ma interfacciamento diretto con hw
+shell $\rightarrow$ pi\`u lento ma molto portabile, ideale per manutenzione e scripting
+l'avanzamento HW e la complessit\`a in aumento fanno emergere il concetto di *"linguaggio ad alto livello general purpose"*
+$\rightarrow$ Python, Ruby, Java
+
+semplicit\`a, oop, portabilit\`a
+
+1991: \textbf{WWW} $\rightarrow$ emergono linguaggi per Web App (PHP, JavaScript), se ne adattano altri esistenti (C, Perl)
+
+\section{linguaggi statici vs dinamici}
+
+linguaggi statici
+
+tipicamente compilati
+
+tipi delle variabili verificati a tempo di \textbf{compilazione}
+
+linguaggi dinamici
+
+tipicamente interpretati
+
+tipi verificati a tempo di \textbf{esecuzione}
+
+\textbf{pro}
+
+flessibilit\`a
+
+maggior facilit\`a di debug, sviluppo pi\`u rapido
+
+(tipicamente) sintassi pi\`u semplice
+
+\textbf{contro}
+
+prestazioni inferiori (overhead significativo per l'allocazione di memoria e verifica tipi a runtime)
+
+errori a runtime $\rightarrow$ debug problematico in applicazioni critiche
+
+maggiore difficolt\`a di manutenzione (codice meno auto-documentante)
+
+maggiore probabilit\`a di bug
+
+pu\`o avere una fase di compilazione in formati intermedi indipendenti dall'architettura, che poi vengono interpretati
+
+\textbf{l'interprete}
+
+si serve di funzioni interne per gestire memoria ed errori in automatico
+
+tipizzazione dinamica
+
+Metaprogramming $\rightarrow$ capacit\`a di auto-analisi e modifica del codice
+
+librerie esterne facilmente utilizzabili
+
+\part{tipizzazione}
+
+un programma manipola \textbf{dati} attraverso \textbf{istruzioni}
+
+\textbf{istruzioni} $\rightarrow$ indicano l'operazione da compiere su dati di un certo tipo
+
+\textbf{tipo} $\rightarrow$ indica cosa rappresenta il dato (quindi le operazioni permesse)
+
+nel programma, un dato viene identificato da un nome, ma il programmatore deve anche conoscerne
+
+tipo $\rightarrow$ per non indicare operazioni sbagliate
+
+dimensione $\rightarrow$ per non saturare la memoria
+
+scope e tempo di vita $\rightarrow$ per sapere quando usare l'entit\`a
+
+la tipizzazione permette di
+
+scoprire codice \textbf{illecito/senza senso}
+
+ottimizzare l'\textbf{esecuzione}
+
+aiuta nell'\textbf{astrazione} (tralascio i dettagli di memorizzazione del dato a basso livello)
+
+aiuta a definire \textbf{interfacce}
+
+\section{type check nei linguaggi dinamici}
+
+permette maggiore flessibilit\`a, ma implica la possibilit\`a di molti errori e comportamenti non previsti
+
+\section{tipizzazione forte}
+
+sono imposte rigide regole sulla \textbf{conversione} dei tipi di dato e sulla \textbf{compatibilit\`a tra tipi}
+
+obbligo di dichiarare i tipi
+
+conversioni esplicite
+
+\section{tipizzazione debole}
+
+consente conversioni implicite e operazioni tra tipi incongruenti
+
+esempio:
+
+\begin{minted}{python}
+a = 3
+b = 58
+a + b = ?
+\end{minted}
+
+in C, si passa all'aritmetica dei puntatori $\rightarrow$ \mintinline{python}{op. tra indirizzi}
+
+in Java, i numeri sono convertiti in stringhe $\rightarrow$ \mintinline{python}{358}
+
+in Perl, le stringhe numeriche sono convertite in numeri $\rightarrow$ \mintinline{python}{61}
+
+\textbf{in Python otteniamo un errore!}
+
+non c'\`e obbligo di dichiarazione di tipo
+
+\section{tipizzazione safe}
+
+quando il linguaggio impedisce che un operazione di casting implicito causi un crash
+
+Java, Perl
+
+\section{tipizzazione unsafe}
+
+quando il linguaggio \textbf{non} impedisce il crash $\rightarrow$ C (se il puntatore \`e fuori range), \textbf{Python}
+
+\section{tipizzazione in Python}
+
+python \`e completamente object oriented $\rightarrow$ ogni variabile \`e oggetto, \textbf{anche i tipi primitivi}
+
+ogni oggetto ha a disposizione metodi e attributi della sua classe \textbf{+ quelli ereditati}
+
+tramite ereditariet\`a si possono realizzare comportamenti diversi per uno stesso metodo - \`e necessario \textbf{capire quale metodo chiamare} (a tempo di compilazione/runtime), controllando che la classe abbia il metodo, oppure passare alle superclassi
+
+\begin{minted}{python}
+class Moto(Veicolo):
+  def getRoute():
+    return 2
+  
+class Auto(Veicolo):
+  def getRoute():
+    return 3
+  
+Veicolo v = getVeicolo() # ritorno Auto o Moto
+v.getRoute() # risultato??
+\end{minted}
+
+\`e dunque necessario conoscere il tipo dell'oggetto...?
+
+\subsection{duck typing}
+
+in Python, \textbf{non controllo il tipo!} ma solo se l'oggetto possiede il metodo
+
+\begin{displayquote}
+ "When I see a bird that walks like a duck and swims like a duck and quacks like a duck, I call that bird a duck"
+\end{displayquote}
+
+\begin{minted}{python}
+def calcola(a,b,c):
+  return (a+b)*c
+
+e1 = calcola(1,2,3)
+# 9
+e2 = calcola([1,2,3],[4,5,6],2)
+# [1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6]
+e3 = calcola('mele ', 'e arance ',3) 
+# 'mele e arance mele e arance mele e arance '
+\end{minted}
+
+\emph{\`e sufficiente che riceva parametri che supportano le operazioni \mintinline{python}|+| e \mintinline{python}|*|!}
+
+\part{Python}
+
+alto livello, dinamico, interpretato
+
+compilatore+interprete, Bytecode, PVM (Python Virtual Machine)
+
+  shebang: \mintinline{python}{#!/usr/bin/python}
+
+documentazione integrata con \mintinline{python}{help(something)}
+
+\section{tipi di base}
+
+\textbf{numerics}: interi, float, complessi (\mintinline{python}{z = 10 + 20j / z.real / z.imag}), booleani
+
+operazioni aritmetiche std, divisione intera, resto intero, valore assoluto, complesso coniugato, potenza, arrotondamenti vari
+
+\textbf{sequenze} e \textbf{stringhe}: intesi come sequenza ordinata di elementi
+
+stringhe (immutabili), liste \mintinline{python}{[]}, tuple \mintinline{python}{()} (immutabili a differenza delle liste)
+
+accesso ad un elemento con bracket notation, concatenazione, ripetizione, lunghezza con \mintinline{python}{len()}
+
+operazioni su stringhe: \mintinline{python}{lower, upper, count(substr), find(substr), replace(sub1,sub2),join,split,...}
+
+operazioni su liste: \mintinline{python}{append, insert, pop, sort, sorted, len, in, remove, del...}
+
+slicing mediante bracket notation (per entrambi i tipi)
+
+\textbf{deep e shallow copy} di liste: copiando tramite \mintinline{python}{b = a} si copia il riferimento allo stesso oggetto, e dunque si modifica lo stesso oggetto $\rightarrow$ per una deep copy si usa un modulo esterno, o lo slicing \mintinline{python}{b = a[:]} 
+
+operazioni su tuple: tutti quelli delle liste \textbf{tranne quelli di modifica}
+
+\subsection{list comprehension}
+
+\begin{minted}{python}
+[expr for var in sequence]
+# esempio
+squares = [x**2 for x in range(10)]
+\end{minted}
+
+\textbf{set}: insieme non ordinato (no accesso ad indice) di oggetti non duplicati
+
+creato con \mintinline{python}{set()} o \mintinline{python}|\{elem,elem\}|
+
+\mintinline{python}{set([list])} per crearlo da una lista
+
+comodi per eliminare i duplicati es. da una lista, o per test di appartenenza (pi\`u efficiente che operare su liste)
+
+operazioni: \mintinline{python}{len(S),el in/not in S,S.isdisjoint(S2),}
+\newline\mintinline{python}{S1 |/&/- S2 / S1.union/intersection/difference(S2),...}
+
+\textbf{dictionary}: simile a hashmap (coppie key-value)
+
+i valori possono essere qualsiasi, le chiavi \textbf{devono essere oggetti immutabili} es. numerics, stringhe, tuple
+
+\textbf{chiavi uniche nel dizionario}
+
+accesso ai valori con bracket notation $\rightarrow$ si pu\`o usare per \textbf{aggiungere/modificare valori}
+
+metodi: \mintinline{python}{.keys(), .values(), .items()} $\rightarrow$ lista con le chiavi, lista con i valori, lista di tuple; \mintinline{python}{del dict[key], .pop(key), key in dict, .has_key(key)}
+
+\section{costrutti di base}
+
+i blocchi sono indentati, non usano graffe
+
+non si usa \mintinline{python}{;} a fine istruzione, solo per multiple istruzioni su una riga
+
+possibile assegnamento multiplo es. \mintinline{python}{a,b = 1,2}
+
+\mintinline{python}{import module} o \mintinline{python}{from module import something} o \mintinline{python}{import module as alias}
+
+\mintinline{python}{# commenti}
+
+\begin{minted}{python}
+if cond:
+  block
+elif cond: # opzionale
+  block
+else: # opzionale
+  block
+  
+while cond:
+  block
+else: # opzionale
+  block
+
+for elem in iterable: # qualsiasi iterabile
+  block
+else: # opzionale
+  block
+\end{minted}
+
+\mintinline{python}{break, continue} cambiano il flusso del ciclo; \mintinline{python}{break} non esegue l'eventuale \mintinline{python}{else}
+
+a seconda dell'iterabile che scelgo per il for, accadono cose diverse
+
+\mintinline{python}{range()} genera sequenze di numeri ordinate
+
+liste e tuple: riferimento ad un oggetto ad ogni iterazione
+
+stringhe: 1 carattere per iterazione
+
+set e dictionary: 1 elemento/chiave per iterazione, \textbf{non garantito l'ordine!}
+
+\mintinline{python}{enumerate()} ritorna una tupla \mintinline{python}{(index, obj)} per ogni elemento della sequenza passata $\rightarrow$ si pu\`o usare \mintinline{python}{for i,o in enumerate(a):}
+
+si usano \mintinline{python}{iter(), next()} come wrapper pi\`u comodi per chiamare i metodi
+
+\section{funzioni}
+
+non innestate in una classe ($\neq$ metodi)
+
+\begin{minted}{python}
+def foo(arg1, arg2):
+  block
+  return statement
+\end{minted}
+
+parametri opzionali con valore di default se non passati: si mettono per ultimi
+
+passaggio di argomenti: \textbf{positional arguments} (senza specificare i parametri, conta l'ordine) oppure \textbf{keyword arguments} (ordine indifferente)
+
+operatori \mintinline{python}{*} e \mintinline{python}{**} per "spacchettare" liste e dizionari in positional/keyword arguments
+
+possono essere usati anche nella definizione, in questo caso tutti i parametri posizionali sono condensati in una tupla, mentre i keyword arguments in un dizionario
+
+utile se non conosco a priori il numero di parametri necessari!
+
+\textbf{posso comunque avere parametri espliciti}
+
+\subsection{ricorsione}
+
+possibile come negli altri linguaggi, a patto di un criterio di arresto
+
+\begin{minted}{python}
+# esempio - funzione per appiattire una lista di liste
+def flatten(l):
+  res = []
+  
+  if not hasattr(l,'__iter__'):
+    return [l]
+  
+  for o in l:
+    res.extend(flatten(o))
+  return res
+\end{minted}
+
+\subsection{programmazione di ordine superiore}
+
+la usano i linguaggi che permettono di passare funzioni come parametro/ritornarle come risultato di altre funzioni
+
+\begin{minted}{python}
+# passaggio come parametro
+def print_function_result(func):
+  print(f'il risultato \`e {func()}')
+
+# uso come valore di ritorno
+def get_help_print_function(lang):
+  def eng_help():
+    print('help')
+    
+  def ita_help():
+    print('aiuto')
+    
+  if lang == 'eng':
+    return eng_help # ASSENZA DI ()
+  else:
+    return ita_help # ASSENZA DI ()
+\end{minted}
+
+\subsubsection{closure}
+
+le funzioni innestate \textbf{possono accedere alle variabili delle funzioni madri} $\rightarrow$ sono incapsulate nelle funzioni figlie in modo da poter essere usate anche quando \textbf{termina la funzione madre}
+
+\begin{minted}{python}
+def print_msg(msg):
+  def printer():
+    print(msg) # NON FA PARTE DELLA FUNZIONE MA DELLA MADRE!
+  
+  return printer
+\end{minted}
+
+\subsubsection{lambda}
+
+anche \textbf{funzione anonima}
+
+\begin{minted}{python}
+lambda args: return_value
+#esempio per ritornare il quadrato
+lambda x:x**2
+\end{minted}
+
+\subsubsection{\mintinline{python}{map()}}
+
+funzione che spiega bene il concetto di fz. di ordine superiore
+
+input: \textbf{funzione e sequenza di oggetti}
+
+output: \textbf{sequenza (lista) sui cui elementi \`e stata applicata la funzione}
+
+esempio con le lambda:
+
+\begin{minted}{python}
+map(lambda x:x**2, [1,2,3]) # [1,4,9]
+\end{minted}
+
+\subsection{generatori}
+
+in generale, un iterable \`e qualsiasi oggetto che ha un metodo \mintinline{python}{__iter__()} che ritorna un iteratore $\rightarrow$ implica la costruzione di una classe con tale metodo!
+
+un generatore permette di semplificare il processo, generando \textbf{un valore alla volta} invece di dover istanziare un oggetto che contenga l'intera sequenza
+
+possono essere espressioni o funzioni
+
+\subsubsection{funzioni generatrici}
+
+ritornano una serie di valori invece che uno solo
+
+si creano attraverso il comando \mintinline{python}{yield value}
+
+vengono trattate da python come un generatore, e sono dotate implicitamente di metodi \mintinline{python}{__iter__} e \mintinline{python}{__next__}
+
+\begin{minted}{python}
+# esempio: range "fai da te"
+def my_range(stop):
+  i = 0
+  while i < stop:
+    yield i
+    i += 1
+\end{minted}
+
+\subsubsection{espressioni generatrici}
+
+pi\`u brevi da scrivere
+
+\begin{minted}{python}
+(expr for var in sequence)
+# esempio
+(x**2 for x in range(10))
+\end{minted}
+
+simili alle list comprehension
+
+\subsection{scope}
+
+\begin{minipage}[c]{.5\textwidth}
+\begin{itemize}
+\item \textbf{built-in}: entit\`a sempre disponibili (es. \mintinline{python}{print()})
+\item \textbf{global}: e. definite nel codice fuori da qualsiasi blocco
+\item \textbf{enclosing}: e. incapsulate per effetto della closure
+\item \textbf{local}: e. definite in un blocco
+\end{itemize}
+\end{minipage}
+\begin{minipage}[c]{.5\textwidth}
+\includegraphics[width=\textwidth]{Screenshot_2024-09-07_alle_15.06.36_1725714398367_0.png}
+\end{minipage}
+
+la risoluzione segue \textbf{local} $\rightarrow$ \textbf{enclosing} $\rightarrow$ \textbf{global} $\rightarrow$ \textbf{built-in}
+
+esiste lo \textbf{shadowing}
+
+per forzare l'uso di entit\`a globali, si usa \mintinline{python}{global var}
+
+\subsubsection{argomenti delle funzioni}
+
+gli argomenti delle funzioni sono \textbf{local}
+
+viene passato il \textbf{riferimento all'oggetto} - \textbf{tutto \`e un oggetto}
+
+quando riassegnamo ad es. un numero o stringa alla variabile locale, stiamo cambiando l'oggetto a cui punta, dunque non modifichiamo la variabile esterna
+
+quando operiamo ad es. su una lista con un metodo che va a modificarla, \textbf{cambia anche quella esterna!} $\rightarrow$ \textbf{stiamo operando sullo stesso oggetto (il riferimento \`e lo stesso)}
+
+\section{eccezioni}
+
+come in Java e altri linguaggi, nell'ambiente di runtime viene definita una classe madre \mintinline{python}{Exception} $\rightarrow$ ogni anomalia \`e associata ad una sua sottoclasse
+
+le eccezioni sono sollevate
+
+\textbf{automaticamente} (in seguito ad anomalie a runtime es. divisione per zero)
+
+\textbf{manualmente} dal programmatore
+
+in caso di eccezione viene eseguito codice di gestione; se non \`e presente un gestore specifico, verr\`a stampato lo stack delle chiamate e si uscir\`a dal programma
+
+\begin{minted}{python}
+try:
+  codice
+except Classe_eccezione as identificativo:
+  codice #eseguito se nel try viene sollevata
+except Altraclasse_eccezione as identificativo:
+  codice #eseguito se nel try viene sollevata
+except:
+  codice # eseguito se nel try viene sollevata un'eccezione non
+  		 # catturata esplicitamente prima
+else:
+  codice # eseguito se non vengono sollevate eccezioni
+finally:
+  codice # eseguito sempre
+
+# per SOLLEVARE ECCEZIONI:
+raise NameException(arg[,arg]...)
+\end{minted}
+
+\section{decoratori}
+
+usati per modificare le funzionalit\`a di altre funzioni
+
+recap: in python \textbf{tutto \`e un oggetto}, anche le funzioni $\rightarrow$ una volta definite, possiamo (senza parentesi) \textbf{assegnarle a variabili, passarle come parametro ad altre funzioni, usarle come valore di ritorno}, o anche \textbf{definirle all'interno di altre funzioni}
+quando metto \mintinline{python}{()}  \textbf{eseguo la funzione}, senza sto semplicemente \textbf{passando l'oggetto}
+
+i decoratori permettono di eseguire codice \textbf{prima} e \textbf{dopo} una funzione
+
+\begin{minted}{python}
+def new_decorator(foo): # il decoratore
+  def wrapTheFoo():
+    print("Before executing foo()")
+    foo()
+    print("After executing foo()")
+  
+  return wrapTheFoo
+
+def dec_foo(): # funzione che necessita di decoratore
+  print("I am the foo")
+  
+dec_foo()
+# I am the foo
+
+dec_foo = new_decorator(dec_foo) # ora la funzione \`e wrappata
+
+dec_foo()
+# Before executing foo()
+# I am the foo
+# After executing foo()
+\end{minted}
+
+per una scrittura pi\`u compatta:
+
+\begin{minted}{python}
+def new_dec(foo):
+  def wrap():
+    # qualcosa prima
+    foo()
+    # qualcosa dopo
+  
+  return wrap
+
+@new_dec		# alternativo a dec_foo = new_dec(dec_foo)
+def dec_foo():
+  # ...
+\end{minted}
+
+per decorare funzioni con argomenti (forma pi\`u generica):
+
+\begin{minted}{python}
+def another_dec(foo):
+  def wrapper(*args, **kwargs):
+    # prima
+    foo(*args, **kwargs)
+    # dopo
+    
+  return wrapper
+
+@another_dec
+def another_foo(arg1,...):
+  # ...
+\end{minted}
+
+\section{classi e oggetti}
+
+recap OOP
+
+classe $\rightarrow$ definisce variabili e metodi contenuti
+
+oggetto $\rightarrow$ istanza di una classe
+
+astrazione $\rightarrow$ non guardo dettagli implementativi (da utilizzatore)
+
+incapsulamento $\rightarrow$ protezione attributi interni
+
+ereditariet\`a $\rightarrow$ riuso del codice
+
+polimorfismo $\rightarrow$ adattabilit\`a
+
+\begin{minted}{python}
+class NomeClasse: # PascalCase come convenzione
+  i = 0 # attributo di classe
+  def metodo(self, arg1, arg2): # metodo
+    # ...
+  
+var = NomeClasse() # istanza
+
+NomeClasse.i # accesso ad attributi di classe e metodi
+var.i # uguale
+
+var.i = 1 # creo un attributo di istanza che shadowa quello di classe
+\end{minted}
+
+la classe \`e \textbf{essa stessa un oggetto} $\rightarrow$ posso usarla per accedere ad attributi di classe e metodi con dot notation
+
+gli attributi di classe appartengono all'oggetto classe
+
+i metodi hanno come primo argomento obbligatorio il \textbf{riferimento all'oggetto stesso (per convenzione `self`)}, che permette di accedere ai metodi/attributi dell'oggetto
+
+per chiamare i metodi \textbf{non si passa `self`}
+
+\subsection{costruttore}
+
+\begin{minted}{python}
+class NomeClasse:
+  def __init__(self[,args...]):
+    self.a = 1 # attributo di istanza
+\end{minted}
+
+chiamato automaticamente quando istanzio l'oggetto
+
+usato per inizializzare variabili \textbf{di istanza} (\textbf{non di classe!})
+
+\subsection{metodi static e class}
+
+chiamati come altri metodi ma \textbf{usando l'oggetto class}
+
+\begin{minted}{python}
+class NomeClasse:
+  @staticmethod
+  def static_method(x):
+    # ...
+    
+  @classmethod
+  def class_method(self,x): #self \`e l'OGGETTO CLASSE!
+    # ...
+\end{minted}
+
+esempio d'uso:
+
+\begin{minted}{python}
+class Date(object):
+  @classmethod
+  def from_string(self, date_as_string):
+    day, month, year = map(int, date_as_string.split('-'))
+    date1 = self(day, month, year) # STO ISTANZIANDO LA CLASSE!
+    return date1
+
+  @staticmethod
+  def is_date_valid(date_as_string):
+    day, month, year = map(int, date_as_string.split('-'))
+    return day <= 31 and month <= 12 and year <= 3999
+\end{minted}
+
+\subsection{ciclo di inizializzazione}
+
+quando istanzio un oggetto, l'interprete chiama un metodo per
+
+creare l'oggetto $\rightarrow$ \mintinline{python}{__new__}, di solito si usa quello di default della classe madre \mintinline{python}{object}
+
+\begin{minted}{python}
+# esempio di ridefinizione (uso cls dove di solito uso self)
+class ClassName:
+  def __new__(cls, *args, **kwargs):
+    print("Ciao io sono __new__")
+    return object.__new__(cls)
+\end{minted}
+
+inizializzare l'oggetto $\rightarrow$ uso \mintinline{python}{__init__}
+
+\subsection{metodi/attributi privati}
+
+in python non esiste privacy! posso comunque accedere a tutti i metodi e attributi in qualche modo
+
+entit\`a che \textbf{iniziano con \mintinline{python}{__} e terminano con massimo 1 \mintinline{python}{_}} vengono considerati privati
+
+python rinomina le entit\`a private come \mintinline{python}{_NomeClasse__NomeEntita} per evitare di potervi accedere tramite \mintinline{python}{.NomeEntita}
+
+\subsection{metodi speciali}
+
+iniziano e terminano con \mintinline{python}{__}, hanno una semantica speciale e vengono chiamati in automatico in certe situazioni
+
+\begin{minted}{python}
+- __init__ 		# costruttore
+- __repr__ 		# rappresentazione dell'oggetto
+- __getattr__ 	# per emulare l'accesso ad una attributo:
+				# a.x --> a.__getattr__('x')
+- __getitem__ 	# per emulare un tipo contenitore (tipo 
+				# le liste): a[x] -> a.__getitem__('x')
+- __add__, __mul__, etc. # per emulare somme, prodotti etc.
+- __call__ 		# l'oggetto pu\`o essere chiamato come una funzione
+- __str__ 		# converte un oggetto in una stringa
+- __del__ 		# distrugge la classe ( metodo distruttore )
+- __{ eq , gt, ge, lt, le }__ # verifica se un valore \`e
+				# { uguale, ..., ... } ad un altro
+- __setitem__ 	# operatore [] in uscita (assegnazione)
+\end{minted}
+
+i metodi corrispondono ad \textbf{operatori python} $\rightarrow$ quando uso gli operatori in realt\`a sto andando a chiamare questi metodi!
+
+$\rightarrow$ \`e possibile avere comportamenti specializzati tramite \textbf{overloading} dei metodi di default (\textbf{polimorfismo})
+
+\mintinline{python}{__getattr__} e \mintinline{python}{__setattr__} (usati per gli operatori \mintinline{python}{.} e \mintinline{python}{=})
+
+li sovrascrivo ad es. per \textbf{aggiornare un altro campo in conseguenza di un settaggio}, oppure per \textbf{proteggere l'accesso ad un attributo}
+
+\begin{minted}{python}
+class Prova:
+  def __setattr__(self,campo,valore):
+    if campo == 'saldo':
+      super().__setattr__(campo,valore)
+      self.movimenti.append(valore)
+  
+  def __getattr__(self,campo):
+    if campo == 'saldo':
+      raise AttributeError('campo non accessibile')
+    else:
+      return super().__getattr__(campo)
+
+a = Prova()
+a.saldo # AttributeError
+\end{minted}
+
+\subsection{getter e setter}
+
+anche in python \`e possibile definire dei metodi specifici per accedere/modificare attributi privati, ma definire i propri metodi o usare i metodi speciali non \`e la soluzione preferita $\rightarrow$ si usano dei \textbf{decoratori built-in specifici}
+
+\mintinline{python}{@property}: annota il metodo getter $\rightarrow$ si accede all'attributo attraverso il nome del metodo, che verr\`a trattato \textbf{come un attributo}
+
+\mintinline{python}{@<attr_nome>.setter}: annota il metodo setter
+
+\begin{minted}{python}
+class Prova:
+  def __init__(self,x):
+    self.__x_ = x
+  
+  @property
+  def x(self):
+    return self.__x_
+  
+  @x.setter
+  def x(self,new_x):
+    self.__x_ = new_x
+    
+a = Prova(3)
+a.x # 3
+a.x = 2 # non porta ad errori
+\end{minted}
+
+\subsection{ereditariet\`a}
+
+permette di far ereditare metodi e attributi di una classe madre alle classi figlie
+
+python permette anche quella \textbf{multipla} $\rightarrow$ quando deve decidere quale implementazione di un metodo utilizzare, se il metodo non \`e definito nella classe l'interprete passa in rassegna le classi madre \textbf{da sinistra a destra}
+
+\begin{minted}{python}
+class Automobile:
+  def __init__(self):
+    self.posizione = 0
+  
+  def muoviti(self,l):
+    self.posizione += l
+
+class FuoriStrada(Automobile): # eredita da Automobile metodi e attributi
+  def ridotte(self):
+    self.rapporto = 0.001
+  
+  def muoviti(self, l): # sovrascrivo un metodo di Automobile
+    l = l * self.rapporto
+    super().muoviti(l) # chiamo il metodo della classe madre
+    
+class Barca:
+  def affonda(self):
+    self.affondato = True
+  
+  def muoviti(self,l):
+    if self.affondato:
+      return False
+    
+class Anfibio(Barca, Automobile): # eredita da entrambi
+  pass # se chiamo muoviti(), verr\`a chiamato quello di Barca
+\end{minted}
+
+verifico il Method Resolution Order (ordine di risoluzione) accedendo all'attributo \mintinline{python}{__mro__} (in sola lettura - \textbf{non cambia una volta inizializzato})o chiamando \mintinline{python}{mro()}
+
+\mintinline{python}{__bases__} indica le classi base e \textbf{pu\`o essere modificato} $\rightarrow$ dopo la modifica viene \textbf{ricalcolato} \mintinline{python}{__mro__}
+
+il costruttore chiamato di default (se non definito nella classe) \`e quello della prima classe madre $\rightarrow$ per \textbf{invocarli entrambi bisogna esplicitarlo}
+
+\mintinline{python}{isinstance(ist,class)}: per verificare il tipo di un'istanza
+
+\mintinline{python}{issubclass(x,y)}: per verificare se \mintinline{python}{x} \`e sottoclasse di \mintinline{python}{y}
+
+\subsection{accesso agli attributi}
+
+un oggetto pu\`o avere attributi self / di classe / ereditati / metodi di accesso "fake" agli attributi
+
+come in altri linguaggi, per gli attributi di classe si parte dal livello pi\`u basso e si sale via via attraverso le classi madre
+
+attributi di istanza: dipende dai vari \mintinline{python}{__init__} e da come vengono chiamati
+
+\begin{minted}{python}
+class Animale:
+  x = 0; y = 0
+  def __init__(self):
+    self.a = 1
+    self.b = 1
+    
+class Cane(Animale):
+  x = 10 # sovrascrive l'attributo di classe
+  def __init__(self):
+    self.a = 2 # viene sovrascritto dal costruttore di Animale subito sotto
+    super().__init__()
+    self.b = 2 # sovrascrive il costruttore appena chiamato!
+    
+class Gatto(Animale):
+  def __init__(self):
+    self.a = 2
+    # se cerco b avr\`o un errore! non sto chiamando il costruttore madre
+\end{minted}
+
+priorit\`a ad attributi di \textbf{istanza su quelli di classe}
+
+\begin{minted}{python}
+class Prova:
+  x = 0; y = 0
+  def __init__(self):
+    self.x = 1 # x sar\`a di istanza, y di classe
+\end{minted}
+
+in particolare (dalla documentazione):
+
+\begin{displayquote}
+ "A class instance has a namespace implemented as a dictionary which is the first place in which attribute references are searched. When an attribute is not found there, and the instance's class has an attribute by that name, the search continues with the class attributes"
+\end{displayquote}
+
+questo namespace \`e l'attributo \mintinline{python}{__dict__}: contiene tutti gli attributi di istanza, ed \`e aggiornato man mano che assegno valori (anche quando lo faccio in \mintinline{python}{__init__()})
+
+\`e il metodo \mintinline{python}{__getattribute__()} a controllare in \mintinline{python}{__dict__} e tra gli attributi di classe
+
+se non trovo un attributo in \mintinline{python}{__dict__} o tra gli attributi di classe, passo a \mintinline{python}{__getattr__()} (di default solleva un'eccezione)
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.5\textwidth]{Screenshot_2024-09-12_alle_10.59.01_1726131542856_0.png}
+\end{figure}
+
+dovrei dunque modificare \mintinline{python}{__getattribute__()} e non \mintinline{python}{__getattr__()} per imporre condizioni di accesso particolari (\mintinline{python}{__getattr__()} non esegue proprio se il nome dell'attributo viene trovato prima):
+
+\begin{minted}{python}
+class Prova:
+  def __init__(self):
+    self.saldo = 0
+    
+  def __getattribute__(self, campo): # al posto di __getattr__()
+    if campo == 'saldo':
+      raise AttributeError('campo non accessibile')
+    else:
+      return super().__getattribute__(campo)
+\end{minted}
+
+casi particolari in cui non viene chiamato \mintinline{python}{__getattribute__()}: quando l'interprete chiama attributi speciali
+
+es.: nei cicli \mintinline{python}{__iter__} e \mintinline{python}{__next__}, se usiamo \mintinline{python}{len()} che chiama \mintinline{python}{__len__}
+
+\begin{minted}{python}
+class MyList(list):
+  def __getattribute__(self, item):
+    print(f'getattribute {item}')
+    return super().__getattribute__(item)
+  
+  def foo(self):
+    print('mi hai chiamato')
+    pass
+
+l = MyList()
+l.foo 		# getattribute foo
+l.foo() 	# getattribute foo
+			# mi hai chiamato
+l.__len__ 	# getattribute __len__
+len(l)		# NO OUTPUT - NON PASSA PER __getattribute__
+\end{minted}
+
+nota: i metodi sono considerati come attributi $\rightarrow$ coerente con il concetto che \textbf{le funzioni sono anch'esse oggetti}
+
+\mintinline{python}{__setattr__()}: analogo per settare gli attributi ( $\nexists$ \mintinline{python}{__setattribute__()}) $\rightarrow$ di fatto \textbf{modifica/aggiunge entry in \mintinline{python}{__dict__}}, e viene invocato anche in \mintinline{python}{__init__()}
+
+ecco perch\'e \mintinline{python}{instance.attr = x} \textbf{non modifica l'attributo di classe}
+
+per evitare limitazioni nell'inizializzazione, in \mintinline{python}{__init__()} accedo all'attributo da inizializzare tramite bracket notation:
+
+\begin{minted}{python}
+class Prova:
+  def __init__(self):
+    self.__dict__['saldo'] = 0
+    
+  def __setattr__(self,campo,valore):
+    if campo == 'saldo':
+      raise AttributeError('campo non modificabile direttamente')
+    else:
+      return super().__setattr__(campo,valore)
+\end{minted}
+
+\mintinline{python}{@property}: \`e un decoratore $\rightarrow$ \`e considerato attributo di istanza/di classe/metodo? a che punto viene controllato?
+
+quello che fa questo decoratore \`e \textbf{ritornare un descrittore}: un attributo il cui valore \`e un oggetto che implementa uno o pi\`u metodi tra \mintinline{python}{__get__(), __set__(), __delete__()}
+
+$\rightarrow$ l'interprete \textbf{chiama il corrispettivo metodo} per accedere/modificare/eliminare l'attributo
+
+da \href{https://amir.rachum.com/descriptors/}{https://amir.rachum.com/descriptors/}:
+
+\begin{displayquote}
+ [...] Define any of these methods and an object is considered a descriptor and can override default behavior upon being looked up as an attribute. [...]
+\end{displayquote}
+
+\begin{displayquote}
+ [...] If an object defines both \mintinline{python}{__get__()} and \mintinline{python}{__set__()}, it is considered a data descriptor. Descriptors that only define \mintinline{python}{__get__()} are called non-data descriptors (they are typically used for methods but other uses are possible).
+\end{displayquote}
+
+Data and non-data descriptors differ in how overrides are calculated with respect to entries in an instance's dictionary. \textbf{If an instance's dictionary has an entry with the same name as a data descriptor, the data descriptor takes precedence. If an instance's dictionary has an entry with the same name as a non-data descriptor, the dictionary entry takes precedence.}
+
+To make a read-only data descriptor, define both \mintinline{python}{__get__()} and \mintinline{python}{__set__()} with the \mintinline{python}{__set__()} raising an AttributeError when called. Defining the \mintinline{python}{__set__()} method with an exception raising placeholder is enough to make it a data descriptor. [...]
+
+\begin{minted}{python}
+class Desc:
+  def __get__(self,istanza,owner):
+    pass
+  # self: istanza di Desc
+  # istanza: oggetto sul quale viene richiesto l'accesso all'attributo
+  # owner: la classe dell'oggetto sul quale viene richiesto l'accesso
+  
+  def __set__(self,istanza,value):
+    pass
+  # value: nuovo valore da assegnare
+  
+  def __delete__(self,istanza):
+    pass
+  
+class Prova:
+  i = Desc()
+  
+p = Prova()
+p.i # attributo di classe
+\end{minted}
+
+caso limite di implementazione "a mano" di un descrittore: quando assegno un descrittore ad un attributo di classe, l'oggetto sar\`a lo stesso per tutte le istanze $\rightarrow$ per averlo diverso ad ogni istanza, possiamo implementare i metodi del descrittore andando a scrivere/leggere da \mintinline{python}{__dict__}, ma in questo modo \textbf{dal secondo accesso non andrei mai a verificare gli attributi di classe e non vedrei il descrittore (mi fermo sempre nel dizionario)}
+
+$\rightarrow$ in python, \textbf{i descrittori hanno priorit\`a}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.5\textwidth]{Screenshot_2024-09-13_alle_09.04.17_1726211059950_0.png}
+\end{figure}
+
+\subsection{metaclassi}
+
+classi in cui le istanze sono a loro volta classi (reminder: \textbf{in python tutto \`e oggetto, anche una classe})
+
+metaclasse madre: \mintinline{python}{type} $\rightarrow$ tutte le classi sono sue istanze
+
+internamente python crea le classi (le definizioni) istanziando la metaclasse \mintinline{python}{type}
+
+si pu\`o \textbf{estendere} e creare una propria metaclasse, ridefinendo \mintinline{python}{__init__()} e \mintinline{python}{__new__()} per modificare il comportamento di base delle classi
+
+\begin{minted}{python}
+class Prova(metaclass=MyMetaClass): # per specificare la metaclasse
+  # ...
+\end{minted}
+
+\subsubsection{\mintinline{python}{type()}}
+
+con 1 argomento ritorna il tipo dell'oggetto
+
+con 3 \textbf{ritorna una nuova classe}!! (equivalente alla definizione solita)
+
+\begin{minted}{python}
+class X(Y):
+  a = 1
+# equivale a
+type('X',(Y),dict(a=1))
+\end{minted}
+
+\begin{minted}{python}
+class MyMetaClass(type):
+  def __new__(cls, classname, super, classdict):
+    return super().__new__(cls, classname, super, classdict)
+  
+  def __init__(self):
+    super().__init__()
+\end{minted}
+
+utili per avere meccanismi simili all'ereditariet\`a, ma anche per creare classi in modo diverso a runtime (es. classi con attributi di classe che hanno nomi definiti dall'utente)
+
+\subsection{\mintinline{python}{__call__()}}
+
+metodo speciale chiamato quando un oggetto viene invocato come una funzione
+
+implica ad es. che \textbf{anche una classe pu\`o essere un decoratore}
+
+\begin{minted}{python}
+class dec:
+  def __init__(self, f):
+    self.f = f
+
+  def __call__(self):
+    pass
+  
+@dec
+def foo():
+  # ...
+\end{minted}
+
+\mintinline{python}{foo} viene passato ad \mintinline{python}{__init__}, ed il nuovo oggetto ritornato verr\`a associato a \mintinline{python}{foo}
+
+$\rightarrow$ quando verr\`a invocata \mintinline{python}{foo} verr\`a chiamata \mintinline{python}{__call__}
+
+\subsection{classi astratte}
+
+classe che definisce almeno un metodo astratto, ossia senza implementazione
+
+questi vanno definiti nelle sottoclassi
+
+possibile in python tramite il modulo Abstract Base Classes (ABC) ed il suo decoratore \mintinline{python}{@abstractmethod}
+
+\begin{minted}{python}
+from abc import ABC, abstractmethod
+
+class Astratta(ABC): # deve ereditare solo da ABC e altre classi astratte!
+  @abstractmethod
+  def metodo_astratto(self):
+    pass
+\end{minted}
+
+\section{programmazione funzionale}
+
+vari paradigmi:
+
+\textbf{imperativo}: programma come serie di istruzioni eseguite una dopo l'altra
+
+\textbf{ad oggetti}: programma come insieme di oggetti che interagiscono tramite metodi
+
+\textbf{funzionale}: in stile matematico, \textbf{si dichiara che funzione usare} per ottenere il \textbf{risultato}
+
+logico: problema sotto forma di vincoli, si cerca una soluzione che soddisfi i vincoli
+
+il paradigma funzionale \`e in stile \textbf{dichiarativo} $\rightarrow$ dichiaro che valore deve assumere un dato nome (tipicamente il risultato di una funzione)
+
+usa *"espressioni"* (come in matematica), che vengono valutate per portare al risultato
+
+le funzioni definite in questo paradigma sono definite \textbf{Pure}:
+
+stesso input $\rightarrow$ stesso risultato
+
+non modificano gli argomenti in input
+
+non si usano cicli (ma la ricorsione)
+
+usa la programmazione di ordine superiore (passaggio o ritorno di funzioni)
+
+i nomi (variabili in altri paradigmi) sono immutabili
+
+\textbf{python permette tutto ci\`o!}
+
+funzioni pure $\rightarrow$ basta non modificare i parametri, al limite copiarli
+
+possibili la ricorsione e la programmazione di ordine superiore
+
+il programmatore pu\`o consapevolmente non modificare una variabile
+
+\begin{minted}{python}
+def fattoriale(x):
+  return 1 if x <= 1 else return x * fattoriale(x-1) #non modifico argomenti!
+
+fact10 = fattoriale(10) # da qui non devo cambiare fact10!
+\end{minted}
+
+la ricorsione pu\`o \textbf{saturare lo stack} - python ha un limite di chiamate ricorsive permesse (\textbf{modificabile})
+
+\begin{minted}{python}
+import sys
+sys.setrecursionlimit(<max_chiamate>)
+\end{minted}
+
+vantaggi:
+
+debug pi\`u facile $\rightarrow$ risultato di una funzione dato solo dagli argomenti!
+
+funzioni tendenzialmente pi\`u semplici $\rightarrow$ assenza di cicli o flussi complessi
+
+struttura pi\`u interpretabile da un compilatore $\rightarrow$ maggiori ottimizzazioni, parallelizzazioni automatiche, \textbf{lazy evaluation} (esecuzione solo al bisogno del risultato)
+
+svantaggi:
+
+cambio di mentalit\`a ed abitudini
+
+molto meno utilizzata rispetto a imperativa o OO
+
+\subsection{strumenti python per la programmazione funzionale}
+
+\subsubsection{list comprehension}
+
+\begin{minted}{python}
+[ expr for value in iterable if condition ]
+
+[ k*k for k in range(1, n+1) ]
+[ k for k in range(1, n+1) if n % k == 0 ]
+# set
+{ k*k for k in range(1, n+1) }
+# dizionario
+{ k : k*k for k in range(1, n+1) }
+\end{minted}
+
+costrutto sintattico per creare liste/dizionari tramite for innestato
+
+il risultato \`e una lista/dizionario risultante da tutti i risultati di \mintinline{python}{expr} calcolati con ogni \mintinline{python}{value} in \mintinline{python}{iterable} (se \mintinline{python}{condition} \`e vera)
+
+possono anche esserci for multipli, con nomi letti da sinistra verso destra
+
+\begin{minted}{python}
+[ x for iter2 in iter1 for x in iter2 ] # ok
+[ x for x in iter2 for iter2 in iter1 ] # errore
+\end{minted}
+
+\subsubsection{lambda}
+
+fondamento della programmazione funzionale, solo argomenti e risultato
+
+numero qualsiasi di argomenti, una sola espressione che viene valutata e restituita
+
+un programma scritto con sole lambda \`e \textbf{Turing-completo}
+
+\begin{minted}{python}
+lambda args: expr
+# usi di esempio
+filter(lambda x: (x % 2 != 0), iter1)
+map(lambda x: x*2, iter1)
+\end{minted}
+
+\subsubsection{map/reduce}
+
+paradigma distribuito per la computazione dei dati, diviso in
+
+mappatura dei dati: filtri ed elaborazioni sui singoli elementi
+
+riduzione: aggregazione dei risultati della prima fase
+
+essendo distribuito non si pu\`o assumere la sequenza dei dati
+
+la riduzione pu\`o avvenire in pi\`u step
+
+utile in db distribuiti in cui i dati sono in nodi diversi e la computazione non pu\`o avvenire in un unico modo
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.5\textwidth]{Screenshot_2024-09-13_alle_16.21.55_1726237317933_0.png}
+\end{figure}
+
+\mintinline{python}{reduce()} (dalla libreria \mintinline{python}{functools}): esegue in locale ma \`e comunque utile in ambienti distribuiti $\rightarrow$ applica ripetutamente una funzione di due argomenti sugli elementi di una sequenza per ridurla ad un unico valore
+
+ad ogni iterazione il primo argomento \`e il risultato delle passate precedenti e il secondo un elemento (non ancora processato) della lista $\rightarrow$ per la prima passata si usa il primo elemento della lista come elemento non processato, oppure si specifica che valore usare come primo risultato
+
+\begin{minted}{python}
+# sommo tutti gli el
+reduce(lambda x,y: x+y, [1,2,3,4])
+# 10
+# creo un set da una lista
+reduce(lambda x,y: x.union(set([y])), [1,2,3,4], set())
+# {1, 2, 3, 4}
+\end{minted}
+
+efficace sia quando la computazione pu\`o essere distribuita, sia quando \`e trattata come flusso $\rightarrow$ \textbf{riduce risorse computazionali}
+
+\subsubsection{eval}
+
+funzione che valuta un'espressione \textbf{passata sotto forma di stringa} $\rightarrow$ l'interprete esegue la stringa \textbf{come fosse codice del programma} e ritorna il risultato dell'espressione valutata
+
+posso anche passare variabili dal programma "principale", sia come globali che locali al codice della stringa
+
+\begin{minted}{python}
+eval(expr, globals, locals)
+
+eval('print("ciao")')
+# ciao
+a = 10: b = 20
+eval("print(f'c: {c}, d: {d}')", {'c': a}, {'d': b})
+\end{minted}
+
+pu\`o valutare qualsiasi espressione $\rightarrow$ problemi di sicurezza $\rightarrow$ \`e bene non far valutare stringhe generiche, oppure settare accuratamente globals e locals per vietare accessi a funzioni critiche
+
+\subsubsection{exec}
+
+simile ad \mintinline{python}{eval}, ma pu\`o anche \textbf{eseguire istruzioni} (es. \mintinline{python}{import}, dunque non solo espressioni)
+
+pu\`o eseguire \textbf{codice compilato} $\rightarrow$ riferito al formato intermedio (\textbf{bytecode}) che usa anche python
+
+\subsubsection{compile}
+
+compila una stringa o file in bytecode
+
+\mintinline{python}{mode}: \mintinline{python}{exec} se contiene istruzioni, \mintinline{python}{eval} se una singola espressione, \mintinline{python}{single} se una singola istruzione interattiva
+
+\begin{minted}{python}
+compile(source,file,mode) # uso source o file
+\end{minted}
+
+\subsubsection{functools}
+
+modulo per la programmazione funzionale, fornisce funzioni di ordine superiore per eseguire operazioni comuni
+
+fornisce anche le classi \mintinline{python}{partial} e \mintinline{python}{partialmethod} per rappresentare le funzioni
+
+\mintinline{python}{partial}: rappresenta funzioni in cui alcuni argomenti sono \textbf{definiti prima di chiamarla}
+
+\begin{minted}{python}
+def somma(x,y):
+  return x + y
+
+sommapartial = functools.partial(somma, y=1)
+# posso chiamare sommapartial passando soltanto la x
+\end{minted}
+
+\mintinline{python}{partialmethod}: analogo per metodi di classe $\rightarrow$ richiama un altro metodo con parametri preimpostati
+
+\begin{minted}{python}
+class A:
+  def print_str(self,s):
+    print(s)
+  
+  print_ciao = functools.partialmethod(print_str, s='ciao')
+\end{minted}
+
+\mintinline{python}{cmp_to_key}: trasforma una \textbf{funzione di comparazione} in una \textbf{funzione chiave}
+
+\begin{displayquote}
+ A comparison function is any callable that accepts two arguments, compares them, and returns a negative number for less-than, zero for equality, or a positive number for greater-than. A key function is a callable that accepts one argument and returns another value to be used as the sort key.
+\end{displayquote}
+
+\begin{minted}{python}
+sorted([(1,2),(2,1)], key=lambda x: x[1]) # esempio di key function
+
+# caso complesso
+class Data:
+  def __init__(self,anno,mese,giorno):
+    # ...
+
+# scrivo una funzione di confronto
+def cmp_date(x,y):
+  if x.anno < y.anno:
+    return -1
+  elif x.anno > y.anno:
+    return 1
+  # ...
+  
+d1 = Data(2024,12,31)
+d2 = Data(2023,10,10)
+
+# quando mi serve una funzione chiave, uso cmp_to_key(comp_foo)
+sorted([d1,d2], key=functools.cmp_to_key(cmp_date))
+\end{minted}
+
+\mintinline{python}{@total_ordering}: decoratore per classi che fornisce i metodi di confronto per quella classe $\rightarrow$ basandosi su \mintinline{python}{__eq__} e uno tra gli altri metodi, \textbf{inferisce gli altri} $\rightarrow$ \textbf{mi basta implementare questi due}
+
+\mintinline{python}{@LRU_cache}: decoratore che \textbf{evita la chiamata a funzione se gi\`a invocata con gli stessi argomenti} e ritorna il risultato gi\`a computato
+
+\mintinline{python}{@LRU_cache(maxsize=x)} per settare il numero massimo di memorizzazioni
+
+\subsubsection{itertools}
+
+modulo che fornisce funzioni per generare sequenze di dati iterabili
+
+\begin{minted}{python}
+from itertools import *
+
+# iteratori infiniti
+count(10) 						# -> 10, 11, 12, ...
+cycle([1,2,3]) 					# -> 1, 2, 3, 1, 2, 3, ...
+repeat('a') 					# -> a, a, a, ...
+
+# iteratori che modificano la sequenza
+accumulate([1,2,3,4]) 			# -> 1 3 6 10
+chain('abc', 'def') 			# -> a b c d e f
+zip_longest('ABC', 'xyz') 		# -> Ax By Cz
+starmap(pow, [(1,2), (3,4)]) 	# -> applica pow(*x) -> 1 81
+
+# iteratori combinatori
+permutation([1,2,3]) 			# -> tutte le permutazioni possibili
+combination([1,2,3]) 			# -> tutte le combinazioni possibili
+\end{minted}
+
+\section{struttura progetto}
+
+\`e bene organizzare un progetto software in pi\`u moduli e file $\rightarrow$ leggibilit\`a e navigabilit\`a, in alcuni casi anche ottimizzazione della compilazione (moduli non modificati non ricompilati), riutilizzo dei moduli
+
+\textbf{modulo}: insieme di entit\`a correlate con un fine preciso
+
+\textbf{package}: raccolta di moduli correlati, inerenti alla stessa area del programma
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.5\textwidth]{Screenshot_2024-09-14_alle_11.41.17_1726306879495_0.png}
+\end{figure}
+
+i moduli corrispondono ai sorgenti, che contengono funzioni, costanti e classi inerenti al modulo
+
+$\rightarrow$ un package \`e una directory di pi\`u file sorgenti $\rightarrow$ \textbf{per far si che una dir sia vista come package \`e necessario inserirvi un file \mintinline{python}{__init__.py} (anche vuoto)}
+
+\subsection{moduli}
+
+\begin{minted}{python}
+# sintassi importazione |------------| uso nel codice
+# |-------------------------------------------------|
+import <modulo>						<modulo>.<entit\`a>
+import <modulo>	as m				m.<entit\`a>
+from <modulo> import <entit\`a>		<entit\`a>
+from <modulo> import *				<entit\`a>
+import <modulo>.<entit\`a>			<entit\`a>
+
+# sintassi per importare moduli/entit\`a contenuti in package/subpackage
+import <package>[.<subpackage>[.<modulo>[.<entit\`a>]]]
+\end{minted}
+
+quando si importa il modulo, viene \textbf{eseguito il sorgente} $\rightarrow$ avvengono le definizioni delle entit\`a ed eventualmente delle \textbf{inizializzazioni}
+
+\subsection{package}
+
+posso importare anche i package, e la loro inizializzazione pu\`o essere messa in \mintinline{python}{__init__.py}
+
+se importo un package, avviene prima l'init del package che dei moduli
+
+quando importo i moduli nella forma \mintinline{python}{from <pkg> import *} \textbf{non vengono importati tutti i moduli (motivi di performance)} $\rightarrow$ di per se non viene importato \textbf{nulla}
+
+$\rightarrow$ specifico i moduli da importare in \mintinline{python}{__init__.py} nella lista \mintinline{python}{__all__}
+
+\subsection{librerie}
+
+quando l'insieme di package del nostro programma \`e pensato per il riutilizzo in altri progetti
+
+libreria standard e un enorme catalogo a disposizione tramite Pypi (\mintinline{python}{pip})
+
+altre librerie molto comuni: \mintinline{python}{string, datetime, math, ...}
+
+\mintinline{python}{pip}: package manager per python, def cerca su Pypi ma volendo accetta anche altri repo esterni
+
+\mintinline{python}{sys.path} ci mostra la lista delle dir in cui vengono cercati i package (e le librerie) $\rightarrow$ in ordine (solitamente):
+
+dir corrente
+
+path presenti nella variabile di ambiente \mintinline{python}{PYTHONPATH}
+
+\mintinline{python}{/usr/lib/python.x.x}
+
+\textbf{`sys.path` si pu\`o modificare}, ad es. per progetti che a runtime vogliono delle versioni specifiche di certi package
+
+\subsection{ambienti}
+
+proprio per diversificare i path a seconda del progetto, possiamo installare le versioni in dir differenti e modificare \mintinline{python}{PYTHONPATH} per ciascuno di essi
+
+oppure creare un virtual environment Python use \mintinline{python}{venv}  
+
+una volta attivato, python installa le librerie soltanto in questo ambiente e l'interprete le cercher\`a soltanto l\`i $\rightarrow$ ogni progetto dovrebbe avere il suo per evitare conflitti!
+
+\mintinline{python}{deactivate} per disattivarlo
+
+\mintinline{python}{pip3 freeze > requirements.txt} per esportare la lista delle librerie usate nel venv
+
+\mintinline{python}{pip3 install -r requirements.txt} per importarle
+
+\subsection{moduli e script}
+
+quando importo un modulo, ne eseguo il sorgente, \textbf{cos\`i come accade se eseguo direttamente il file come script...}
+
+per distinguere il comportamento di un sorgente a seconda che sia importato come modulo o eseguito come script, sfrutto la variabile \mintinline{python}{__name__}, che prende \textbf{il nome del modulo quando importato}, e \mintinline{python}{__main__} quando \`e \textbf{lanciato come script}
+
+buona norma inserire le istruzioni da eseguire come script in un \mintinline{python}{if __name__ == '__main__':}
+
+es. \mintinline{python}{venv}: potremmo averne bisogno come modulo, ma solitamente lo usiamo per inizializzare un ambiente virtuale $\rightarrow$ \mintinline{python}{python3 -m venv /path/to/venv} \textbf{dove `-m` indica l'utilizzo del modulo come script} (equivale a \mintinline{python}{python3 /path/to/venv.py} ma senza dover conoscere la posizione del sorgente)
+
+\subsection{build}
+
+per distribuire codice \`e buona norma \textbf{buildarlo} in un pacchetto
+
+si inserisce nella dir il file \mintinline{python}{pyproject.toml} che contiene (eventualmente) i metadati del progetto (autore, dipendenze, ...)
+
+per Pypi si usa \mintinline{python}{build}:
+
+\begin{lstlisting}[language=bash]
+pip3 install build
+python3 -m build path/to/package
+\end{lstlisting}
+
+alla fine nella cartella \mintinline{python}{dist} trovo il package da poter distribuire
+
+\href{https://packaging.python.org/en/latest/guides/writing-pyproject-toml/\#writing-pyproject-toml}{https://packaging.python.org/en/latest/guides/writing-pyproject-toml/\#writing-pyproject-toml}
+
+\section{gestione della memoria}
+
+i dati di un programma vengono salvati in memoria:
+
+\textbf{stack} per variabili dichiarate nel codice
+
+\textbf{heap} per allocazioni esplicite
+
+problema di gestione: per quanto tempo mantengo occupato lo spazio in memoria?
+
+\textbf{approccio manuale}:
+
+decide il programmatore, tramite specifiche istruzioni nel codice (es. \mintinline{python}{malloc, dealloc} in C)
+
+gestione esplicita e molto veloce, ma prona ad errori, memory leaks, segfaults e null pointers
+
+\textbf{approccio automatico}:
+
+decide il compilatore/interprete
+
+seguono alcuni metodi e algoritmi
+
+\subsection{reference counting}
+
+algoritmo che libera automaticamente memoria quando un oggetto non \`e pi\`u referenziato (usato ad es. in Perl e PHP)
+
+ogni oggetto ha un campo aggiuntivo che indica il suo numero di riferimenti (aggiornato dinamicamente) $\rightarrow$ una volta a 0, l'oggetto viene distrutto
+
+molto veloce e reattivo, ma:
+
+\textbf{overhead} per aggiornare il contatore
+
+\textbf{riferimenti circolari} $\rightarrow$ 2 oggetti che si refenziano a vicenda non verranno mai distrutti!
+
+soluzione: marcare come \emph{deboli} i riferimenti ricorsivi (li uso solo se almeno uno degli oggetti \`e referenziato altrove) (di contro aumento ancora l'overhead)
+
+\subsection{garbage collector}
+
+entit\`a che ciclicamente controlla lo stato degli oggetti in memoria ed eventualmente li elimina
+
+alcuni algoritmi utilizzati
+
+\subsubsection{Tracing}
+
+partendo da degli oggetti radice segue tutti gli oggetti referenziati, proseguendo a cascata $\rightarrow$ tutti gli oggetti \textbf{non referenziati} sono \textbf{considerati garbage ed eliminati}
+
+gli oggetti radice sono variabili globali, locali, e argomenti della funzione
+
+motivi per cui un oggetto non \`e pi\`u raggiungibile:
+
+sintattico: la sintassi implica che quell'oggetto non sia pi\`u raggiungibile $\rightarrow$ \mintinline{python}{a = 1: a = 2} $\rightarrow$ l'oggetto \mintinline{python}{1} non \`e pi\`u disponibile
+
+facile da trovare, i gc si basano soprattutto su questo
+
+semantico: oggetti irraggiungibili per via del flusso di codice (branch di codice inutilizzati)
+
+difficile da trovare $\rightarrow$ euristiche
+
+questo tipo di gc implica un overhead per trovare gli oggetti $\rightarrow$ bisogna stabilire quando chiamarlo
+
+Java: ogni tot
+
+Python: quando la memoria occupata raggiunge un limite
+
+\subsubsection{Mark and Sweep}
+
+ogni oggetto ha associato un flag (irraggiungibile o raggiungibile, \mintinline{python}{0,1})
+
+fase di \textbf{scansione}: si marchia gli oggetti come \mintinline{python}{0/1}
+
+fase di \textbf{deallocazione}: si elimina gli oggetti \mintinline{python}{0}
+
+molto limitante (devo interrompere il programma e riscansionare tutto)
+
+\subsubsection{Tri-color Marking}
+
+organizzo gli oggetti in 3 insiemi
+
+$\color{black}\fcolorbox{black}{white}{White}$ : candidati alla rimozione
+
+$\color{black}\fcolorbox{black}{gray}{Gray}$ : raggiungibili ma i cui oggetti referenziati non sono stati analizzati
+
+$\color{white}\fcolorbox{white}{black}{Black}$ : raggiungibili che non referenziano nessun oggetto nel white set
+
+unico flusso possibile: $\color{black}\fcolorbox{black}{white}{W}$ $\rightarrow$ $\color{black}\fcolorbox{black}{gray}{G}$ $\rightarrow$ $\color{white}\fcolorbox{white}{black}{B}$
+
+prima fase: inizializzazione degli insiemi (oggetti radice nel gray, gli altri nel white, black vuoto)
+
+seconda fase (fino a svuotamento del gray):
+
+scelgo un oggetto da G
+
+identifico tutti gli oggetti che referenzia, in particolare quelli appartenenti a W
+
+li inserisco in G, e inserisco l'oggetto in B
+
+terza fase: libero la memoria degli oggetti in W $\rightarrow$ non sono raggiungibili \textbf{direttamente} (1a fase) n\'e \textbf{indirettamente} (2a fase)
+
+algoritmo con il vantaggio che step 1 e 2 possono essere eseguiti durante l'esecuzione senza interromperla
+
+\subsubsection{strategie di rilascio memoria}
+
+in movimento: copio tutti gli oggetti raggiungibili in una nuova area $\rightarrow$ meno frammentazione
+
+non in movimento: rilascio le zone degli oggetti irraggiungibili
+
+\subsubsection{Generational}
+
+ipotesi avvallata da risultati empirici: gli oggetti creati pi\`u di recente hanno maggiore probabilit\`a di diventare irraggiungibili nell'immediato futuro $\rightarrow$ suddivido gli oggetti in insiemi di "vecchiaia", facendo controlli frequenti solo sulle generazioni pi\`u giovani e tenendo traccia dei riferimenti tra generazioni
+
+generazioni: eden $\rightarrow$ survivor 2 (sopravvissuti ad un certo numero di cicli) $\rightarrow$ survivor 1 (altro range intermedio) $\rightarrow$ old
+
+ogni volta che un gruppo supera una soglia viene invocato il gc su di esso: gli oggetti raggiungibili sono copiati nel gruppo immediatamente pi\`u vecchio, poi la regione viene svuotata
+
+pi\`u veloce (agisce su set ridotti), ma meno preciso
+
+\subsubsection{approcci ibridi}
+
+Minor cycle: frequente e performante, ma poco preciso (es. Generational)
+
+Major cycle: fatto ogni tanto, ma su tutti gli oggetti (es. Mark and Sweep)
+
+\subsection{gestione memoria in python}
+
+in python ora \`e ibrido: reference counting e un generational garbage collector
+
+modulo \mintinline{python}{gc} consente di impostare il garbage collector, attivarlo/disattivarlo, farlo eseguire su una generazione, eccetera
+
+in realt\`a \textbf{dipende dall'interprete}: CPython (il pi\`u usato) usa principalmente il reference counting, e poi il gc generazionale a soglia
+
+\begin{minted}{python}
+import sys
+a = 'aaa'
+sys.getrefcount(a) # -> 2 - conto anche il passaggio alla funzione
+x = [a]
+d = {'a':a}
+sys.getrefcount(a) # -> 4 - usciti dalla prima funzione il contatore viene decrementato
+\end{minted}
+
+per profilare il consumo di memoria, python ha diverse librerie tra cui \mintinline{python}{memory-profiler, tracemalloc}
+
+\begin{minted}{python}
+import tracemalloc
+def foo():
+  f = [ x for x in range(0,100000) ]
+tracemalloc.start()
+foo()
+current,peak = tracemalloc.get_traced_memory()
+tracemalloc.stop()
+print(f"Istantanea {current}, picco {peak}")
+\end{minted}
+
+la gestione della memoria a basso livello dipende dall'interprete e dal linguaggio in cui \`e scritto $\rightarrow$ in CPython (scritto in C) esiste un \textbf{allocatore di oggetti} che si occupa di gestire lo spazio ed allocare la memoria necessaria quando un oggetto viene creato
+
+per evitare tante piccole allocazioni, alloca meno volte zone pi\`u grandi (di fatto gestisce un suo heap privato)
+
+quando si crea un oggetto l'interprete lo alloca nello heap privato, e l'allocatore gli assegna una zona di memoria (eventualmente chiamando una \mintinline{python}{malloc()} se non basta), e viceversa per la rimozione
+
+per oggetti > 512 byte viene chiamata direttamente la \mintinline{python}{malloc()}
+
+se l'oggetto ha un allocatore specifico viene chiamato questo
+
+le zone di memoria gestite sono divise in Arene, a loro volta divise in Pool $\rightarrow$ i nuovi oggetti sono allocati nell'Arena con pi\`u pool pieni, perch\'e pi\`u probabile che si svuotino (cos\`i posso liberarle)
+
+un Pool ha la dimensione di una pagina di memoria (stabilita da SO, blocchi contigui), e contiene blocchi di dimensione prefissata e uguale
+
+quando si alloca un oggetto si cerca il pool con blocchi di dimensione richiesta, e se non esistono si crea un nuovo pool
+
+ogni blocco contiene un solo oggetto, e viene segnato come libero quando dealloco
+
+\section{debug}
+
+python offre un modulo specifico (a differenza di altri linguaggi): \mintinline{python}{pdb}
+
+alcune funzioni a disposizione:
+
+\begin{itemize}
+  \item \mintinline{python}{run(statement[, globals[, locals]])}: esegue \mintinline{python}{statement} (in forma di stringa) sotto il controllo del debugger $\rightarrow$ il prompt del debugger compare prima dell'esecuzione del codice, consentendo di impostare breakpoint, esaminare variabili e controllare il flusso del programma in maniera interattiva
+  \item \mintinline{python}{globals} e \mintinline{python}{locals} specificano l'ambiente nel quale il codice viene eseguito (def usa il dizionario del modulo \mintinline{python}{__main__})
+  \item \mintinline{python}{runeval(expr[, globals[, locals]])}: valuta \mintinline{python}{expr} (stringa) attraverso il debugger, e restituisce il valore dell'espressione (per il resto simile a \mintinline{python}{run()})
+  \item \mintinline{python}{runcall(foo[, argument, ...])}: esegue \mintinline{python}{foo} (non stringa ma funzione o metodo) con gli argomenti forniti, e restituisce il valore di ritorno di \mintinline{python}{foo}
+\end{itemize}
+
+lanciato come script: \mintinline{python}{python3 -m pdb <programma>}
+
+in modalit\`a interattiva si possono lanciare vari comandi, la cui maggioranza ha una versione abbreviata da 1 o 2 lettere: si separano gli argomenti con spazi o tab
+
+\begin{itemize}
+  \item \mintinline{python}{w(here)}: stampa la traccia dello stack, con il frame corrente indicato da una freccia
+  \item \mintinline{python}{d(own)/u(p)}: sposta il frame corrente in basso/alto di un livello nella stack trace (verso un frame pi\`u recente/vecchio)
+  \item \mintinline{python}{b(reak) [[filename:]lineno | function[, condition]]}: imposta un breakpoint su una riga o funzione, eventualmente con \mintinline{python}{condition} (lista bp se senza argomenti)
+    \begin{itemize}
+      \item \mintinline{python}{filename:lineno}: specifico il file e la riga (file cercato in \mintinline{python}{sys.path})
+      \item \mintinline{python}{function}: breakpoint all'inizio della funzione specificata
+      \item \mintinline{python}{condition}: espressione che deve essere vera perch\'e il breakpoint sia rispettato
+    \end{itemize}
+  \item \mintinline{python}{tbreak [[filename:]lineno | function[, condition]]}: imposta un breakpoint temporaneo che viene cancellato dopo il primo raggiungimento
+  \item \mintinline{python}{cl(ear) [bpnumber [bpnumber ...]]}: cancella uno o pi\`u breakpoint, se nessun argomento \`e fornito \textbf{li cancella tutti ma chiedendo conferma}
+  \item \mintinline{python}{disable [bpnumber [bpnumber ...]]}: disabilita i breakpoint forniti senza cancellarli, (riattivabili successivamente)
+  \item \mintinline{python}{enable [bpnumber [bpnumber ...]]}: riabilita uno o pi\`u breakpoint disabilitati
+  \item \mintinline{python}{ignore bpnumber [count]}: imposta quante volte ignorare un breakpoint (ignorato \mintinline{python}{count} volte, def 0) $\rightarrow$ a 0 diventa attivo
+  \item \mintinline{python}{condition bpnumber [condition]}: aggiunge o rimuove \mintinline{python}{condition} (espressione che deve essere vera affinch\'e il bp sia rispettato) per il breakpoint specificato
+  \item \mintinline{python}{s(tep)}: esegue la riga corrente e si ferma alla prima occasione (in una funzione chiamata o alla prossima riga)
+  \item \mintinline{python}{n(ext)}: continua l'esecuzione fino alla prossima riga nella funzione corrente, evitando di fermarsi all'interno di eventuali chiamate di funzione
+  \item \mintinline{python}{r(eturn)}: continua l'esecuzione fino al termine della funzione corrente
+  \item \mintinline{python}{c(ont(inue))}: riprende l'esecuzione fino al prossimo breakpoint
+  \item \mintinline{python}{j(ump) lineno}: salta a \mintinline{python}{lineno} come prossima riga da eseguire
+  \item \mintinline{python}{l(ist) [first[, last]]}: mostra le righe di sorgente attorno a quella corrente o in un intervallo specificato (def 11 righe)
+  \item \mintinline{python}{a(rgs)}: stampa la lista degli argomenti della funzione corrente
+  \item \mintinline{python}{p expr}: valuta e stampa il valore dell'espressione python \mintinline{python}{expr} nel contesto corrente.
+  \item \mintinline{python}{pp expression}: come \mintinline{python}{p}, ma stampa il risultato formattato usando il modulo \mintinline{python}{pprint}
+  \item \mintinline{python}{alias [name [command]]}: crea un alias per un comando di debug (senza argomenti elenca tutti gli alias attivi)
+    \begin{itemize}
+      \item indico parametri sostitutivi con \mintinline{python}{\%1, \%2,...} mentre \mintinline{python}{\%*} viene sostituito da tutti i parametri
+      \item possono essere annidati, e contenere qualsiasi cosa digitabile al prompt pdb; shadowing sui comandi interni; controllati ricorsivamente sulla prima parola della riga (tutte le altre vengono lasciate invariate)
+      \item \begin{lstlisting}[language=bash]
+          # 2 esempi utili
+          #Visualizza le variabili d'istanza (utilizzo: "pi classInst")
+          alias pi for k in \%1.__dict__.keys(): print "\%1.",k,"=",\%1.__dict__[k]
+          #Visualizza le variabili d'istanza in self
+          alias ps pi self
+        \end{lstlisting}
+    \end{itemize}
+  \item \mintinline{python}{unalias name}
+  \item \mintinline{python}{! statement}: esegue un'istruzione Python \textbf{monoriga} nel contesto dello stack frame corrente (\mintinline{python}{!} pu\`o essere omesso se la prima parola non \`e un alias o comando interno del debugger)
+    \begin{lstlisting}[language=bash]
+      # esempio: impostare globals - devo usare ;
+      # per avere 2 istruzioni sulla stessa riga
+      global gloval_var; global_var = something
+    \end{lstlisting}
+  \item \mintinline{python}{q(uit)}
+\end{itemize}
+
+posso definire delle porzioni di codice da eseguire in debug con \mintinline{python}{if __debug__:} (\mintinline{python}{__debug__} sempre definita, tranne quando uso \mintinline{python}{-O} che indica all'interprete di ottimizzare il codice per la produzione)
+
+modo pi\`u rapido: uso \mintinline{python}{assert} (?)
+
+\section{unit test}
+
+primo livello di test del software, in cui vengono testate le parti pi\`u piccole di un software $\rightarrow$ usato per convalidare che ogni unit\`a del software funzioni come previsto
+
+\textbf{test case}: insieme di condizioni usate per determinare se un sistema sottoposto a test funziona correttamente
+
+\textbf{test suite}: raccolta di test case usati per testare un programma software e per dimostrare che ha una serie specifica di comportamenti eseguendo insieme i test aggregati
+
+\textbf{test runner}: componente che imposta l'esecuzione dei test e fornisce il risultato all'utente
+
+in python si usa il modulo \mintinline{python}{unittest}
+
+\begin{minted}{python}
+import unittest
+value = True # False
+class Foo(unittest.TestCase):
+  def test(self):
+    self.assertTrue(value)
+    
+unittest.main()
+\end{minted}
+
+un test case \`e una classe che eredita da \mintinline{python}{TestCase} $\rightarrow$ i test contenuti al suo interno sono funzioni con nome che inizia con \mintinline{python}{test}
+
+per effettuare la valutazione si usano le assert messe a disposizione dal modulo $\rightarrow$ se non va a buon fine, il test viene considerato \textbf{NON superato}
+
+tipi di risultati possibili:
+
+\mintinline{python}{OK}: tutti i test superati
+
+\mintinline{python}{FAIL}: test non passato, sollevata \mintinline{python}{AssertionError}
+
+\mintinline{python}{ERROR}: sollevata un'eccezione diversa da \mintinline{python}{AssertionError}
+
+metodi per preparare i test ed eseguire operazioni dopo l'esecuzione (es. connessione a db, chiusura file):
+
+\begin{minted}{python}
+setUp() 		# eseguito prima di ogni test
+tearDown() 		# eseguito dopo ogni test
+setUpClass() 	# eseguito prima di tutti i test della classe
+tearDownClass() # eseguito dopo tutti i test della classe
+\end{minted}
+
+\section{file I/O}
+
+preambolo su filesystem e cose varie
+
+\subsection{apertura file}
+
+open('pathname',mode)`
+
+\mintinline{python}{mode}: \mintinline{python}{r},\mintinline{python}{w},\mintinline{python}{a}, \mintinline{python}{b} (quest'ultimo da aggiungere agli altri per aprire il file in modalit\`a binaria)
+
+ritorna il descrittore del file (da usare per individuare il file aperto)
+
+\begin{minted}{python}
+# LETTURA
+fd = open('path','r')
+fd.read() # legge intero file in una stringa
+fd.readline()
+for line in fd: # legge una riga alla volta
+  # ...
+fd.close()
+
+# SCRITTURA
+fd = open('path','w')
+fd.write(s) # scrivo una stringa
+print('hello', file=fd) #solo in python3
+fd.close()
+
+# SCRITTURA IN MODALIT\`A BINARIA
+fd = open('prova.bin', 'wb')
+fd.write(bytes([1, 2, 3]))
+fd.close()
+fd2 = open('prova.bin', 'rb')
+a = fd2.read()
+a = list(a)
+
+# SINTASSI ALTERNATIVA
+with open('path','r') as fd:
+  # blocco eseguito solo se non avvengono errori nell'apertura
+  # il file viene chiuso automaticamente in ogni caso
+\end{minted}
+
+\subsection{Pickle}
+
+modulo che permette di serializzare su file oggetti arbitrari
+
+\begin{minted}{python}
+pickle.dump(obj, file) 	# -> salva l'oggetto su file
+pickle.dumps(obj) 		# -> restituisce la serializzazione come stringa
+pickle.load(file) 		# -> legge il file e restituisce l'oggetto
+pickle.loads(data) 		# -> legge data (stringa) e restituisce l'oggetto
+\end{minted}
+
+posso salvare builtin, tipi numerici, tipi stringa, iterabili, funzioni (no lambda), classi, istanze con metodo \mintinline{python}{__getstate__} salvabile
+
+funzioni e classi vengono salvate usando \textbf{solo il nome} (per sicurezza) $\rightarrow$ quando vengono deserializzate \`e necessario importarle preventivamente
+
+\textbf{pu\`o essere pericoloso} $\rightarrow$ \textbf{posso deserializzare oggetti con codice malevolo}
+
+\section{performance: C vs Python}
+
+profilazione dei tempi di esecuzione con \mintinline{python}{python3 -m cProfile foo.py}
+
+possibile profilare parti specifiche di codice importando \mintinline{python}{cProfile}:
+
+\begin{minted}{python}
+import cProfile, pstats, io
+from pstats import SortKey
+
+pr = cProfile.Profile()
+pr.enable()
+# ...
+pr.disable()
+s = io.StringIO()
+sortby = SortKey.CUMULATIVE
+ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+ps.pint_stats()
+print(s.getvalue())
+\end{minted}
+
+spesso si scrive un programma in python e poi si importano funzioni C per le parti pi\`u onerose $\rightarrow$ codice semplice per la maggior parte del programma, e velocit\`a nelle parti onerose
+
+scrivo la/le funzioni  C e le compilo: \mintinline{python}{cc -fPIC -shared -o my_functions.so my_functions.c}
+
+carico la libreria C nel programma python, importo il file compilato e uso le funzioni
+
+\begin{minted}{python}
+from ctypes import *
+
+so_file = "/path/to/my_functions.so"
+my_functions = CDLL(so_file)
+print(my_functions.foo())
+\end{minted}
+
+\section{parsing argomenti}
+
+\begin{lstlisting}[language=bash]
+python3 script.py arg1 arg2 ...
+\end{lstlisting}
+
+nel programma li trovo (importando \mintinline{python}{sys}) in \mintinline{python}{sys.argv} (lista) $\rightarrow$ implica parsare manualmente gli argomenti (tenendo conto di posizione, tipo, assegnazioni eccetera)
+
+il modulo \mintinline{python}{argparse} gestisce tutto in automatico: definisco cosa mi aspetto come argomenti, poi il modulo genera un help e parsa gli argomenti in modo corretto
+
+\begin{minted}{python}
+import argparse
+parser = argparse.ArgumentParser(description="Process some integers.")
+
+# fase di definizione
+parser.add_argument(dest='integers',
+                    metavar='N',
+                    type=int,
+                    nargs='*',
+                    help='an integer for the accumulator')
+
+# fase di parsing - ritorna un ogegetto Namespace con le variabili popolate
+arguments = parser.parse_args()
+\end{minted}
+
+\mintinline{python}{add_argument('argname')}: specifico il nome dell'argomento, considerato posizionale ed obbligatorio (errore se non lo inserisco)
+
+\mintinline{python}{add_argument('-a','--arg')}: specifica il nome dell'argomento in versione corta e lunga $\rightarrow$ parametri considerati opzionali
+
+altri parametri opzionali della funzione:
+
+\begin{itemize}
+\item \mintinline{python}{dest}: specifico la variabile di destinazione (def nome argomento)
+\item \mintinline{python}{type}: tipo di dato (def stringa) (\mintinline{python}{argparse.FileType('r')} per file)
+\item \mintinline{python}{default}: valori def per i parametri opzionali
+\item \mintinline{python}{nargs}: numero di valori da considerare per quell'argomento
+\item \mintinline{python}{action}: azione da compiere sui valori
+\item \mintinline{python}{store}: default
+\item \mintinline{python}{store_true/false}: salva \mintinline{python}{True/False} a seconda che il parametro sia stato specificato (o viceversa) $\rightarrow$ per controllare argomenti flag
+\item \mintinline{python}{save_const}: salva il valore definito in \mintinline{python}{const}, \mintinline{python}{False} se non definito
+\item \mintinline{python}{append}: crea una lista se il parametro \`e specificato pi\`u volte
+\item \mintinline{python}{count}: conta il numero di volte che il parametro \`e specificato (\mintinline{python}{-vvv -> v=3})
+\item \mintinline{python}{help}: stringa da mostrare per l'argomento
+\item \mintinline{python}{metavar}: valore di esempio da mostrare nell'help
+\end{itemize}
+
+\end{document}
