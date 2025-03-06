@@ -1,0 +1,92 @@
+\input{../../../preamble}
+
+\title{%
+Compilatori\\
+\large Parte Due}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+\part{lab 1}
+
+\section{la IR di LLVM}
+
+ricordiamo: IR di llvm ha sintassi e semantica simili all'assembly a cui siamo abituati
+
+domanda: come scrivere un passo llvm?
+
+prima chiariamo alcuni punti:
+\begin{itemize}
+  \item moduli llvm
+  \item iteratori
+  \item downcasting
+  \item interfacce dei passi llvm
+\end{itemize}
+
+\subsection{moduli llvm}
+
+un modulo rappresenta un singolo file sorgente (corrisponde) - vedremo che gli iteratori permettono di "scorrere" attraverso tutte le funzioni di un modulo
+
+recupera slide 23 bene
+
+
+
+\subsection{iteratori}
+
+nota su cambiamento a nuovo llvm pass manager (vedi link a slide 22)
+
+vediamo che in generale un iteratore permette di puntare al "livello sottostante" della gerarchia appena vista
+
+nota: sintassi simile a quella del container STL \lstinline|vector|
+
+IMG slide 25
+
+caption: l'attraversamento delle strutture dati della IR llvm normalmente avviene tramite doubly-linked lists
+
+\subsection{downcasting}
+
+tecnica che permette di istanziare ... recupera
+
+omtivazione: es. capire che tipo di istruzione abbiamo davanti $\rightarrow$ il downcasting aiuta a recuperare maggiore informazione dagli iteratori
+
+uso esempio del downcasting dunque: specializzare l'estrazione di informazione durante il pass (?)
+
+\subsection{interfacce dei passi llvm}
+
+llvm fornisce gi\`a interfacce diverse:
+\begin{itemize}
+  \item basicblockpass: itera su bb
+  \item callgraphsccpass: itera sui nodi del cg
+  \item functionpass: itera sulla lista di funzioni del modulo
+  \item eccetera
+\end{itemize}
+
+diversificate appositamente per passi con intenzione diversa: permette di scegliere a che "grana" opera il pass di ottimizzazione (di che livello di informazione ho bisogno? magari non mi serve essere a livello di modulo ma direttamente a livello di ad es. loop)
+
+
+\subsection{new pass manager}
+
+solitamente ha una pipeline "statica" (predefinita) di passi $\rightarrow$ alterabile invocando una sequenza arbitraria tramite cmd line: \lstinline|opt -passes='pass1,pass2' /tmp/a.ll -S| o \lstinline|opt -p pass1, ...|
+
+\section{esercizio 1 - IR e CFG}
+
+\begin{itemize}
+  \item per ognuno dei test benchmarks produrre la IR con clang e analizzarla, cercando di capire cosa significa ogni parte
+  \item disegnare il CFG per ogni funzione
+\end{itemize}
+
+\begin{emphasize}
+    usiamo clang per produrre la IR da dare in pasto al middle-end:
+
+    \lstinline|clang -O2 -emit-llvm -S -c test/Loop.c -o test/Loop.ll|
+
+    oppure prima produco bytecode e poi disassemblo per produrre la forma assembly
+
+    \lstinline|clang -O2 -emit-llvm -c test/Loop.c -o test/Loop.bc|
+
+    \lstinline|llvm-dis test/Loop.bc -o=./test/Loop.ll|
+\end{emphasize}
+
+\end{document}
+
