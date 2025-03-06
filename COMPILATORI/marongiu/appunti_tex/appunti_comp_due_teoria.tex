@@ -152,4 +152,239 @@ un backend che fa uso di IR permette di disaccoppiare con facilit\`a frontend e 
 
 slide 49-51
 
+\section{Rappresentazione intermedia (4 mar)}
+
+ricordiamo: middle end come sequenza di passi, di analisi o di trasformazione $\rightarrow$ per analizzare e trasformare il codice occorre una rappr.~intermedia (IR) \textbf{espressiva} che \textbf{mantenga le informazioni importanti da un passo all'altro}
+
+\subsection{propriet\`a di una IR}
+
+scegliamo IR diverse a seconda del loro uso, in generale alcune caratteristiche sono sempre richieste:
+\begin{itemize}
+  \item facilita di generazione (effetti sul frontend)
+  \item facilita e costo di manipolazione
+  \item livello di astrazione e di dettaglio esposto: effetti sul frontend e sul backend (diverse IR da un lato e dall'altro, a seconda del livello di astraz.~e di dettaglio necessari)
+\end{itemize}
+
+\subsection{Tipi di IR}
+
+\begin{itemize}
+  \item AST (abstract syntax tree)
+  \item DAG (grafi diretti aciclici)
+  \item 3-address code (3AC): assomiglia molto all'assembly (3 indirizzi in quanto registro destinazione e max2 operandi)
+  \item SSA (Static Single Assignment): evoluzione di 3ac con ulteriori propriet\`a di control flow (?)
+  \item CFG (control flow graphs)
+  \item CG (call graph)
+  \item PDG (program dependence graphs)
+\end{itemize}
+
+call graph: rappresenta "come" vengono chiamate le funzioni (a partire dal main)
+
+ottimizzazioni inter-procedurali: devono per forza basarsi su IR di tipo cg (es. per decidere quando fare INLINING - espandere il codice della funzione invece di chiamarla - evidente tradeoff tra dimensione del codice e overhead dovuto alla chiamata di funzione)
+
+pdg: rappresentazione fondamentale per lavorare sul parallelismo, multithreading eccetera
+
+\subsection{categorie di IR}
+
+\begin{itemize}
+  \item grafiche (o strutturali)
+    \begin{itemize}
+      \item orientate ai grafi
+      \item molto usate nella source-to-source translation: uso tipico - ottimizzazioni che non hanno bisogno della struttura sofisticata di un middle-end (es. openMP: sono di fatto delle annotazioni sul codice, dunque lo scopo principale di questo programming model \`e fornire uno strumento semplice al programmatore (es. outlining: prendo es un loop e lo impacchetto in una funzione che poi dovra essere eseguita dai thread per la parallelizzazione) - dunque in questo caso non sto ottimizzando nel senso proprio del termine, ma sto trasformando il codice e lo sto rendendo eseguibile in maniera parallela - mi bastsa un IR di questa categoria)
+      \item solitamente voluminose (basate su grafi) - tradeoff con il fatto che sono usate prima del middle-end (senza doverlo coinvolgere)
+      \item es. ast, dag
+    \end{itemize}
+  \item lineari
+    \begin{itemize}
+      \item pseudocodice per macchine astratte
+      \item livello di astrazione vario
+      \item strutture dati semplici e compatte
+      \item facile da riarrangiare (evidentemente il piu comodo per eseguire le ottimizzazioni)
+      \item es. 3ac
+    \end{itemize}
+  \item ibride (sfruttano combinazioni delle prime due) (es cfg)
+\end{itemize}
+\subsection{esempi di rappresentazione}
+
+
+\subsubsection{sintassi concreta (testo)}
+
+maniera piu semplice in quanto piu vicina al livello di astrazione "umano" di ragionamento sul programma, ma non il livello corretto per ottimizzare ne comprendere correttamente la semantica del programma
+
+\begin{lstlisting}[language=java]
+let value = 8;
+let result = 1;
+for (let i = value; i>0; i = i - 1) {
+  result = result * i;
+}
+console.log(result);\end{lstlisting}
+
+\subsubsection{ast}
+
+albero i cui nodi rappresentano diverse parti del programma, con il nodo radice che rappresenta il \textbf{programma}, il quale a sua volta contiene un blocco di istruzioni dal quale discendono tanti figli quante le sue istruzioni
+
+esempi immagini
+
+pro: molto comodo per interpreti (basta usare fz ricorsiva per processare l'albero)
+
+contro: un nodo \`e un oggetto troppo generico $\rightarrow$ analizzare un ast per l'ottimizzazione impone ogni volta di ragionare sulla differenza semantica tra i nodi (complica molto)
+
+\subsubsection{dag (digressione)}
+
+contrazione di ast che evita la duplicazione di espressioni $\rightarrow$ rappresentazione piu compatta
+
+limite: il riuso e possibile solamente dimostrando che il suo valore non cambia nel programma $\rightarrow$ essendo assegnamenti e chiamate frequentissimi, evidentemente il fatto che il dag non abbia nozione di come le espr cambino valore nel tempo non lo rende un buon candidato per le ottimizzazioni
+
+\begin{example}
+   codice generato da questo dag corretto?
+%   \begin{lstlisting}
+%x = a + a * (b – c)
+%y = (b – c ) * d
+%z = x + y
+%# espressioni trovate
+%t1 = b – c
+%t2 = a * t1
+%x = a + t2
+%y = t1 * d
+%z = x + y
+%   \end{lstlisting}
+corretta, mentre per altro esempio no   
+\end{example}
+
+
+
+\subsubsection{3ac}
+
+evidentemente adatto alle ottimizzazioni: tutte le istruzioni del programma vengono spezzettate in istruzioni di forma semplice simile all'assembly
+
+in questo caso istr di tipo \lstinline|x = y op z| (1 operatore, massimo 3 operandi)
+
+esempio:
+
+\lstinline|x - 2 * y| $\rightarrow$ \lstinline|t1 = |
+
+pro: espressioni complesse spezzettate, forma compatta e simile a assembly
+introdotti registri temporanei intermedi, virtuali e illimitati (non mi preoccupo dei problemi architetturali di quanti registri fisici ho a disposizione, sono a livello decisamente piu alto - le eventuali op. di spill (aggiungere load o store in mncanza di registri fisici) non le gestisco qui)
+
+rec
+
+\paragraph{varianti di 3ac}~\\
+
+varianti a seconda dei vincoli che ho per l'implementazione pratica
+
+quadruple: id istruzione, opcode, i 3 registri (semplice struttura record, facile da analizzare e riordinare ma i nomi espliciti prendono pi\`u spazio)
+triple: id istruzione, opcode, 2 operandi $\rightarrow$ uso l'indice dell'espressione nell'array come "nome" del registro destinazione $\rightarrow$ risparmio spazio, ma diventa piu complesso da analizzare (nomi impliciti) e soprattutto da riordinare
+
+
+ricordiamo la constant propagation: sostituisco usi futuri di una variabile con valore costante con la costante stessa \textbf{se non cambia nel frattempo}
+
+$\rightarrow$ ottimizzazione che una IR di tipo 3ac non puo applicare immediatamente (devo prima analizzare il resto del codice) $\rightarrow$ SSA come evoluzione della 3ac, in quanto impone che la \textbf{definizione (assegnamento)} delle variabili avvenga \textbf{solo una volta} (definizioni multiple sono tradotte in multiple versioni della var)
+
+pro: ogni definizione ha associata direttamente una lista di tutti i suoi usi - semplifica enormemente le ottimizzazioni di tipo CP e non solo
+
+quasi sempre uno dei passi di ottimizzazione prevede il passaggio a forma SSA
+
+\subsection{scelta della IR}
+
+dipende ovviamente dal livello di dettaglio necessario per ogni specifico compito - in un compilatore coesistono piu IR
+
+anche per questo ci sono le forme ibride - es. cfg con 3ac
+
+\subsubsection{cfg}
+
+vediamo un esempio con costrutti condizionali (non solo sequenze lineari)
+
+immagine slide 2-28
+
+un cfg permette di aggiungere informazioni sui \textbf{salti} al di sopra di una IR lineare $\rightarrow$ modello il flusso di controllo del programma come grafo composto da blocchi (BB)
+
+ogni bb contiene sequenze lineari di istruzioni
+
+gli archi rappresentano il flusso di controllo del programma
+
+
+formalmente: un BB \`e una seq.~di istruzioni in forma 3AC
+\begin{itemize}
+  \item solo la prima istruzione puo essere raggiunta dall'esterno (garantito un singolo entry point)
+  \item singolo exit point: se eseguo la prima istr.~\textbf{devo eseguire tutte le altre} - garantisco che venga eseguito interamente
+\end{itemize}
+
+le chiamiamo sezioni single-entry, single-exit (possono essere sezioni anche piu grandi, ma le piu piccole di questo tipo sono i BB)
+
+un arco connette due nodi s.s.se il secondo puo eseguire dopo il primo in qualche percorso del ctrl flow del programma (prima istr del secondo \`e target dell'istr di salto al termine del primo, oppure il secondo \`e l'unico successore del primo che non ha un istr di salto come ultima istr - il secondo lo chiamo nodo falltrough)
+
+un cfg \textbf{normalizzato} ha i bb \textbf{massimali} (non possono essere resi piu grandi senza violare condizioni) (unisco i bb fallthrough che non hanno label all'inizio, evidentemente) (situazioni di cfg non normalizzato possono avvenire dopo qualche generico passo di ottimizzazione, evidentemente non le facciamo accadere noi "spontaneamente")
+
+\paragraph{algoritmo per la costruzione del cfg}~\\
+
+\begin{enumerate}
+  \item identificare il \textbf{leader} di ogni bb:
+    \begin{itemize}
+      \item la prima istruzione
+      \item il target di un salto
+      \item ogni istruzione dopo un salto
+    \end{itemize}
+  \item il bb comincia con il leader e termina con l'istruzione immediatamente precedente un nuovo leader (o l'ultima istruzione)
+  \item connettere i bb tramite archi di 3 tipi:
+    \begin{itemize}
+      \item fallthrough (o fallthru): esiste solo un percorso che collega i due blocchi
+      \item true: il secondo blocco \`e raggiungibile dal primo se un condizionale \`e true
+      \item false: il secondo blocco \`e raggiungibile dal primo se un condizionale \`e false
+    \end{itemize}
+    
+\end{enumerate}
+
+esempi ed esercizi fino slide 52
+
+\subsubsection{dependency graph}
+
+soprattutto nell'erad ei nulticore questa rappr assume sempre piu importanza
+
+almeno due tipi: (recupera questa cosa)
+
+ricordiamo pipeline riscv e data hazard: il fatto che un registro voglia leggere da un registro usato in un'op precedente (e non ancora salvato? recupera)
+
+if id exe mem wb le fasi di pipelining
+
+esempio con una mul: ricordiamo che se la mul successiva prova a usare il registro usato nell'istr prima (dipendenza), il risultato ancora non e stato scritto - nella fase di decode identifico i registri usati nell'operazione, e appunto rw ancora non contiene il risultato aggiornato, che sara pronto appena tra 2 cicli
+
+questo e un data hazard, nel caso comune si gestisce con una \textbf{forwarding unit} che bypassa le fasi successive e inoltra direttamente il risultato appena ottenuto
+
+per quanto la fw unit sia un pezzo di hw dedicato che fa questi controlli autonomamente, in generale l'unico modo per evitare questo tipo di hazard \`e distanziare abbastanza le istruzioni tra loro affinche il dato sia disponibile $\rightarrow$ sposto l'istruzione di mul inserendo nop (cicli di stallo) (evidentemente non buono - vado a "rompere" l'IPC paria a 1 della pipeline sempre piena, evidentemente diminuisce la performance)
+
+soluzione migliore: scheduling del programma, ovvero sposto istruzioni che non hanno bisogno di quei registri per riempire quello spazio altrimenti occupato necessariamente da nop
+
+questo \`e uno dei compiti principali di un backend - \textbf{in che ordine genero le istruzioni per massimizzare l'efficienza del programma}
+
+come faccio a fare questa cosa? manualmente: vado a guardare le istruzioni e cerco a mano le dipendenze; il backend sfrutta la IR di tipo dg che fornisce esattamente le informazioni sulle dipendenze tra istruzioni
+
+qui si capisce cosa si intende per instruction level parallelism: dunque, quando \`e possibile sfruttare tutte le parti di architettura per "parallelizzare il codice" anche in caso di single thread (ottimizzazione senza reale parallelismo)
+
+
+\subsubsection{data dependency graph ddg}
+
+specifico per multicore e parallelismo, usato per dare una rappresentazione tra le dipendenze dei \textbf{dati} - tipicamente i loop
+
+per esempio, loop innestati lavorano tipicamente su str dati complesse e multidimensionali (matrici, immagini, eccetera)
+
+esempio: for i = 0, i < n, i++
+A[i]=init()
+
+in questo caso \`e evidente come ogni iterazione resta indipendente dalle altre (uso il solo indice del loop)
+
+sufficiente aggiungere qualcosa come A[i-1] = A[i] per generare dipendenze tra le iterazioni
+
+di fatto mi sta dicendo che questo loop non \`e parallelizzabile in nessun modo, e deve per forza essere eseguito in sequenza
+
+evidentemente le casistiche reali sono molto pi\`u complesse $\rightarrow$ esistono vari modi per rappresentare lo spazio delle iterazioni di un loop e le dipendenze che ne derivano
+
+modello usato all'oggi: polyhedral model $\rightarrow$ rappresento lo spazio delle it.~come un poliedro (a seconda del numero di loop innestati), che permette di capire se esiste qualche permutazione dei loop (direzione di attraversamento dello spazio delle iterazioni; ovvero ad esempio scambiare l'ordine dei loop) non soggetta a dipendenze
+
+\subsubsection{call graph}
+
+rappresetnazione grafica a grafo usata per ragionare sulle relazione tra le funzioni della translation unit del file (insieme delle potenziali chiamate tra funzioni)
+
+rappr.~gerarchica, utile soprattutto a livello di analisi \textbf{interprocedurale} (la maggior parte delle ottimizzazioni avvengono a livello intraprocedurale) (recupera questo concetto) (lavora sui file che abbiamo chiamato translation units, ovvero quelli da cui poi genero i file oggetto)
+
+$\rightarrow$ evidente come il compilatore abbia visibilita solo fino a livello dei singoli moduli: posso estendere le ottimizzazioni al massimo fino ai legami tra funzioni dello stesso modulo - le ottimizzazioni piu ampie si spostano a framework di ottimizzazione che agiscono a livello di linker per esempio
+
 \end{document}
