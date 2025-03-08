@@ -28,24 +28,18 @@ Ricordiamo il ruolo del compilatore tra le tecnologie informatiche, quello dell'
 
 \subsubsection{L'evoluzione dei compilatori}
 
-Le rivoluzioni in termini di "classe" di dispositivi e di dimensioni dei transistor sono molto frequenti (Bell, Moore), e nei primi 2000 si arriva ai \textbf{limiti fisici della miniaturizzazione e della frequenza} operativa dei processori (e conseguenti problemi di dissipazione del calore prodotto) $\rightarrow$ nasce l'idea di cambiare completamente il paradigma di sviluppo di un processore: dal singolo core sempre pi\`u potente passo a \textbf{pi\`u core "isopotenti"} sullo stesso chip
+Le rivoluzioni in termini di "classe" di dispositivi e di dimensioni dei transistor sono molto frequenti (Bell, Moore), e nei primi 2000 si arriva ai \textbf{limiti fisici della miniaturizzazione e della frequenza} operativa dei processori (problemi di dissipazione del calore) $\rightarrow$ idea di cambiare il paradigma di sviluppo di un processore: dal singolo core sempre pi\`u potente passo a \textbf{pi\`u core "isopotenti"} sullo stesso chip
+\begin{wrapfigure}{l}{.3\textwidth}
+  \centering
+\includegraphics[width=.25\textwidth]{intro_1.png}
+\end{wrapfigure}
 
-\noindent\begin{minipage}[c]{.3\textwidth}
-\includegraphics[width=\textwidth]{intro_1.png}
-\end{minipage}
-\begin{minipage}[c]{.7\textwidth}
-  Notiamo come dal 2005 circa si raggiunge un plateau in termini di consumo, di frequenza e di performance di programmi \textit{sequenziali}, e aumenta la performance di programmi che \textbf{sfruttano la parallelizzazione} $\rightarrow$ i programmi devono essere "consapevoli" che il processore \`e multicore! Qui capiamo l'impatto dello sviluppo tecnologico sull'evoluzione dei compilatori
-\end{minipage}
-
-\begin{emphasize}
-  Per evitare un cambio nella formazione dei programmatori, le aziende sperano nei compilatori autoparallelizzanti - non sar\`a mai possibile e nel mentre sono stati introdotti molti paradigmi di pr.~parallela
-\end{emphasize}
-
-Il compilatore mantiene un ruolo fondamentale: oltre a rendere meno "traumatico" il passaggio alla programmazione parallela, si interfaccia con i nuovi paradigmi di programmazione parallela offerti ai programmatori: il programmatore sfrutta interfacce semplici e astratte, mentre il compilatore traduce i costrutti in codice parallelo eseguibile (es. OpenMP)
+\noindent$\sim$ 2005: plateau di consumo, frequenza e performance di programmi \textit{sequenziali}, aumento di performance di p.~che \textbf{sfruttano la parallelizzazione} $\rightarrow$ i programmi devono essere "consapevoli" che il processore \`e multicore!\\
+Il compilatore mantiene un ruolo fondamentale: oltre a rendere meno "traumatico" il passaggio alla programmazione parallela, (non sono ancora auto-parallelizzanti) si interfaccia con i nuovi paradigmi di programmazione parallela offerti ai programmatori: il programmatore sfrutta interfacce semplici e astratte, mentre il compilatore traduce i costrutti in codice parallelo eseguibile (es. OpenMP)
 
 \subsubsection{Eterogeneit\`a architetturale}
 
-La programmazione parallela e il parallelismo architetturale sono oggi paradigmi consolidati, e i processori general purpose (seppur multicore e ottimizzati) non sono sufficienti per alcune attivit\`a specializzate come la grafica $\rightarrow$ nascono componenti \textbf{acceleratori} di vario tipo: GPU, GPGPU, FPGA, TPU, NPU...
+La programmazione parallela e il parallelismo architetturale sono oggi paradigmi consolidati, e i processori general purpose (seppur multicore e ottimizzati) non sono sufficienti per attivit\`a specializzate come la grafica $\rightarrow$ nascono componenti \textbf{acceleratori} di vario tipo: GPU, GPGPU, FPGA, TPU, NPU...
 Questo complica ulteriormente la scrittura del software, e dunque impone altre evoluzioni nei compilatori e nelle ottimizzazioni.
 
 \subsection{Ottimizzazione}
@@ -63,7 +57,7 @@ Ricordiamo le metriche usate:
 \end{equation*}
 \end{minipage}\\
 
-Le ottimizzazioni possono avvenire dal punto di vista \textcolor{red}{HW (parametri architetturali)} e da quello \textcolor{blue}{SW (p.~di programma)}. Il compilatore pu\`o agire anche ad es. a livello di cache, aiutando a ridurre i miss e dunque i CPI delle istruzioni \lstinline|load| e \lstinline|store|
+Le ottimizzazioni possono avvenire dal punto di vista \textcolor{red}{HW (parametri architetturali)} e da quello \textcolor{blue}{SW (p.~di programma)}. Il compilatore pu\`o agire anche ad es. a livello di cache, aiutando a ridurre i miss e dunque i CPI delle istruzioni \lstinline|load| e \lstinline|store| (sappiamo che il costo di accesso aumenta di ordini di grandezza)
 
 \subsubsection{Esempi di ottimizzazione}
 
@@ -72,39 +66,200 @@ Le ottimizzazioni possono avvenire dal punto di vista \textcolor{red}{HW (parame
 \end{emphasize}
 
 \begin{itemize}
-  \item AS (Algebraic Semplification): ottimizzazione a runtime
+  \item \textbf{AS (Algebraic Semplification)}Semplification: ottimizzazione a runtime
   \begin{lstlisting}
--(-i) $\rightarrow$ i
-b or true $\rightarrow$ true //cortocircuito logico\end{lstlisting}
-  \item CF (Constant Folding):  valutare ed espandere espressioni costanti a compile time
+-(-i); $\rightarrow$ i;
+b or true; $\rightarrow$ true; //cortocircuito logico\end{lstlisting}
+  \item \textbf{CF (Constant Folding)}:  valutare ed espandere espressioni costanti a compile time
   \begin{lstlisting}
-c = 1+3 $\rightarrow$ c = 4
+c = 1+3; $\rightarrow$ c = 4;
 (100<0) $\rightarrow$ false\end{lstlisting}
   
-  \item SR (Strength Reduction): sostituisco op. costose con altre pi\`u semplici: classico es. MUL rimpiazzate da ADD/SHIFT (dobbiamo ovviamente tenere conto delle implementazioni hw delle operazioni): esempi a slide 30\\
-  esempio sofisticato: for con operazioni su array, sostituito da operazioni su puntatori (aritmetica dei pt.) $\rightarrow$ il risultato si vede nel codice assembly (riporta listings)
-\item CSE (Common Subexpression Elimination): elimino i calcoli ridondanti di una stessa espressione riutilizzata in pi\`u istruzioni (statement)
-\item DCE (Dead Code Elimination): elimino tutte le istruzioni che producono codice mai letto (e dunque utilizzato), es. variabili assegnate e mai lette, codice irraggiungibile $\rightarrow$ uno dei passi eseguiti pi\`u di frequente durante l'ottimizzazione del codice da parte del compilatore, per rimuovere anche tutto il dead code generato dagli altri passi di ottimizzazione
-\item Copy Propagation: per uno statement \lstinline|x = y|, sostituisco gli usi futuri di \lstinline|x| con \lstinline|y| se non sono cambiati nel frattempo (propedeutico alla DCE)
-\item CP (Constant Propagation): sostituisco usi futuri di una variabile con assegnato valore costante con la costante stessa (se la variabile non cambia) (slide 38 esempio di sequenza di ottimizzazioni applicate in sequenza) (stiamo sempre ipotizzando che i valori a fine esempi siano poi \textbf{utilizzati}, e non dead code)
-\item LICM (Loop Invariant Code Motion): si occupa di muovere fuori dai loop tutto il codice \textbf{loop invariant}; evita i calcoli ridondanti\\
+  \item \textbf{SR (Strength Reduction)}: sostituisco op. costose con altre pi\`u semplici: classico es. \lstinline|MUL| rimpiazzate da \lstinline|ADD/SHIFT| (esecuzione in 1 ciclo invece di multic.):\\
+  \begin{minipage}[c]{.4\textwidth}
+  \begin{lstlisting}
+y = x*2;
+y = x * 17;\end{lstlisting}
+  \end{minipage}
+  \hfill
+  $\rightarrow$
+  \hfill
+  \begin{minipage}[c]{.4\textwidth}
+  \begin{lstlisting}
+y = x+x;
+y = (x<<4) + x;\end{lstlisting}
+  \end{minipage}\\
+  es.~sofisticato: \lstinline|for| con operazioni su array, sostituito da operazioni su puntatori (aritmetica dei pt.) $\rightarrow$ il risultato si vede nel codice assembly\\
+  \begin{minipage}[c]{.4\textwidth}
+  \begin{lstlisting}
+for (i=0; i<100; i++)
+  a[i] = i*100;
+  \end{lstlisting} 
+  \end{minipage}
+  \hfill
+$\rightarrow$
+  \hfill
+  \begin{minipage}[c]{.4\textwidth}
+  \begin{lstlisting}
+t = 0;
+for (; t<10000; t += 100) {
+  *a = t;
+  a = a + 4;
+}\end{lstlisting}
+  \end{minipage}
+  
+  \begin{minipage}[c]{.4\textwidth}
+  \begin{lstlisting}
+li s0, 0 // i = 0
+li s1, 100
+LOOP:
+bge s0, s1, EXIT
+slli s2, s0, 2
+add s2, s2, a0
+mul s3, s0, 100
+sw s3, 0(s2)
+addi s0, s0, 1
+jal zero, LOOP
+EXIT:\end{lstlisting} 
+  \end{minipage}
+  \hfill
+$\rightarrow$
+  \hfill
+  \begin{minipage}[c]{.4\textwidth}
+  \begin{lstlisting}
+li s0, 0 // t = 0
+li s1, 10000
+LOOP:
+bge s0, s1, EXIT
+sw s0, 0(a0)
+addi a0, a0, 4
+jal zero, LOOP
+EXIT:\end{lstlisting}
+  \end{minipage}
+  
+\item \textbf{CSE (Common Subexpression Elimination)}: elimino i calcoli ridondanti di una stessa espressione riutilizzata in pi\`u istruzioni (statement)\\
+  \begin{minipage}[c]{.4\textwidth}
+    \begin{lstlisting}
+y = b * c + 4
+z = b * c - 1\end{lstlisting}
+  \end{minipage}
+\hfill $\rightarrow$ \hfill
+\begin{minipage}[c]{.4\textwidth}
 \begin{lstlisting}
+x = b * c
+y = x + 4
+z = x - 1\end{lstlisting}
+\end{minipage}
+\item \textbf{DCE (Dead Code Elimination)}: elimino tutte le istruzioni che producono codice mai letto (e dunque utilizzato), es. variabili assegnate e mai lette, codice irraggiungibile $\rightarrow$ uno dei passi eseguiti pi\`u di frequente durante l'ottimizzazione del codice da parte del compilatore, per rimuovere anche tutto il dead code generato dagli altri passi di ottimizzazione\\
+  \begin{minipage}[c]{.4\textwidth}
+  \begin{lstlisting}
+b = 3
+c = 1 + 3
+d = 3 + c\end{lstlisting}
+  \end{minipage}
+  \hfill $\rightarrow$ \hfill
+  \begin{minipage}[c]{.4\textwidth}
+  \begin{lstlisting}
+c = 1 + 3
+d = 3 + c\end{lstlisting}
+  \end{minipage}
+
+  \begin{minipage}[c]{.25\textwidth}
+  \begin{lstlisting}
+if (100<0)
+{a = 5}\end{lstlisting}
+  \end{minipage}
+  \hfill $\rightarrow$ \hfill
+  \begin{minipage}[c]{.25\textwidth}
+  \begin{lstlisting}
+if (false)
+{}\end{lstlisting}
+  \end{minipage}
+  \hfill $\rightarrow$ \hfill
+  \begin{minipage}[c]{.25\textwidth}
+  \begin{lstlisting}
+
+  \end{lstlisting}
+  \end{minipage}
+\item \textbf{Copy Propagation}: per uno statement \lstinline|x = y|, sostituisco gli usi futuri di \lstinline|x| con \lstinline|y| se non sono cambiati nel frattempo (propedeutico alla DCE)\\
+  \begin{minipage}[c]{.25\textwidth}
+  \begin{lstlisting}
+x = y;
+c = 1 + x;
+d = y + c;\end{lstlisting}
+  \end{minipage}
+  \hfill $\rightarrow$ \hfill
+  \begin{minipage}[c]{.25\textwidth}
+  \begin{lstlisting}
+x = y;
+c = 1 + y;
+d = y + c;\end{lstlisting}
+  \end{minipage}
+  \hfill $\tiny\underrightarrow{\text{DCE}}$ \hfill
+  \begin{minipage}[c]{.25\textwidth}
+  \begin{lstlisting}
+c = 1 + y;
+d = y + c;\end{lstlisting}
+  \end{minipage}
+\item \textbf{CP (Constant Propagation)}: sostituisco usi futuri di una variabile con assegnato valore costante con la costante stessa (se la variabile non cambia) (sempre ipotesi che i valori a fine es.~siano poi \textbf{usati}, e non dead code)\\
+  \begin{minipage}[c]{.25\textwidth}
+  \begin{lstlisting}
+b = 3;
+c = 1 + b;
+d = b + c;\end{lstlisting}
+  \end{minipage}
+  \hfill $\tiny\underrightarrow{\text{CP}}$ \hfill
+  \begin{minipage}[c]{.25\textwidth}
+  \begin{lstlisting}
+b = 3;
+c = 1 + 3;
+d = 3 + c;\end{lstlisting}
+  \end{minipage}
+  \hfill $\tiny\underrightarrow{\text{CF}}$ \hfill
+  \begin{minipage}[c]{.25\textwidth}
+  \begin{lstlisting}
+b = 3;
+c = 4;
+d = 3 + c;\end{lstlisting}
+  \end{minipage}
+  \hfill $\tiny\underrightarrow{\text{CP}}$ \hfill
+
+  \hfill $\tiny\underrightarrow{\text{CP}}$ \hfill
+  \begin{minipage}[c]{.25\textwidth}
+  \begin{lstlisting}
+b = 3;
+c = 4;
+d = 3 + 4;\end{lstlisting}
+  \end{minipage}
+  \hfill $\tiny\underrightarrow{\text{CF}}$ \hfill
+  \begin{minipage}[c]{.25\textwidth}
+  \begin{lstlisting}
+b = 3;
+c = 4;
+d = 7;\end{lstlisting}
+  \end{minipage}
+  \hfill $\tiny\underrightarrow{\text{DCE}}$ \hfill
+  \begin{minipage}[c]{.25\textwidth}
+  \begin{lstlisting}
+d = 7;\end{lstlisting}
+  \end{minipage}
+\item LICM (Loop Invariant Code Motion): si occupa di muovere fuori dai loop tutto il codice \textbf{loop invariant}; evita i calcoli ridondanti\\
+  \begin{minipage}[c]{.4\textwidth}
+  \begin{lstlisting}
 while (i<100) {
   *p = x/y + i;
   i = i + 1;
-}
-\end{lstlisting}
-diventa
-\begin{lstlisting}
+}\end{lstlisting}
+  \end{minipage}
+  \hfill $\rightarrow$ \hfill
+  \begin{minipage}[c]{.4\textwidth}
+  \begin{lstlisting}
 t = x + y;
 while (i < 100) {
   *p = t + i;
   i = i + 1;
-}
-\end{lstlisting}
-recupera questione su load e store, questione su CPI medio per una load e quando si riduce/ arriva a 1 (quando si trova in cache, di solito ordine delle decine)\\
-chiedi a dani
-
+}\end{lstlisting}
+  \end{minipage}
 \end{itemize}
 
 \subsubsection{Ottimizzazioni sui loop}
@@ -112,33 +267,37 @@ chiedi a dani
 \begin{itemize}
   \item grande impatto sulla performance dell'intero programma (per ovvie ragioni)
   \item spesso sono ottimizzazioni propedeutiche a quelle machine-specific (effettuate nel backend): register allocation, instruction level parallelism, data parallelism, data-cache locality
-  \item sono in generale target delle ottimizzazioni, essendo centrali per il parallelismo
 \end{itemize}
 
 \subsection{Anatomia di un compilatore}
 
-Un compilatore svolge almeno due compiti: analisi del sorgente e sintesi di un programma in linguaggio macchina; lo fa operando su una rappresentazione intermedia (IR) che si interpone tra frontend e backend, e tra source code e target code
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=.5\textwidth]{intro_3.png}
+\end{figure}
 
-il blocco di middle-end agisce sul codice intermedio, e in vari passaggi lo trasforma  e lo ottimizza (diverso a seconda del compilatore)
-
-caso llvm: clang (frontend) $\rightarrow$ opt (middleend) $\rightarrow$ llc (backend)
-
-l'ottimizzatore opt si basa su una serie di \textbf{passi di ottimizzazione (o di analisi)}: un passo di analisi scorre l'IR e lo analizza (non lo trasforma, ma produce informazioni utili); un passo di ottimizzazione sfrutta informazioni conosciute per trasformare l'IR (applica le ottimizzazione)
-
-
-alcune ottimizzazioni non possono essere effettuate o finalizzate senza conoscere l'architettura target (es. sulle cache), e dunque vengono eseguite dal backend
+\begin{itemize}
+  \item almeno due compiti: \textbf{analisi del sorgente} e \textbf{sintesi di un programma in linguaggio macchina}, operando su una IR che si interpone tra frontend e backend, e tra source code e target code
+  \item Il blocco di middle-end agisce su IR, e in vari passaggi lo trasforma e ottimizza ($\neq$ a seconda del compilatore)
+  \item caso llvm: \lstinline|clang| (frontend) $\rightarrow$ \lstinline|opt| (middleend) $\rightarrow$ \lstinline|llc| (backend)
+  \item \lstinline|opt| si basa su una serie di \textbf{passi di ottimizzazione (o di analisi)}: un passo di analisi scorre l'IR e lo analizza (non lo trasforma, ma produce informazioni utili); un passo di ottimizzazione sfrutta informazioni conosciute per trasformare l'IR (applica le ottimizzazione)
+  \item alcune ottimizzazioni non possono essere effettuate o finalizzate senza conoscere l'architettura target (es. sulle cache), e dunque vengono eseguite dal backend
+\end{itemize}
 
 \subsubsection{Flag di ottimizzazione}
 
 sono flag che passo al compilatore (al pass manager) per influenzare \textbf{ordine e numero dei passi di ottimizzazione}
+\begin{multicols}{2}
 \begin{itemize}
   \item \lstinline|-g|: solo debugging, nessuna ottimizzazione
   \item \lstinline|-O0|: nessuna ottimizzazione
   \item \lstinline|-O1|: solo ott. semplici
   \item \lstinline|-O2|: ott. pi\`u aggressive
-  \item \lstinline|-O3|: esecuzione dei passi in un ordine che sfrutta compromessi tra velocit\`a e spazio occupato
+  \item \lstinline|-O3|: ordine dei passi che sfrutta compromessi tra velocit\`a e spazio occupato
   \item \lstinline|-OS|: ottimizza per dimensione del compilato
 \end{itemize}
+\end{multicols}
+
 
 \subsubsection{Uso di IR}
 
@@ -150,47 +309,53 @@ un backend che fa uso di IR permette di disaccoppiare con facilit\`a frontend e 
 
 \subsubsection{Ingredienti dell'ottimizzazione}
 
-slide 49-51
+\begin{itemize}
+  \item \textbf{formulare un problema di ottimizzazione} con molti casi di applicazione, sufficientemente efficiente e impattante su parti significative
+  \item[$\rightarrow$] \textbf{rappresentazione} che astrae dettagli rilevanti $\rightarrow$ \textbf{analisi} di applicabilit\`a $\rightarrow$ \textbf{trasformazione del codice} $\rightarrow$ \textbf{testing} $\rightarrow \, \circlearrowleft$
+\end{itemize}
 
+\vspace{-2em}
 \section{Rappresentazione intermedia (4 mar)}
 
-ricordiamo: middle end come sequenza di passi, di analisi o di trasformazione $\rightarrow$ per analizzare e trasformare il codice occorre una rappr.~intermedia (IR) \textbf{espressiva} che \textbf{mantenga le informazioni importanti da un passo all'altro}
+Ricordiamo: middle end come sequenza di passi, di analisi o di trasformazione $\rightarrow$ per analizzare e trasformare il codice occorre una rappr.~intermedia (IR) \textbf{espressiva} che \textbf{mantenga le informazioni importanti da un passo all'altro}
 
-\subsection{propriet\`a di una IR}
+\vspace{-1em}
+\subsection{Propriet\`a di una IR}
 
 scegliamo IR diverse a seconda del loro uso, in generale alcune caratteristiche sono sempre richieste:
 \begin{itemize}
-  \item facilita di generazione (effetti sul frontend)
-  \item facilita e costo di manipolazione
-  \item livello di astrazione e di dettaglio esposto: effetti sul frontend e sul backend (diverse IR da un lato e dall'altro, a seconda del livello di astraz.~e di dettaglio necessari)
+  \item facilit\`a di \textbf{generazione} (effetti sul frontend)
+  \item facilit\`a e costo di \textbf{manipolazione}
+  \item livello di astrazione e di \textbf{dettaglio esposto}: effetti su frontend e backend ($\neq$ IR da un lato e dall'altro, a seconda di astraz.~e dettaglio necessari)
 \end{itemize}
 
+\vspace{-1em}
 \subsection{Tipi di IR}
 
 \begin{itemize}
   \item AST (abstract syntax tree)
   \item DAG (grafi diretti aciclici)
-  \item 3-address code (3AC): assomiglia molto all'assembly (3 indirizzi in quanto registro destinazione e max2 operandi)
-  \item SSA (Static Single Assignment): evoluzione di 3ac con ulteriori propriet\`a di control flow (?)
-  \item CFG (control flow graphs)
+  \item 3AC (3-address code): simile all'assembly (3 indirizzi: registro destinazione e max 2 operandi)
+  \item SSA (Static Single Assignment): evoluzione di 3ac con ulteriori propriet\`a di control flow
+  \item CFG (control flow graphs): rappresenta "come" vengono chiamate le funzioni (a partire dal main)
   \item CG (call graph)
-  \item PDG (program dependence graphs)
+  \item PDG (program dependence graphs): fondamentale per lavorare sul parallelismo, multithreading...
 \end{itemize}
 
-call graph: rappresenta "come" vengono chiamate le funzioni (a partire dal main)
+\vspace{-1em}
+\begin{emphasize}
+  Le ott.~inter-procedurali devono per forza basarsi su IR di tipo CG (es. per decidere quando fare \textbf{inlining} - espandere il codice della funzione invece di chiamarla - evidente tradeoff tra dimensione del codice e overhead dovuto alla chiamata di funzione)
+\end{emphasize}
 
-ottimizzazioni inter-procedurali: devono per forza basarsi su IR di tipo cg (es. per decidere quando fare INLINING - espandere il codice della funzione invece di chiamarla - evidente tradeoff tra dimensione del codice e overhead dovuto alla chiamata di funzione)
-
-pdg: rappresentazione fondamentale per lavorare sul parallelismo, multithreading eccetera
-
-\subsection{categorie di IR}
+\subsection{Categorie di IR}
 
 \begin{itemize}
   \item grafiche (o strutturali)
     \begin{itemize}
       \item orientate ai grafi
-      \item molto usate nella source-to-source translation: uso tipico - ottimizzazioni che non hanno bisogno della struttura sofisticata di un middle-end (es. openMP: sono di fatto delle annotazioni sul codice, dunque lo scopo principale di questo programming model \`e fornire uno strumento semplice al programmatore (es. outlining: prendo es un loop e lo impacchetto in una funzione che poi dovra essere eseguita dai thread per la parallelizzazione) - dunque in questo caso non sto ottimizzando nel senso proprio del termine, ma sto trasformando il codice e lo sto rendendo eseguibile in maniera parallela - mi bastsa un IR di questa categoria)
-      \item solitamente voluminose (basate su grafi) - tradeoff con il fatto che sono usate prima del middle-end (senza doverlo coinvolgere)
+      \item molto usate nella source-to-source translation, tipicam.~per ott.~che non hanno bisogno della struttura sofisticata di un middle-end\\
+      es.~openMP: di fatto annotazioni sul codice, come strumento semplice per la parall.~(es. \textbf{outlining}: prendo es un loop e lo impacchetto in una funzione che poi dovra essere eseguita dai thread per la parallelizzazione) - non sto ottimizzando nel senso proprio del termine, ma sto trasformando il codice e lo sto rendendo eseguibile in maniera parallela
+      \item solitamente voluminose (basate su grafi) - tradeoff con il fatto che non coinvolgono il middle-end
       \item es. ast, dag
     \end{itemize}
   \item lineari
@@ -198,17 +363,17 @@ pdg: rappresentazione fondamentale per lavorare sul parallelismo, multithreading
       \item pseudocodice per macchine astratte
       \item livello di astrazione vario
       \item strutture dati semplici e compatte
-      \item facile da riarrangiare (evidentemente il piu comodo per eseguire le ottimizzazioni)
+      \item facile da riarrangiare (evidentemente il pi\`u comodo per eseguire le ottimizzazioni)
       \item es. 3ac
     \end{itemize}
   \item ibride (sfruttano combinazioni delle prime due) (es cfg)
 \end{itemize}
-\subsection{esempi di rappresentazione}
+\subsection{Esempi di rappresentazione}
 
 
-\subsubsection{sintassi concreta (testo)}
+\subsubsection{Sintassi concreta (testo)}
 
-maniera piu semplice in quanto piu vicina al livello di astrazione "umano" di ragionamento sul programma, ma non il livello corretto per ottimizzare ne comprendere correttamente la semantica del programma
+Pi\`u semplice in quanto pi\`u vicina al livello di astrazione "umano" di ragionamento sul programma, ma non il livello corretto per ottimizzare ne comprendere correttamente la semantica del programma
 
 \begin{lstlisting}[language=java]
 let value = 8;
@@ -218,45 +383,72 @@ for (let i = value; i>0; i = i - 1) {
 }
 console.log(result);\end{lstlisting}
 
-\subsubsection{ast}
+\vspace{-.5em}
+\subsubsection{AST}
 
-albero i cui nodi rappresentano diverse parti del programma, con il nodo radice che rappresenta il \textbf{programma}, il quale a sua volta contiene un blocco di istruzioni dal quale discendono tanti figli quante le sue istruzioni
+Albero i cui nodi rappresentano diverse parti del programma: il nodo radice rappresenta il \textbf{programma}, il quale a sua volta contiene un blocco di istruzioni dal quale discendono tanti figli quante le sue istruzioni
 
-esempi immagini
+\noindent\begin{minipage}[c]{.3\textwidth}
+\includegraphics[width=\textwidth]{ir_1.png}
+\end{minipage}
+\begin{minipage}[c]{.7\textwidth}
+\begin{lstlisting}
+x = a + a * (b - c)
+y = (b - c ) * d
+z = x + y\end{lstlisting}
+\textbf{PRO}: molto comodo per interpreti (basta usare una fz.~ricorsiva per processare l'albero)
 
-pro: molto comodo per interpreti (basta usare fz ricorsiva per processare l'albero)
+\textbf{CONTRO}: un nodo \`e un oggetto troppo generico $\rightarrow$ analizzare un ast per l'ottimizzazione impone ogni volta di ragionare sulla differenza semantica tra i nodi (complica molto)
+\end{minipage}
 
-contro: un nodo \`e un oggetto troppo generico $\rightarrow$ analizzare un ast per l'ottimizzazione impone ogni volta di ragionare sulla differenza semantica tra i nodi (complica molto)
 
-\subsubsection{dag (digressione)}
+\vspace{-.5em}
+\subsubsection{DAG}
 
-contrazione di ast che evita la duplicazione di espressioni $\rightarrow$ rappresentazione piu compatta
+Contrazione di ast che evita la duplicazione di espressioni $\rightarrow$ \textbf{rappresentazione pi\`u compatta}
 
-limite: il riuso e possibile solamente dimostrando che il suo valore non cambia nel programma $\rightarrow$ essendo assegnamenti e chiamate frequentissimi, evidentemente il fatto che il dag non abbia nozione di come le espr cambino valore nel tempo non lo rende un buon candidato per le ottimizzazioni
+\noindent\textbf{Limite}: il riuso e possibile solamente dimostrando che il suo \textbf{valore non cambia} nel programma
+\begin{emphasize}
+  essendo assegnamenti e chiamate frequentissimi, il fatto che il dag non abbia nozione di come le espr.~cambino valore nel tempo non lo rende un buon candidato per le ottimizzazioni
+\end{emphasize}
 
-\begin{example}
-   codice generato da questo dag corretto?
-%   \begin{lstlisting}
-%x = a + a * (b – c)
-%y = (b – c ) * d
-%z = x + y
-%# espressioni trovate
-%t1 = b – c
-%t2 = a * t1
-%x = a + t2
-%y = t1 * d
-%z = x + y
-%   \end{lstlisting}
-corretta, mentre per altro esempio no   
+\begin{example}[frametitle={Esempi}]
+   \noindent\begin{minipage}[c]{.2\textwidth}
+   \includegraphics[width=\textwidth]{ir_2.png}
+   \end{minipage}
+   \begin{minipage}[c]{.23\textwidth}
+      \begin{lstlisting}
+x = a+a*(b-c);
+y = (b-c)*d;
+z = x+y;
+# espr. trovate
+t1 = b-c;
+t2 = a*t1;
+x = a+t2;
+y = t1*d;
+z = x+y;\end{lstlisting}
+   \end{minipage}\hfill\vline
+   \begin{minipage}[c]{.2\textwidth}
+   \includegraphics[width=\textwidth]{ir_3.png}
+   \end{minipage}
+   \begin{minipage}[c]{.35\textwidth}
+      \begin{lstlisting}
+a = b + c;
+b = a - d;
+c = b + c;
+d = a - d;
+# espr. trovate (ERRORE)
+a = b + c; # cambia val.
+d = a - d;
+c = d + c;\end{lstlisting}
+   \end{minipage}
 \end{example}
 
 
 
-\subsubsection{3ac}
+\subsubsection{3AC}
 
-evidentemente adatto alle ottimizzazioni: tutte le istruzioni del programma vengono spezzettate in istruzioni di forma semplice simile all'assembly
-
-in questo caso istr di tipo \lstinline|x = y op z| (1 operatore, massimo 3 operandi)
+Evidentemente adatto: tutte le istr.~del programma vengono spezzettate in istr.~di forma semplice simile all'assembly, di tipo \lstinline|x = y op z| (1 operatore, massimo 3 operandi)
 
 esempio:
 
@@ -283,11 +475,11 @@ pro: ogni definizione ha associata direttamente una lista di tutti i suoi usi - 
 
 quasi sempre uno dei passi di ottimizzazione prevede il passaggio a forma SSA
 
-\subsection{scelta della IR}
+\begin{emphasize}
+  La scelta della IR dipende ovviamente dal livello di dettaglio necessario per ogni specifico compito $\rightarrow$ \textbf{in un compilatore coesistono pi\`u IR}
 
-dipende ovviamente dal livello di dettaglio necessario per ogni specifico compito - in un compilatore coesistono piu IR
-
-anche per questo ci sono le forme ibride - es. cfg con 3ac
+  \noindent Anche per questo ci sono le forme ibride - es. cfg con 3ac
+\end{emphasize}
 
 \subsubsection{cfg}
 
