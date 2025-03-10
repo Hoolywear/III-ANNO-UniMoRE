@@ -454,8 +454,12 @@ esempio:
 
 \lstinline|x - 2 * y| $\rightarrow$ \lstinline|t1 = |
 
-pro: espressioni complesse spezzettate, forma compatta e simile a assembly
-introdotti registri temporanei intermedi, virtuali e illimitati (non mi preoccupo dei problemi architetturali di quanti registri fisici ho a disposizione, sono a livello decisamente piu alto - le eventuali op. di spill (aggiungere load o store in mncanza di registri fisici) non le gestisco qui)
+\textbf{PRO}:
+\begin{itemize}
+  \item espressioni complesse spezzettate
+  \item forma compatta e simil-assembly
+  \item introdotti registri temporanei intermedi, virtuali e illimitati (non mi preoccupo di problemi architetturali - quanti r.~fisici ho a disposizione) (non gestisco eventuali op. di spill - aggiungere load o store in mancanza di r.~fisici)
+\end{itemize}
 
 rec
 
@@ -554,28 +558,26 @@ qui si capisce cosa si intende per instruction level parallelism: dunque, quando
 
 \subsubsection{data dependency graph ddg}
 
-specifico per multicore e parallelismo, usato per dare una rappresentazione tra le dipendenze dei \textbf{dati} - tipicamente i loop
+Specifico per multicore e parallelismo, usato per dare una rappresentazione tra le dipendenze dei \textbf{dati} - tipicamente i loop
 
-per esempio, loop innestati lavorano tipicamente su str dati complesse e multidimensionali (matrici, immagini, eccetera)
+per esempio, (loop innestati lavorano tipicamente su str dati complesse e multidimensionali (matrici, immagini, ecc.))
 
-esempio: for i = 0, i < n, i++
-A[i]=init()
+\begin{lstlisting}
+for (i = 0, i < n, i++)
+  A[i]=init();
+\end{lstlisting}
 
-in questo caso \`e evidente come ogni iterazione resta indipendente dalle altre (uso il solo indice del loop)
 
-sufficiente aggiungere qualcosa come A[i-1] = A[i] per generare dipendenze tra le iterazioni
+Ogni it. resta indipendente dalle altre (uso il solo indice del loop) - basta aggiungere ad es.~ \lstinline|A[i-1] = A[i]| per generare dipendenze tra le iterazioni $\rightarrow$ il loop non \`e pi\`u parallelizzabile, e deve per forza essere eseguito in sequenza
 
-di fatto mi sta dicendo che questo loop non \`e parallelizzabile in nessun modo, e deve per forza essere eseguito in sequenza
-
-evidentemente le casistiche reali sono molto pi\`u complesse $\rightarrow$ esistono vari modi per rappresentare lo spazio delle iterazioni di un loop e le dipendenze che ne derivano
-
-modello usato all'oggi: polyhedral model $\rightarrow$ rappresento lo spazio delle it.~come un poliedro (a seconda del numero di loop innestati), che permette di capire se esiste qualche permutazione dei loop (direzione di attraversamento dello spazio delle iterazioni; ovvero ad esempio scambiare l'ordine dei loop) non soggetta a dipendenze
+Data la complessit\`a delle casistiche reali,  esistono vari modi per rappresentare lo spazio delle iterazioni di un loop e le dipendenze che ne derivano:\\
+all'oggi usiamo il \textbf{polyhedral model} $\rightarrow$ rappresento lo spazio delle it.~come un poliedro (a seconda del numero di loop innestati), che permette di capire se esiste qualche permutazione dei loop (direzione di attraversamento dello spazio delle iterazioni; ovvero ad esempio scambiare l'ordine dei loop) non soggetta a dipendenze
 
 \subsubsection{call graph}
 
 rappresetnazione grafica a grafo usata per ragionare sulle relazione tra le funzioni della translation unit del file (insieme delle potenziali chiamate tra funzioni)
 
-rappr.~gerarchica, utile soprattutto a livello di analisi \textbf{interprocedurale} (la maggior parte delle ottimizzazioni avvengono a livello intraprocedurale) (recupera questo concetto) (lavora sui file che abbiamo chiamato translation units, ovvero quelli da cui poi genero i file oggetto)
+rappr.~gerarchica, utile soprattutto a livello di analisi \textbf{interprocedurale} (la maggior parte delle ottimizzazioni avvengono a livello \textit{intraprocedurale}) (recupera questo concetto) (lavora sui file che abbiamo chiamato translation units, ovvero quelli da cui poi genero i file oggetto)
 
 $\rightarrow$ evidente come il compilatore abbia visibilita solo fino a livello dei singoli moduli: posso estendere le ottimizzazioni al massimo fino ai legami tra funzioni dello stesso modulo - le ottimizzazioni piu ampie si spostano a framework di ottimizzazione che agiscono a livello di linker per esempio
 
