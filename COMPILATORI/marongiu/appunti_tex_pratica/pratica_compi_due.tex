@@ -88,5 +88,60 @@ solitamente ha una pipeline "statica" (predefinita) di passi $\rightarrow$ alter
     \lstinline|llvm-dis test/Loop.bc -o=./test/Loop.ll|
 \end{emphasize}
 
+\section{esercizio 2 - TestPass}
+
+in questo corso scriveremo i passi di analisi e ottimizzazione come \textbf{plugin} per il pass manager di llvm - modo valido e conveniente per scrivere passi, evitando di dover ricompilare ogni volta llvm (andremo ad usare l'interfaccia plugin appunto, che ci consente uno sviluppo esterno al build tree di llvm - il compilato viene poi linkato come libreria dinamica)
+
+\begin{emphasize-blue}
+   istruzioni :
+   \begin{itemize}
+     \item crea un workspace con root dir es. \lstinline|mkdir lab_compilatori && export ROOT_LABS=/path/to/lab_compilatori| 
+     \item scarica i file di lab 1 in \lstinline|ROOT_LABS/Lab1|
+     \item prova a settare l'env e compilare: 
+       \begin{lstlisting}
+export LLVM_DIR=<installation/dir/of/llvm/19>
+mkdir build
+cd build
+cmake -DLT_LLVM_INSTALL_DIR=dollarsignLLVM_DIR
+source/dir/test/pass>/
+make\end{lstlisting}
+     
+   \end{itemize}
+\end{emphasize-blue}
+
+\begin{emphasize}
+    tua posizione di llvm: \lstinline|/opt/homebrew/opt/llvm|
+\end{emphasize}
+
+\begin{emphasize-blue}
+    \begin{itemize}
+      \item vedi script setup.sh (che prevede cartella build gia makeata in precedenza, altrimenti aggiungi mkdir) per come buildare il passo, o slide 41
+      \item inserisci cartella \lstinline|test| con loop e fibonacci
+      \item a questo punto invoca l'ottimizzatore \lstinline|opt| con il flag di override del default pass manager:
+        \begin{lstlisting}[language=bash]
+opt -load-pass-plugin <path/to/build/dir>/LibTestPass.so -passes=test-pass test/Loop.bc -o test/LoopTestPass.bc
+# .dylib e non .so se su MacOS
+# .ll invece di .bc a seconda di quello su cui sto lavorando\end{lstlisting}
+       \begin{itemize}
+         \item \lstinline|load-pass-plugin| per caricare il plugin appena buildato
+         \item \lstinline|passes=test-pass| oppure \lstinline|-p test-pass| per inserire il nuovo pass da noi creato
+         \item al momento non stiamo ottimizzando ma solo analizzando, quindi posso anche sostituire il \lstinline|-o| con \lstinline|-disable-output|
+       \end{itemize}
+        
+    \end{itemize}
+    
+\end{emphasize-blue}
+
+l'esercizio prevede di estendere il passo TestPass, di modo che analizzi la IR e stampi alcune informazioni utili per ciascuna delle funzioni che compaiono nel programma di test:
+\begin{enumerate}
+  \item nome
+  \item numero argomenti (\lstinline|N+*| in caso di funzione variadica, vedi slide 46)
+  \item numero chiamate a funzione nello stesso modulo
+  \item numero BB
+  \item numero Istruzioni
+\end{enumerate}
+
+
+
 \end{document}
 
