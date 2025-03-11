@@ -62,3 +62,7 @@ modules.xml
 # Cache file creation bug
 # See https://youtrack.jetbrains.com/issue/JBR-2257
 .idea/$CACHE_FILE$
+
+# CMake files and builds from compilatori parte 2
+
+build/
