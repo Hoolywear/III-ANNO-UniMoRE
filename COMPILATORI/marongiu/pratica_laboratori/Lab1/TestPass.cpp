@@ -37,7 +37,9 @@ struct TestPass: PassInfoMixin<TestPass> {
   // corresponding pass manager (to be queried if need be)
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &) {
 
-  	errs() << F.getName();
+  	errs() << F.getName() << "\n";
+  	errs() << F.arg_size() << "\n";
+  	errs() << F.getEntryCount()->getCount() << "\n";
 
   	return PreservedAnalyses::all();
 }
