@@ -2,7 +2,7 @@
 
 \title{%
 Compilatori\\
-\large Parte Due}
+\large Laboratorio Parte Due}
 
 \begin{document}
 \maketitle
@@ -141,7 +141,95 @@ l'esercizio prevede di estendere il passo TestPass, di modo che analizzi la IR e
   \item numero Istruzioni
 \end{enumerate}
 
+\part{lab 2}
 
+recupera inizio da dani - manipolazione delle istruzioni tramite es API - documentazione ci mostra cosa ho a disposizione per ciascuna classe
+
+\section{user - use - value}
+
+vediamo come recuperare riferimenti a istruzioni, con un semplice esempio:
+
+\begin{lstlisting}
+%2 = add %1, 0
+%3 = mul %2, 2\end{lstlisting}
+
+evidentemente ho un'identit\`a alla prima istruzione, ma se la rimuovo e basta il programma crasha - non ho cambiato i riferimenti successivi! (le \textit{references}) devo sfruttare le relazioni user - use- value di LLVM
+
+le istruzioni (\lstinline|Instruction|) llvm ereditano da \lstinline|Value|, ma anche da \lstinline|User| - legame implicito tra istr e suoi usi $\rightarrow$ le \lstinline|Instruction| giocano entrambi i ruoli di \textbf{user} e \textbf{usee} (\lstinline|Value|)
+
+\subsection{\lstinline|Value|}
+
+piu importante classe base in llvm (quasi tutti i tipi di oggetto ereditano da questa)
+\begin{itemize}
+  \item un nodo \lstinline|Value| ha un tipo (\lstinline|getType()|)
+  \item puo avere o meno un nome (\lstinline|hasName(), getName()|)
+  \item ha una lista di \textit{users} che lo utilizzano
+\end{itemize}
+
+\subsection{istruzioni come \textit{user}}
+
+un oggetto \lstinline|Instruction| \`e anche un oggetto \lstinline|User| - ogni user ha una lista di valori che sta usando (gli \textbf{operandi} dell'istr., di tipo \lstinline|Value|)
+
+\begin{lstlisting}
+User &Inst = ...
+for (auto Iter = Inst.op_begin(); Iter != Inst.op_end(); ++Iter)
+{ Value *Operand = *Iter; }\end{lstlisting}
+
+se eseguo questo codice sulla prima delle istr dell'esempio, estrae gli operandi \lstinline|%1, 0|
+
+\subsection{istruzioni come \textit{usee}}
+
+perche un oggetto di tipo instr \`e anche un usee? perche di fatto, il registro che ospita il risultato dell'istruzione (es. \lstinline|%2|) \`e esattamente la rappresentazione \lstinline|Value| dell'istruzione \lstinline|add %1, 0| $\rightarrow$ quindi quando usiamo \lstinline|%2| stiamo in realta indicando l'istruzione!
+
+ricapitolando, con \lstinline|Inst| riferimento alla prima istruzione:
+
+da \lstinline|User| l'istr usa degli operandi
+\begin{lstlisting}
+for (auto Iter = Inst.op_begin(); Iter != Inst.op_end(); ++Iter)
+{ Value *Operand = *Iter; }\end{lstlisting}
+$\rightarrow$ \lstinline|Operand %1, 0|
+
+ma da usee ha a sua volta degli users
+\begin{lstlisting}
+for (auto Iter = Inst.user_begin(); Iter != Inst.user_end(); ++Iter)
+{ User *InstUser = *Iter; }\end{lstlisting}
+$\rightarrow$ \lstinline|Instruction mul %2, 2| (oppure \lstinline|Value %3|)
+
+cita velocemente esempio slide 4:11-12
+
+\section{setup}
+
+\begin{emphasize-blue}
+  \begin{itemize}
+    \item copia scheletro Lab1 in Lab2 e aggiungi file della cartella moodle
+    \item \lstinline|Foo.ll| file di test
+    \item rinomina tutte le istanze di \lstinline|TestPass| in \lstinline|LocalOpts|
+    \item modificare i seguenti file:
+      \begin{itemize}
+        \item \lstinline|LocalOpts.cpp|: metodo \lstinline|run| prende in ingresso un handle ad un oggetto \lstinline|Function| - passa stesso handle a run OnFunction in \lstinline|LocalOpts_skeleton.cpp|\\
+              rinomina flag di attivazione del passo da \lstinline|test-pass|pass a \lstinline|local-opts|
+        \item includere \textbf{dopo il namespace} \lstinline|LocalOpts_skeleton.cpp| in \lstinline|LocalOpts.cpp| (oppure, meglio, copia i contenuti)
+        \item \lstinline|CMakeLists.txt|: modifica la sezione 3 per far si che compili LocalOpts come modificato
+      \end{itemize}
+\end{itemize}
+compilazione del passo:
+\begin{itemize}
+  \item con cartella test/ contenente il file di test
+  \item script setup.sh da lanciare per compilare
+  \item passo di trasformazione $\rightarrow$ ci serve output:\\
+    \begin{lstlisting}
+opt -load-pass-plugin build/libLocalOpts.dylib -p local-opts test/Foo.ll -o test/Foo.optimized.bc\end{lstlisting}
+  \item output in formato bytecode $\rightarrow$ devo disassemblare per generare ll leggibile:\\
+  \begin{lstlisting}
+llvm-dis test/Foo.optimized.bc -o test/Foo.optimized.ll\end{lstlisting}
+  
+\end{itemize}
+
+\end{emphasize-blue}
+
+\section{esercizio 1}
+
+studia il passo, confronta \lstinline|Foo.ll| e \lstinline|Foo.optimized.ll|
 
 \end{document}
 
