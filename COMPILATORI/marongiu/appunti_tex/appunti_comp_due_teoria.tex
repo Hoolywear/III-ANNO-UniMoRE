@@ -448,30 +448,45 @@ c = d + c;\end{lstlisting}
 
 \subsubsection{3AC}
 
+
+\begin{minipage}[c]{.65\textwidth}
 Evidentemente adatto: tutte le istr.~del programma vengono spezzettate in istr.~di forma semplice simile all'assembly, di tipo \lstinline|x = y op z| (1 operatore, massimo 3 operandi)
 
-esempio:
-
-\lstinline|x - 2 * y| $\rightarrow$ \lstinline|t1 = |
+\noindent
+  \begin{minipage}[c]{.3\textwidth}
+    \begin{lstlisting}
+x - 2 * y\end{lstlisting}
+  \end{minipage}
+  $\rightarrow$
+  \begin{minipage}[c]{.32\textwidth}
+    \begin{lstlisting}
+t1 = 2 * y
+t2 = x - t1\end{lstlisting}
+  \end{minipage}
+\end{minipage}
+  \hfill
+  \begin{minipage}[c]{.3\textwidth}
+  \includegraphics[width=\textwidth]{ir_4.png}
+  \end{minipage}
 
 \textbf{PRO}:
 \begin{itemize}
   \item espressioni complesse spezzettate
   \item forma compatta e simil-assembly
-  \item introdotti registri temporanei intermedi, virtuali e illimitati (non mi preoccupo di problemi architetturali - quanti r.~fisici ho a disposizione) (non gestisco eventuali op. di spill - aggiungere load o store in mancanza di r.~fisici)
+  \item registri temporanei \textbf{intermedi, virtuali e illimitati} (tralascio problemi architetturali - n.~di r.~fisici a disposizione e eventuali op. di spill, cio\`e aggiungere load o store in mancanza di r.~fisici)
 \end{itemize}
 
-rec
+\paragraph{Varianti di 3AC}~\\
 
-\paragraph{varianti di 3ac}~\\
+A seconda dei vincoli che ho per l'implementazione pratica:
 
-varianti a seconda dei vincoli che ho per l'implementazione pratica
+\begin{itemize}
+  \item quadruple: id istruzione, opcode, i 3 registri $\rightarrow$ semplice struttura record, facile da analizzare e riordinare ma i nomi espliciti prendono pi\`u spazio
+  \item triple: id istruzione, opcode, 2 operandi $\rightarrow$ uso l'indice dell'espressione nell'array come "nome" del registro destinazione $\rightarrow$ risparmio spazio, ma diventa piu complesso da analizzare (nomi impliciti) e riordinare
+\end{itemize}
 
-quadruple: id istruzione, opcode, i 3 registri (semplice struttura record, facile da analizzare e riordinare ma i nomi espliciti prendono pi\`u spazio)
-triple: id istruzione, opcode, 2 operandi $\rightarrow$ uso l'indice dell'espressione nell'array come "nome" del registro destinazione $\rightarrow$ risparmio spazio, ma diventa piu complesso da analizzare (nomi impliciti) e soprattutto da riordinare
 
-
-ricordiamo la constant propagation: sostituisco usi futuri di una variabile con valore costante con la costante stessa \textbf{se non cambia nel frattempo}
+Ricordiamo la constant propagation: sostituisco usi futuri di una variabile con valore costante con la costante stessa \textbf{se non cambia nel frattempo}
 
 $\rightarrow$ ottimizzazione che una IR di tipo 3ac non puo applicare immediatamente (devo prima analizzare il resto del codice) $\rightarrow$ SSA come evoluzione della 3ac, in quanto impone che la \textbf{definizione (assegnamento)} delle variabili avvenga \textbf{solo una volta} (definizioni multiple sono tradotte in multiple versioni della var)
 
@@ -580,5 +595,386 @@ rappresetnazione grafica a grafo usata per ragionare sulle relazione tra le funz
 rappr.~gerarchica, utile soprattutto a livello di analisi \textbf{interprocedurale} (la maggior parte delle ottimizzazioni avvengono a livello \textit{intraprocedurale}) (recupera questo concetto) (lavora sui file che abbiamo chiamato translation units, ovvero quelli da cui poi genero i file oggetto)
 
 $\rightarrow$ evidente come il compilatore abbia visibilita solo fino a livello dei singoli moduli: posso estendere le ottimizzazioni al massimo fino ai legami tra funzioni dello stesso modulo - le ottimizzazioni piu ampie si spostano a framework di ottimizzazione che agiscono a livello di linker per esempio
+
+\section{Ottimizzazione locale e basic value numbering - 24 marzo}
+
+\subsection{scope dell'ottimizzazione}
+
+finora abbiamo lavorato in locale, ovvero all'interno di un singolo BB $\rightarrow$ un'ott.~locale non si preoccupa del flusso di controllo di un programma, mentre una globale lavora a livello dell'intero CFG $\rightarrow$ lo scope viene influenzato da come viene gestito il flusso di controllo in un programma
+
+\begin{itemize}
+  \item ott locale: entro un sibgolo bb, non si preoccupa del flusso
+  \item ott globale: lavora a livello dell'intero CFG
+  \item ott interprocedurale: lavora a livello del call graph, e quindi sui CFG di pi\`u funzioni
+\end{itemize}
+
+\begin{example}[frametitle={dead code elimination}]
+  es di ott locale
+  \begin{lstlisting}
+main {
+  int a = 4;
+  int b = 2;
+  int c = 1;
+  int d = a + b;
+  print d;
+}\end{lstlisting}
+ evidentemente dobbiamo togliere la def di c, ma: solo quello? ricorda che rappresentano dead code le istr che definiscono (assegnano un valore a) una var che non \`e mai utilizzata $\rightarrow$ poiche la print non definisce nulla, stando a questa def \`e dead code! invece, estendiamo la definizione dicendo che lo sono le istr \textbf{prive di side effects} che definiscono ... 
+
+
+  proviamo a costruire un algoritmo per implementare la dce cos\`i definita:
+  \begin{enumerate}
+    \item $\forall$ istruzione in BB
+    \begin{itemize}
+      \item aggiungi operandi ad un metadato array \lstinline|used|
+    \end{itemize}
+    \item $\forall$ istr in BB
+    \begin{itemize}
+      \item se istr non ha destinazione e non ha side effects rimuovila
+      \item altrimenti se la destinazione non corrisponde a nessuno degli elem di \lstinline|used| rimuovila
+    \end{itemize} 
+  \end{enumerate}
+
+  dall'esempio vediamo che funziona, ma iterativamente potremmo eliminare poi altre istr $\rightarrow$ soluzione semplice \`e aggiungere la parte iterativa all'algoritmo, che dunque esegue fino a convergenza
+  
+\end{example}
+
+\begin{example}
+    altro esempio: ridefinizione di una variabile (slide 6-22) - ovvero il nostro algoritmo corrente non gestisce le dead stores
+
+    \begin{emphasize}
+      in generale, capiamo che scrivere un passo significa prima definire bene cosa deve fare...
+    \end{emphasize}
+    
+    per estendere l'algoritmo, dobbiamo essere in grado di rilevare gli assegnamenti multipli di una variabile, e quindi anche preoccuparci dell'ordine delle istruzioni! (pi\`u complicato)
+
+    analizzando pseudocodice a 6-29: lista di variabili definite; itero sulle istruzioni e rimuovo gli operandi da \lstinline|last_def| (sono variabili usate da qualche parte) ; poi controllo le definizioni: se la destinazione dell'istruzione (LHS) si trova ancora in lastdef, la elimino da li e al suo posto metto l'istruzione stessa (??????????) (vedi da 6-29 a 6-38 per spiegazione iterativa fatta benino)
+\end{example}
+
+\subsection{Local value numbering}
+
+tecnica utilizzata per considerare il concetto di ordine delle definizioni in assenza di propriet\`a di tipo SSA (che ti permette di non avere questo problema)
+
+osserviamo 3 pattern che forniscono opportunit\`a di eliminazione di codice ridondante:
+\begin{itemize}
+  \item dead code elimination: 1 variabile e piu valori
+  \item copy propagation: 1 valore e piu variabili
+  \item common subexpression elimination: 1 valore (in forma di espressione) e piu variabili
+\end{itemize}
+
+\begin{lstlisting}
+main {
+  int a = 100;
+  int a = 42;
+  print a;
+}\end{lstlisting}
+
+\begin{lstlisting}
+main {
+  int x = 4;
+  int copy1 = x;
+  int copy2 = copy1;
+  int copy3 = copy2;
+  print copy3;
+}\end{lstlisting}
+
+\begin{lstlisting}
+main {
+  int a = 4;
+  int b = 2;
+  int sum1 = a + b;
+  int sum2 = a + b;
+  int prod = sum1 * sum2;
+  print prod;
+}\end{lstlisting}
+
+sono tutti modelli di computazione che si focalizzano sulle \textbf{variabili} $\rightarrow$ focalizzandoci sui \textbf{valori} possiamo eliminare tutte le forme di ridondanza
+
+soluzione ai tempi in cui ancora non era in uso il modello ssa: local value numbering
+
+tecnica che ci aiuta nelle ott.~proprio per il cambio focus da variabili a valori
+
+costruisco un metadato in forma di tabella che riscrive le espr (istruzioni) in funzione dei valori gia osservati $\rightarrow$ evitando di riassegnare lo stesso valore a piu var si evita la ridondanza
+
+esempio da 6-46 a 6-56
+
+analizzo le istruzioni in termini del value, e in caso questo coincida con entry della tabella gia presenti punto direttamente a quella
+
+semplice variante del programma:
+\begin{lstlisting}
+#...
+int sum1 = a + b;
+int sum2 = b + a;\end{lstlisting}
+
+evidentemente nascono problemi, poiche il nostro algoritmo non conosce le proprieta aritmetiche delle operazioni $\rightarrow$ non vado a rimuovere l'istruzione
+
+$\rightarrow$ soluzione semplice: \textbf{canonicalizzare} l'algoritmo, ovvero imporre un ordine numerico tra le entry (i valori) e usarle sempre in ordine crescente per le op. commutative (di fatto \`e la tecnica usata da tutti i compilatori, essendo al piu semplice?)
+
+\section{data flow analysis}
+
+step successivo dell'analisi, da immaginare come un framework di analisi alla base per costruire la forma ssa (?) ; o come una metodologia di analisi
+
+\subsection{cos'\`e la dfa}
+
+\begin{itemize}
+  \item analisi locale: si focalizza sull'effetto di ogni istruzione $\rightarrow$ posso comporre gli effetti di tutte el istr per derivare informazione dall'inizio del bb ad ogni istruzione
+  \item analisi globale - dataflowanalysis: simile, ma molto pi\`u complessa $\rightarrow$ analizza l'effetto di ogni BB, e poi ha una metodologia per comporre l'effetto dei BB ai CONFINI degli stessi per derivare informazione
+\end{itemize}
+
+skip 7-6
+
+esempio 7-7 struttura ad amaca (hammock) - statement di tipo if che dirama su due possibili flussi di controllo $\rightarrow$ per ogni variabile x consente di derivare
+\begin{itemize}
+  \item valore di x?
+  \item quale "definizione" definisce x?
+  \item la definizione \`e ancora valida (\textit{live})?
+\end{itemize}
+
+osserviamo che queste risposte noi le abbiamo gia ottenute in maniera molto semplice, grazie alla forma SSA delle istruzioni! e alla struttura di llvm
+
+nota: stiamo "costruendo" la forma SSA, considerando un caso in cui non abbiamo ancora quel liverllo?
+
+\subsection{rappresentazione del programma statica o dinamica}
+
+statica: programma finito, un pezzo di codice $\rightarrow$ molto facile da analizzare
+dinamica: pu\`o avere infiniti percorsi di esecuzione, rappresenta una possibile esecuzione reale! $\rightarrow$ es. loop che si basa sull'analisi di un input
+
+sono condizioni che un compilatore non pu\`o analizzare, soprattutto non in maniera statica e "finita" in termini di possibili istanze
+
+\begin{emphasize}
+    capacita di analisi dei compilatori: limitata alle condizioni analizzabili e determinabili \textbf{staticamente}
+
+    motivo per cui spesso si passano al compilatore informazioni di "profiling" , misurate durante ripetute esecuzioni del programma prima di darlo in pasto al compilatore e i relativi passi di ottimizzazione
+\end{emphasize}
+
+con la dfa siamo in grado di dire \textbf{per ogni punto del programma} qualcosa; combinando informazioni relative a tutte le possibili istanze dello stesso p.to
+
+esempio di problema dfa: quale def definisce il valore usato nello statement \lstinline|b=a|? vedi da slide 7-8 il codice
+
+\subsubsection{effetti di un bb}
+
+effetti di un'istruzione:
+\begin{itemize}
+  \item uses : delle variabili
+  \item kills : una precedente definizione
+  \item defines : una variabile
+\end{itemize}
+combinando gli effetti delle singole istr si definiscono gli effetti di un BB:
+\begin{itemize}
+  \item uso localmente esposto (locally exposed use): in un bb \`e un uso di una var che non \`e preceduto nei bb da una definizione della stessa variabile
+  \item ogni definizione di una variabile nel BB killa tutte le definizioni delal stessa variabile che \textbf{raggiungono} il BB
+  \item definizione localmente disponibile (locally available definition): ultima definizione di una variabile nel bb
+\end{itemize}
+
+esempio: 7-15
+
+\subsubsection{reaching definition}
+
+ogni istruzione di assegnamento \`e una definizione
+una definizione \textit{d} raggiunge (reaches) un punto it\textit{p} se esiste un percorso da \textit{d} a \textit{p} tale per chu d non \`e uccisa (sovrascritta) lungo quel percorso
+
+definizione del problema: determinare per ogni punto del programma se ogni definizione nel programma raggiunge quel punto - come lo facciamo? $\rightarrow$ usiamo un \textbf{bit vector} per ciascun punto del programma (ogni istruzione), con lunghezza del vettore pari al numero di definizioni $\Rightarrow$ diventa una sorta di matrice con righe le istruzioni, colonne le definizioni
+
+\subsubsection{schema dfa}
+
+consideriamo un flow graph che ha sempre un BB entry e uno exit (single-entry e single-exit $\rightarrow$ sempre possibile)
+
+come faccio a stabilire l'effetto del codice in ciascun BB? uso quelle che si chiamano funzioni di trasferimento: fz che correlano input e output tra loro per un dato bb
+
+qual \`e l'effetto del flusso di controllo? lo stabilisco in base alla vicinanza dei blocchi: correlo outp e inp di blocchi adiacenti
+
+alla fine dobbiamo solo risolvere queste equazioni 
+
+\subsubsection{effetti di uno statement}
+
+partiamo dalle fz di trasf di statement (astrazione per indicare un istr? di assegnamento?)
+
+l'output di uno statement ... rec blabla
+
+ricorda che stiamo lavorando su bit vector!!!!!!!!!!!!!! una fz di trasferimento riempie out[s] a partire da in[s] e applicando qualche tipo di calcolo
+
+alla fine posso combinare queste funzioni di trasferimento in maniera lineare! (non lo dim ma si potrebbe)
+
+quindi la funz di tr di un BB compone linearmente le fz dei suoi statements
+
+rec da carta e slide
+
+\subsubsection{effetti degli archi aciclici}
+
+caso predecessori multipli: unisco l'informazione con che criterio? join
+
+oggi fino slide 7-42
+
+ricordiamo che in generale stiamo usando un "approccio" bit-vector, che non possiede nozione di ordine di esecuzione - quando calcolo i kill, li calcolo sempre relativamente a \textbf{tutti gli altri blocchi!} es. slide 7-36: $Kill[B_1] = \left\lbrace0,2,3,4,6\right\rbrace$
+
+riprendiamo la questione sugli effetti degli archi aciclici, nel caso di un nodo con predecessori multipli:
+\begin{itemize}
+  \item $out[b] = f_b(in[b])$
+  \item nodo di unione (join): nodo con predecessori multipli
+  \item operatore di unione (meet): $in[b] = out[p_1] \cap out[p_2] \cap \ldots \cap out[p_n]$ con $p_1,\ldots,p_n$ tutti predecessori di $b$
+  \item caso entry block: $out[\text{entry}] = \emptyset \implies in[B_1] = \emptyset$ \textbf{boundary condition}
+  \item caso exit dall'esempio: $in[\text{entry}] = out[B_2] \cap out[B_3] = \lbrace 2,3,4,5,6 \rbrace$
+\end{itemize}
+
+notiamo come i due modi (bit-vector oppure usare join e meet) sono equivalenti (?)
+
+\subsubsection{effetti degli archi ciclici}
+
+notiamo un problema con gli archi \textbf{ciclici} - posso arrivare a condizioni in cui non ho ancora calcolato l'out di un qualche bb, ma mi serve per un arco ciclico appunto che punta a un blocco precedente
+
+soluzione: devo iterare fino a convergenza, ma soprattutto definire delle condizioni iniziali (come per l'out dell'entry block) che ci dicono che in uscita ad ogni blocco (all'inizio) trovo l'insieme vuoto (necessaria per avere qualcosa su cui operare alla prima iterazione che considera dei backedge)
+
+\subsection{liveness analysis}
+
+\subsubsection{live variable analysis}
+
+definizioni: variabile live o dead: una var \`e viva in un punto p del programma se il valore di v \`e usato da quel punto in avanti da qualche parte nel programma - altrimenti \`e morta
+
+altri possibili motivi di questa analisi (oltre alla dce): register allocation: nel momento in cui devo fare i conti con un'architettura specifica, devo decidere come allocare i registri (non sono illimitati) - register allocation \`e l'op.~che cerca di evitare le spill in cache e in memoria, e che cerca i casi in cui risulta possibile riutilizzare un certo registro: dipende evidentemente dalla liveness di una variabile!
+
+definizione del problema in termini di dfa: $\forall$ BB devo stabilire se ogni variabile \`e viva in ciascuno di essi $\rightarrow$ bit vector di lunghezza pari al numero di variabili (evidentemente...)
+
+\subsubsection{funzione di trasferimento}
+
+recupera questione su forward analysis
+
+che informazione sto cercando per capire se una definizione raggiunge o meno un punto del programma? devo analizzare "il passato" - gli statement tra la definizione e il punto di interesse per cercare eventuali kill (analizzo dal punto all'entry point, a ritroso)
+
+nel contesto della liveness analysis invece, devo analizzare il "futuro" - dal punto p all'exit point cerco gli usi della variabile
+
+(abbiamo spiegato la differenza tra forward e backward analysis, nelle sezioni prima abbiamo implicitamente considerato backward analysis per il problema di reaching definition)
+
+per la formulazione pi\`u tipica della liveness analysis (ce ne sono diverse, a seconda delle fonti) usiamo
+\begin{itemize}
+  \item l'insieme delle variabili vive che pu\`o generare un BB (use)
+  \item l'insieme delle variabili definite nel BB (def)
+  \item le variabili vive in ingresso che il bb pu\`o propagare (out - def)
+  \item fz di trasferimento quindi \`e: in = use U out - def
+\end{itemize}
+
+\begin{emphasize}
+    nota che di fatto stiamo riscrivendo quello che abbiamo detto per la reaching definition! solo al contrario - in questo momento stiamo risalendo al contrario per calcolare gli insiemi che ci servono e le funzioni di trasferimento, e sarebbe sufficiente "sostituire" come nomenclatura use e def con gen e kill (non mi ricordo se questo \`e l'ordine giusto)
+\end{emphasize}
+
+anche qui abbiamo quindi un operatore di meet, applicabile ai join node (nodi con \textbf{successori} multipli)
+
+esempio 7-56 e 7-57, recupera appunti da dani
+
+algoritmo iterativo a 7-58
+
+boundary condition: input dell'exit block \`e l'insieme vuoto, cos\`i come le starting conditions per tutti i bb tranne l'entry block
+
+da cosa deriva questa scelta delle condizioni iniziali? ovviamente dall'operatore di meet - se stessimo usando per qualsiasi motivo un meet op di tipo intersezione, usare l'insieme vuoto "pialla tutto" e impedisce la propagazione dell'informazione
+
+7-73 : a convergenza si arriva indipendentemente dall'ordine in cui calcolo le funzioni dei bb (cambia al massimo il numero di iterazioni per arrivare a convergenza)
+
+7-74 : tabella di confronto tra i due problemi visti, volendoli formalizzare tramite il framework della dfa
+
+\subsection{available expressions}
+
+altro problema modellabile tramite dfa
+
+esempio:
+\begin{lstlisting}
+if (...) {
+  x = m + n;
+} else {
+  y = m + n;
+}
+z = m + n;\end{lstlisting}
+
+dunque risulta utile ad es per ottimizzazioni come la common subexpr elimination
+
+ma cosa succede se l'espressione non viene calcolata nel ramo else invece? $\rightarrow$ la possibile soluzione a livello di sorgente sarebbe calcolare l'espressione prima dell'if, e usarlo poi nelle definizioni successive che la richiedono
+
+concetto di available expressions
+
+\subsubsection{available expressions}
+
+Il concetto di available expr.~\`e necessario come maniera rigorosa di ragionare sulla ridondanza
+
+Consideriamo come dominio l'insieme di tutte le espressioni del programma (solo espr binarie del tipo x + cerchiato y) - (stiamo considerando match ... ? recupera)
+
+OCIO CHE FORWARD E BACKWARD SI RIFERISCONO (PRIMA ERANO INVERTITI MI PARE) ALLA DIREZIONE CHE VADO A CONSIDERARE RISPETTO ALLA DIREZIONE CLASSICA DEL FLUSSO ENTRY $\rightarrow$ EXIT - fw va da entry a punto p, backward da exit a p
+
+recupera tutto bene fino a 7-79
+
+7-80: esempio 
+
+7-81 fino a 7-87 spiega come mai stiamo facendo fw analysis $\rightarrow$ per capire quali expr.~eliminare dobbiamo guardare al passato - elimino quelle che non sono state calcolate in tutti i blocchi predecessori (available appunto in questo caso appena descritto) $\rightarrow$ \`e proprio il motivo per cui sto usando come operatore di meet l'\textbf{intersezione}
+
+7-88 fino 7-92 : condizioni al contorno e condizioni iniziali - non posso usare l'insieme vuoto con l'intersezione, devo usare quello che in insiemistica chiamo insieme universo (o universale), dunque in termini di bit vector un vettore di tutti 1
+
+7-93 : tabella riassuntiva , ricordiamo che il dominio sono tutte le operazioni con due operandi del programma e quindi lunghezza vettore pari alla sua cardinalit\`a
+
+\begin{example}
+    immagine 7-94
+
+    risolvere il problema di dfa delle available expr per il cfg in figura
+
+    dominio:
+    \begin{itemize}
+      \item \lstinline|a-b|
+      \item \lstinline|a*b|
+      \item \lstinline|a-1|
+    \end{itemize}
+    
+    condizione di partenza: out[entry] = out[bb1] = emptyset
+
+    recupera da foglio
+
+\end{example}
+
+essendo la dfa per natura statica, l'esempio mostra come l'essere statici \`e di per se pessimistico - considero sempre il caso peggiore (stiamo parlando dell'espressione condizionale?)
+
+il risultato dell'analisi sarebbe diverso se conoscessi l'istanza specifica - sapendo ad esempio che bb4 sar\`a falso potrei fare delle assunzioni che, staticamente, non posso fare, e dunque devo conservativamente ritornare sempre al caso peggiore che il loop esegua almeno una volta ?
+
+in ogni caso, sono informazioni aggiuntive relative al comportamento dinamico (a esecuzione) del programma che il compilatore non conosce a priori - posso al massimo fornirgliele io dall'esterno
+
+\section{1 aprile - 2o assignment su dfa}
+
+per ciascuno dei 3 problemi di analisi, definire dominio direzione fz di trasf meet op e condizioni di boundary e iniziali
+
+inoltre per il cfg di esempio fornito bisogna compilare una tabella per descrivere le iterazioni che servono a raggiungere convergenza
+
+per validare la formulazione, fate domande del tipo es. liveness aanalysis: questa variabile \`e viva in questo punto? eccetera
+
+\subsection{very busy expressions}
+
+very busy se indipendentemente dal percorso preso, l'espr. viene usata prima che uno dei suoi operandi venga definito (viene usata)
+ci interessa conoscere le espressioni disponibili .. ?
+
+utile perche permette code hoisting (tecnica usata in loop invariant code motion, vedi inizio, recupera)
+
+sposto prima del loop una certa espressione: posso farlo solo se sono sicuro che qualsiasi espr che usa il valore dell'espr da spostare ... rec
+
+capire se posso evitare di ripetere un'op in maniera ridondante eseguendola una voltra asola in un punto dove il control flow e comune a tutti i path?
+
+in ogni caso ci ritorneremo, per ora ci limitiamo a ragionare in termini di dfa relativamente al sottoproblema delle vbexpr
+
+\subsection{dominator analysis}
+
+analisi dei dominatori - inizieremo a parlarne quando inizieremo a parlare dei loop, fondamentale per riconoscere l'esistenza di un loop
+
+riconoscere l'esistenza di un loop significa in primis riconoscere la presenza di un ciclo
+
+un blocco domina un altro blocco se il primo appare sempre in ogni percorso prima del secondo - in questo caso x domina y
+
+questa era la condizione di dominanza; unendola alla condizione di "direzione" dell'arco, posso rilevare la presenza di cicli (ne parleremo in dettaglio)
+
+come impostare il framework di dfa per capire quali blocchi sono dominanti rispetto agli altri?
+
+da esempio: i blocchi che dominano f sono a c f, non d ed e perche sono opzioni "mutualm escl" ovvero non necessariamente devo passare attraverso uno dei due; inoltre f perche un blococ e sempre dominatore di se stesso
+
+\subsection{constant propagation}
+
+per poter trovare i punti del programma in cui le var hanno valore costante bisogna usare un dominio speciale: devo associare sia nome variabile che valore della costante - se una var viene nel frattempo riassegnata l'informazione di constant pr cambia
+
+dominio fatto da coppie del tipo var,val-costante \lstinline|(x,c)|
+
+dunque garantisco che per coppie x,c ad ogni uso di x sia associata c (il suo valore)
+
+questa analisi riesce a determinare il valore costante di espr binarie dove 1 o entrambi gli operandi son ocsotanti note - nel determinare le equazioni possiamo tenere conto di questa info, e quindi eventualmente fare constant folding (non obbligatorio?)
+
+
 
 \end{document}
