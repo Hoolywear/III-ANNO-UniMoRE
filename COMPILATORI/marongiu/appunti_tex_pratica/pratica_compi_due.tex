@@ -231,5 +231,22 @@ llvm-dis test/Foo.optimized.bc -o test/Foo.optimized.ll\end{lstlisting}
 
 studia il passo, confronta \lstinline|Foo.ll| e \lstinline|Foo.optimized.ll|
 
+\begin{emphasize-blue}
+    problema: con \lstinline|-O0| non si prevede l'uso di registri illimitati, dunque il codice intermedio si riempie di load e store $\rightarrow$ si potrebbe applicare il passo \lstinline|mem2reg| che trasforma i riferimenti in memoria in registri usati
+
+    altro problema: se io applico \lstinline|O0| e poi il passo \lstinline|mem2reg| non succede nulla: il flag \lstinline|-O0| aggiunge un tag \lstinline|optnone| nel codice intermedio, che inibisce tutte le successive ottimizzazioni
+
+    soluzione: quando invoco clang aggiungo il flag \lstinline|-Xclang -disable-O0-optnone|, e poi posso applicare con \lstinline|opt| il passo \lstinline|mem2reg|:
+    \begin{lstlisting}[language=bash]
+clang -Xclang -disable-O0-optnone -S -emit-llvm -O0 test/Foo.c -o test/Foo.ll
+opt -pass=mem2reg \end{lstlisting}
+   
+recupera fine codice da dani e confronta con quello che trovi in script
+\end{emphasize-blue}
+
+\part{1 aprile robe}
+
+prova ad estendere un passo qualunque per eseguirlo su modulo invece che su funzione
+
 \end{document}
 
