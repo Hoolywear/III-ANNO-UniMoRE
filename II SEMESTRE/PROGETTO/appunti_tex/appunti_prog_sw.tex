@@ -111,5 +111,138 @@ flow tipico:
   \item ultimo pull per rendere consistente la copia locale, e (tipicamente) eliminiamo l'altra branch
 \end{enumerate}
 
+\newpage
+\part{The software design process}
+
+\newpage
+\part{Requisiti e specifiche}
+
+\newpage
+\part{Documentazione - Notazioni e strumenti}
+
+\newpage
+\part{UML}
+
+\newpage
+\part{System architecture and design}
+
+\section{System design}
+
+Step in cui traduciamo le specifiche del cliente in specifiche tecnologiche per gli sviluppatori $\rightarrow$ output: \textbf{architettura del sistema}
+\begin{itemize}
+  \item identifichiamo un insieme di moduli, ciascuno con una singola funzionalit\`a specifica
+  \item descriviamo i \textit{contratti}, le interazioni tra di loro
+\end{itemize}
+
+\subsection{Decomposizione in moduli}
+
+\begin{itemize}
+  \item decomponiamo prima in \textbf{sottosistemi}, che interagiscono ma \textbf{non dipendono} tra loro
+  \item poi in moduli e sottomoduli, ciascuno con il loro servizio specifico
+  \item poi in componenti (unit\`a implementativa di base)
+\end{itemize}
+
+La scelta alla base della decomposizione sta ovviamente nella separazione dei servizi offerti, e nell'assegnamento del controllo (chi controlla cosa)
+
+\subsection{Moduli}
+\begin{itemize}
+  \item si raggruppano funzionalit\`a in stretta relazione (es. CRUD relative agli account utente) $\rightarrow$ a livello di system design dobbiamo specificare chiaramente le \textbf{interfacce} verso altri moduli o l'esterno
+  \item successivamente identifico le sotto-funzionalit\`a
+\end{itemize}
+
+\subsubsection{Relazioni tra moduli}
+
+Tipicamente i moduli espongono servizi usati da altri, sono composti da sottomoduli (per lavorare a livelli diversi di dettaglio) e possono dipendere da altri moduli (tipicamente seguendo dei diagrammi di sequenza per use-case specifici)
+
+\subsubsection{Strategia di partizionamento}
+
+Top down:
+\begin{itemize}
+  \item parto dalle specifiche e dalla documentazione
+  \item arrivo ai servizi, moduli, componenti eccetera
+\end{itemize}
+
+Bottom up:
+\begin{itemize}
+  \item data-structure/functionality centric $\rightarrow$ quando ad es. parto da sistemi preesistenti
+\end{itemize}
+
+L'approccio reale \`e ovviamente ibrido
+
+\section{Pattern architetturali}
+
+\subsection{Architettura client-server}
+
+Tipico di sistemi distribuiti, composto di 
+\begin{itemize}
+  \item 1+ server che offrono generici servizi
+  \item + client che usano i servizi
+  \item 1 network di comunicazione, che si presume sempre attivo
+\end{itemize}
+
+Comnunicazione asimmetrica (requests e responses)
+
+Pro:
+\begin{itemize}
+  \item facile distribuire dati e responsabilit\`a ?
+  \item scalabilit\`a in termini di client e di server
+\end{itemize}
+
+Contro:
+\begin{itemize}
+  \item la scalabilit\`a "costa" (vado a scalare semplicemente aumentando le risorse)
+  \item bisogno di un naming service: i server devono essere conosciuti dai client!
+  \item evidente situazione di dipendenza
+\end{itemize}
+
+\subsection{Architettura multi-tier}
+
+immagine
+
+\subsection{Design del controllo}
+
+Controllo inteso come "chi fa cosa", ovvero chi possiede la logica che implementa i casi d'uso $\rightarrow$ centralizzato o decentralizzato, con chiare conseguenze sull'architettura del sistema
+
+\subsubsection{Controllo centralizzato (sincrono)}
+
+Un singolo sistema (es. server web) gestisce (serves) tutte le richieste
+\begin{itemize}
+  \item dipende da altri sottosistemi
+  \item tipico per frontend di web-app
+  \item basato su comunicazioni sincrone (es. chiamate di funzione)
+\end{itemize}
+
+I pro e contro direttamente derivati sono \textbf{single point of access} e \textbf{single point of failure}
+
+\paragraph{Master-Slave}~\\
+
+Si presenta nei paradigmi multi-process e multi-thread, in ogni caso richiede comunicazione tra processi
+
+\subsubsection{Controllo event-based (asincrono)}
+
+Ciascun modulo o sottosistema lavora in maniera indipendente dagli altri, e si relaziona con l'esterno tramite comunicazioni asincrone\\
+$\rightarrow$ pro e contro: sistema distribuito, dunque pi\`u difficile da implementare ma con meno dipendenze tra moduli
+
+Paradigma event-based: il message broker \`e il first-class citizen, ovvero il modulo al quale si interfacciano tutti gli altri e che gestisce tutte le comunicazioni $\rightarrow$ si sposa benissimo con un frontend che deve mandare richieste (e poi si mette in attesa) - se async non ha bisogno di tenere occupate le risorse del sistema
+
+\subsection{Specifiche per il singolo modulo}
+
+Una volta definito il modello architetturale, si decompongono le macroaree nei singoli moduli $\rightarrow$ comincio a decidere dettagli implementativi (es.~dove si trovano le funzionalit\`a, su che server...), seguendo alcuni principi base:
+\begin{itemize}
+  \item loose-coupling: maggiore indipendenza possibile
+  \item minima conoscenza inter-modulare tra sviluppatori
+  \item high cohesion: i moduli raggruppano le funzionalit\`a strettamente dipendenti
+\end{itemize}
+
+Per prima cosa dobbiamo definire i contratti (interfacce) tra i vari moduli (professionalmente si usa UML):
+\begin{itemize}
+  \item che funzionalit\`a espongo: es.~update dell'et\`a, rimozione utente...
+  \item come le espongo: servizi o funzioni da chiamare, es.~REST API
+  \item parametri input-output: numero, tipo, eccetera
+\end{itemize}
+
+\section{MVC - Model View Controller pattern}
+
+
 
 \end{document}
