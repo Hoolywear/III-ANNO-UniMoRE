@@ -384,7 +384,7 @@ for (let i = value; i>0; i = i - 1) {
 console.log(result);\end{lstlisting}
 
 \vspace{-.5em}
-\subsubsection{AST}
+\subsubsection{AST (Abstract Syntax Tree)}
 
 Albero i cui nodi rappresentano diverse parti del programma: il nodo radice rappresenta il \textbf{programma}, il quale a sua volta contiene un blocco di istruzioni dal quale discendono tanti figli quante le sue istruzioni
 
@@ -403,7 +403,7 @@ z = x + y\end{lstlisting}
 
 
 \vspace{-.5em}
-\subsubsection{DAG}
+\subsubsection{DAG (Directed Acyclic Graph)}
 
 Contrazione di ast che evita la duplicazione di espressioni $\rightarrow$ \textbf{rappresentazione pi\`u compatta}
 
@@ -446,8 +446,7 @@ c = d + c;\end{lstlisting}
 
 
 
-\subsubsection{3AC}
-
+\subsubsection{3AC (3-Address Code)}
 
 \begin{minipage}[c]{.65\textwidth}
 Evidentemente adatto: tutte le istr.~del programma vengono spezzettate in istr.~di forma semplice simile all'assembly, di tipo \lstinline|x = y op z| (1 operatore, massimo 3 operandi)
@@ -480,90 +479,123 @@ t2 = x - t1\end{lstlisting}
 
 A seconda dei vincoli che ho per l'implementazione pratica:
 
+\noindent\begin{minipage}[c]{.7\textwidth}
 \begin{itemize}
-  \item quadruple: id istruzione, opcode, i 3 registri $\rightarrow$ semplice struttura record, facile da analizzare e riordinare ma i nomi espliciti prendono pi\`u spazio
-  \item triple: id istruzione, opcode, 2 operandi $\rightarrow$ uso l'indice dell'espressione nell'array come "nome" del registro destinazione $\rightarrow$ risparmio spazio, ma diventa piu complesso da analizzare (nomi impliciti) e riordinare
+  \item \textbf{quadruple}: id istruzione, opcode, i 3 registri $\rightarrow$ semplice struttura record, facile da analizzare e riordinare ma i nomi espliciti prendono pi\`u spazio
+  \item \textbf{triple}: id istruzione, opcode, 2 operandi $\rightarrow$ uso l'indice dell'espressione nell'array come "nome" del registro destinazione $\rightarrow$ risparmio spazio, ma diventa piu complesso da analizzare (nomi impliciti) e riordinare
 \end{itemize}
+\end{minipage}
+\begin{minipage}[c]{.3\textwidth}
+\centering
+\includegraphics[width=.7\textwidth]{ir_5.png}
+\includegraphics[width=.7\textwidth]{ir_6.png}
+\end{minipage}
 
 
-Ricordiamo la constant propagation: sostituisco usi futuri di una variabile con valore costante con la costante stessa \textbf{se non cambia nel frattempo}
-
-$\rightarrow$ ottimizzazione che una IR di tipo 3ac non puo applicare immediatamente (devo prima analizzare il resto del codice) $\rightarrow$ SSA come evoluzione della 3ac, in quanto impone che la \textbf{definizione (assegnamento)} delle variabili avvenga \textbf{solo una volta} (definizioni multiple sono tradotte in multiple versioni della var)
-
-pro: ogni definizione ha associata direttamente una lista di tutti i suoi usi - semplifica enormemente le ottimizzazioni di tipo CP e non solo
-
-quasi sempre uno dei passi di ottimizzazione prevede il passaggio a forma SSA
-
-\begin{emphasize}
-  La scelta della IR dipende ovviamente dal livello di dettaglio necessario per ogni specifico compito $\rightarrow$ \textbf{in un compilatore coesistono pi\`u IR}
-
-  \noindent Anche per questo ci sono le forme ibride - es. cfg con 3ac
+\begin{emphasize}[frametitle={Inapplicabilit\`a diretta della Constant Propagation con forma 3AC}]
+  La CP \`e applicabile solo se la variabile \textbf{se non cambia nel frattempo} $\rightarrow$ una IR di tipo 3AC non pu\`o applicarla immediatamente (devo prima analizzare il resto del codice)
 \end{emphasize}
 
-\subsubsection{cfg}
+\subsubsection{SSA (Static Single Assignment)}
 
-vediamo un esempio con costrutti condizionali (non solo sequenze lineari)
-
-immagine slide 2-28
-
-un cfg permette di aggiungere informazioni sui \textbf{salti} al di sopra di una IR lineare $\rightarrow$ modello il flusso di controllo del programma come grafo composto da blocchi (BB)
-
-ogni bb contiene sequenze lineari di istruzioni
-
-gli archi rappresentano il flusso di controllo del programma
-
-
-formalmente: un BB \`e una seq.~di istruzioni in forma 3AC
 \begin{itemize}
-  \item solo la prima istruzione puo essere raggiunta dall'esterno (garantito un singolo entry point)
-  \item singolo exit point: se eseguo la prima istr.~\textbf{devo eseguire tutte le altre} - garantisco che venga eseguito interamente
+  \item Evoluzione di 3AC che impone che la \textbf{definizione (assegnamento)} delle variabili avvenga \textbf{solo una volta} (def.~multiple sono tradotte in multiple versioni della var)
+  \item \textbf{PRO}: ogni definizione ha associata direttamente una \textbf{lista di tutti i suoi usi} - semplifica enormemente le ottimizzazioni di tipo CP e non solo
 \end{itemize}
 
-le chiamiamo sezioni single-entry, single-exit (possono essere sezioni anche piu grandi, ma le piu piccole di questo tipo sono i BB)
 
-un arco connette due nodi s.s.se il secondo puo eseguire dopo il primo in qualche percorso del ctrl flow del programma (prima istr del secondo \`e target dell'istr di salto al termine del primo, oppure il secondo \`e l'unico successore del primo che non ha un istr di salto come ultima istr - il secondo lo chiamo nodo falltrough)
+\begin{emphasize}
+  Quasi sempre uno dei passi di ottimizzazione prevede il passaggio a forma SSA
+\end{emphasize}
 
-un cfg \textbf{normalizzato} ha i bb \textbf{massimali} (non possono essere resi piu grandi senza violare condizioni) (unisco i bb fallthrough che non hanno label all'inizio, evidentemente) (situazioni di cfg non normalizzato possono avvenire dopo qualche generico passo di ottimizzazione, evidentemente non le facciamo accadere noi "spontaneamente")
+\begin{emphasize}
+  La scelta della IR dipende ovviamente dal livello di dettaglio necessario per ogni specifico compito $\rightarrow$ \textbf{in un compilatore coesistono pi\`u IR} (anche per questo esistono forme ibride)
+\end{emphasize}
 
-\paragraph{algoritmo per la costruzione del cfg}~\\
+\subsubsection{CFG (Control Flow Graph)}
 
+\noindent\begin{minipage}[c]{.65\textwidth}
+\begin{itemize}
+  \item modella il trasferimento (flusso) del controllo in un programma tra \textbf{blocchi} di istruzioni
+  \item permette di aggiungere informazioni sui \textbf{salti} al di sopra di una IR lineare
+  \item i suoi nodi sono Basic Block
+  \item gli archi rappresentano il flusso di controllo del programma (loop, condizioni, ecc.)
+\end{itemize}
+\end{minipage}
+\begin{minipage}[c]{.35\textwidth}
+\includegraphics[width=\textwidth]{ir_7.png}
+\end{minipage}
+
+\begin{itemize}
+  \item un BB \`e una seq.~di istruzioni in forma 3AC
+    \begin{itemize}
+      \item singolo \textit{entry point}: solo la prima istruzione puo essere raggiunta dall'esterno
+      \item singolo \textit{exit point}: se eseguo la prima istr.~\textbf{devo eseguire tutte le altre} - garantisco che venga \textbf{eseguito interamente}
+      \item Le chiamiamo sezioni single-entry, single-exit (possono essere sezioni anche piu grandi, ma le piu piccole di questo tipo sono i BB)
+    \end{itemize}
+  \item un arco connette due nodi $B_{i}\rightarrow B_{j}$ $\iff$ $b_{j}$ pu\`o eseguire dopo $B_{i}$ in qualche percorso del ctrl flow del programma
+    \begin{itemize}
+      \item prima istr.~di $B_{j}$ \`e target dell'istr.~di salto al termine di $B_{i}$
+      \item[$\lor$] $B_{i}$ non ha un istr.~di salto come ultima istr.~(nodo \textit{falltrough}) e $B_{j}$ \`e suo unico successore
+    \end{itemize}
+  \item un CFG \textbf{normalizzato} ha i BB \textbf{massimali}
+    \begin{itemize}
+      \item non possono essere resi pi\`u grandi senza violare condizioni
+      \item unisco i BB fallthrough che non hanno label all'inizio
+      \item posso avere CFG non norm.~dopo qualche generico passo di ottimizzazione (non le facciamo accadere "spontaneamente")
+    \end{itemize}
+\end{itemize}
+
+\paragraph{Algoritmo per la costruzione del CFG}~\\
+
+\noindent\begin{minipage}[c]{.65\textwidth}
 \begin{enumerate}
-  \item identificare il \textbf{leader} di ogni bb:
+  \item identificare il \textbf{leader} di ogni BB:
     \begin{itemize}
       \item la prima istruzione
       \item il target di un salto
       \item ogni istruzione dopo un salto
     \end{itemize}
-  \item il bb comincia con il leader e termina con l'istruzione immediatamente precedente un nuovo leader (o l'ultima istruzione)
-  \item connettere i bb tramite archi di 3 tipi:
+  \item il BB \textbf{comincia} con il leader e \textbf{termina} con l'istruzione immediatamente precedente un nuovo leader (o l'ultima istruzione)
+  \item \textbf{connettere} i BB tramite archi di 3 tipi:
     \begin{itemize}
-      \item fallthrough (o fallthru): esiste solo un percorso che collega i due blocchi
-      \item true: il secondo blocco \`e raggiungibile dal primo se un condizionale \`e true
-      \item false: il secondo blocco \`e raggiungibile dal primo se un condizionale \`e false
+      \item \textbf{fallthrough} (o fallthru): esiste solo un percorso che collega i due blocchi
+      \item \textbf{true}: il secondo blocco \`e raggiungibile dal primo se un condizionale \`e \lstinline|true|
+      \item \textbf{false}: il secondo blocco \`e raggiungibile dal primo se un condizionale \`e \lstinline|false|
     \end{itemize}
-    
 \end{enumerate}
+\end{minipage}\hfill
+\begin{minipage}[c]{.3\textwidth}
+\includegraphics[width=\textwidth]{ir_8.png}
+\captionof{figure}{Esempio di CFG}
+\end{minipage}
 
-esempi ed esercizi fino slide 52
+\subsubsection{Dependency Graph}
 
-\subsubsection{dependency graph}
+I nodi di un DG sono istruzioni; un arco connette due nodi di cui \textbf{uno usa il valore definito dall'altro}. Sono indispensabili per l'\textit{instruction scheduling} e per mantenere il CPI della pipeline (ricordiamo quella RISC-V):
 
-soprattutto nell'erad ei nulticore questa rappr assume sempre piu importanza
+\begin{itemize}
+  \item[$\curvearrowright$] Instruction Fetch
+  \item[$\downarrow$] Instruction Decode
+  \item[$\downarrow$] Execute
+  \item[$\downarrow$] Memory Access
+  \item[$\hookleftarrow$] Write Back
+\end{itemize}
 
-almeno due tipi: (recupera questa cosa)
 
 ricordiamo pipeline riscv e data hazard: il fatto che un registro voglia leggere da un registro usato in un'op precedente (e non ancora salvato? recupera)
 
 if id exe mem wb le fasi di pipelining
 
-esempio con una mul: ricordiamo che se la mul successiva prova a usare il registro usato nell'istr prima (dipendenza), il risultato ancora non e stato scritto - nella fase di decode identifico i registri usati nell'operazione, e appunto rw ancora non contiene il risultato aggiornato, che sara pronto appena tra 2 cicli
+esempio con una mul: se provo a usare il registro usato nell'istr.~prima, il risultato ancora non \`e stato scritto - nella fase di decode ancora non contiene il risultato aggiornato, pronto appena tra 2 cicli
 
-questo e un data hazard, nel caso comune si gestisce con una \textbf{forwarding unit} che bypassa le fasi successive e inoltra direttamente il risultato appena ottenuto
+Data hazard, generalmente gestito dalla \textbf{forwarding unit} che bypassa le fasi successive e inoltra direttamente il risultato appena ottenuto
 
-per quanto la fw unit sia un pezzo di hw dedicato che fa questi controlli autonomamente, in generale l'unico modo per evitare questo tipo di hazard \`e distanziare abbastanza le istruzioni tra loro affinche il dato sia disponibile $\rightarrow$ sposto l'istruzione di mul inserendo nop (cicli di stallo) (evidentemente non buono - vado a "rompere" l'IPC paria a 1 della pipeline sempre piena, evidentemente diminuisce la performance)
+\begin{emphasize}
+  Per quanto i controlli vengano svolti dalla fw.~unit, in generale l'unico modo per evitare questo tipo di hazard \`e distanziare le istruzioni tra loro affinch\'e il dato sia disponibile $\rightarrow$ inserisco nop (cicli di stallo), ma vado a "rompere" l'IPC pari a a 1 della pipeline sempre piena ($<$ performance)
+\end{emphasize}
 
-soluzione migliore: scheduling del programma, ovvero sposto istruzioni che non hanno bisogno di quei registri per riempire quello spazio altrimenti occupato necessariamente da nop
-
+Soluzione migliore: \textbf{scheduling} del programma, spostando istruzioni che non dipendono da quei registri al posto di aggiungere \lstinline|nop|
 questo \`e uno dei compiti principali di un backend - \textbf{in che ordine genero le istruzioni per massimizzare l'efficienza del programma}
 
 come faccio a fare questa cosa? manualmente: vado a guardare le istruzioni e cerco a mano le dipendenze; il backend sfrutta la IR di tipo dg che fornisce esattamente le informazioni sulle dipendenze tra istruzioni
@@ -975,6 +1007,142 @@ dunque garantisco che per coppie x,c ad ogni uso di x sia associata c (il suo va
 
 questa analisi riesce a determinare il valore costante di espr binarie dove 1 o entrambi gli operandi son ocsotanti note - nel determinare le equazioni possiamo tenere conto di questa info, e quindi eventualmente fare constant folding (non obbligatorio?)
 
+\section{sezione 9 2 aprile}
 
+\subsection{cos e un loop}
+
+slide 9-4: obiettivo $\rightarrow$ definire un loop in termini di teoria dei grafi (cfg), ovvero indipendentemente dalla loro sintassi e dal tipo (for, while, goto, eccetera ... o anche costrutti stile assembly con salti condizionati e non)
+
+accordiamoci sulla terminologia: cos\`e un loop e con quale terminologia lo definiamo
+
+generalmente, non tutti i cicli sono un "loop" da un pto di vista dell'ottimizzazione $\rightarrow$ es. 9-5 a-c-d \`e un ciclo, ma anche un loop? e c-d ?
+
+elementi chiave per riconoscere un loop:
+\begin{itemize}
+  \item gli archi devono formare almeno un ciclo
+  \item (fondamentale) deve avere un \textbf{singolo entry point} (tutti gli archi, se multipli, devono entrare nello stesso punto)
+\end{itemize}
+
+\subsection{definizioni formali}
+
+\paragraph{dominator}~\\
+
+un nodo d domina un nodo n in un grafo ( d dom n ) se ogni percorso dall'ENTRY node a n passa per d
+
+come facciamo ad usare e rappresentare comodamente questa propriet\`a?
+
+\paragraph{dominator tree}~\\
+
+modo per rappresentare la propriet\`a di dominanza in forma di albero
+
+\begin{itemize}
+  \item a $\rightarrow$ b nel dominator tree $\iff$ a domina immediatamente b
+  \item non compaiono le relazioni di "auto-dominazione" (ogni nodo domina sempre se stesso, ma nell'albero non serve rappresentarlo)
+  \item il nodo entry \`e la radice
+  \item ogni nodo d domina solo i suoi discendenti nell'albero
+\end{itemize}
+
+\paragraph{immediate dominator}~\\
+
+l'ultimo dominator di n su qualsiasi percorso da entry a n
+
+m domina immediatamente (strettamente) n (m sdom n) iff m dom n AND m != n
+
+esempio 9-9 di dominator tree
+
+altro esempio 9-10 e 9-11
+
+gli esempi ci mostrano come si formano le gerarchie di dominator
+
+note queste definizioni, possiamo iniziare a provare a definire i loop
+
+\subsection{loop naturali}
+
+pur specificandoli in molti modi diversi nei src, dal punto di vista dell'analisi importa solo che la rappr abbia propriet\`a che facilitino l'ottimizzazione, ovvero
+\begin{itemize}
+  \item singolo entry point: header $\rightarrow$ l'header \textbf{domina tutti i nodi nel loop}
+  \item back edge, ossia arco la cui testa domina la propria coda (tail $\rightarrow$ head): un back edge \textbf{deve far parte di almeno un loop}
+\end{itemize}
+
+\subsubsection{identificare i loop naturali}
+
+\begin{enumerate}
+  \item trovare le relazioni di dominanza
+  \item identificare i back edges
+  \item trovare il loop naturale associato al back edge
+\end{enumerate}
+
+\paragraph{trovare i dominatori}~\\
+
+lo impostiamo in termini di dfa (segue esempio di prima)
+
+\paragraph{trovare i back edges}~\\
+
+algoritmo usato ad es. dal dragon book (sezione 2.3.4): depth-first traversal
+
+\begin{itemize}
+  \item inizio alla radice e visito ricorsivamente i figli di ogni nodo in qualsiasi ordine
+  \item importante la "velocit\`a di discesa": prima scendo ed esploro in profondit\`a, a prescindere dall'ordine
+\end{itemize}
+
+il percorso della visita deinisce un depth-first spanning tree (DFST):
+\begin{itemize}
+  \item archi solidi: struttura dell'albero
+  \item archi tratteggiati: altri archi del cfg
+\end{itemize}
+
+come categorizzo gli archi:
+\begin{itemize}
+  \item advancing (A) edges: da antenato a discendente, ovvero gli archi detti \textit{proper} - gli archi solidi sono tutti A
+  \item retreating (R) e.: da discendente a antenato (non necessariamente proper $\rightarrow$ da un nodo a se stesso) - solo archi tratteggiati
+  \item cross (C) edges: archi tali per cui nessuno dei due nodi \`e antenato dell'altro
+\end{itemize}
+
+\begin{emphasize}
+    se disegniamo il dfst in modo che i figli siano aggiunti da sx a dx nell'ordine di visita, allora i cross edges vanno sempre da dx a sx
+\end{emphasize}
+
+definizione: 9-20
+algoritmo: 9-20, si basa su concetto di retreating edge, e controlla se la testa \`e nella lista dei dominatori della coda (usa h head e t tail)
+
+dunque di fatto in questo modo vado a riconoscere i back edges come questi casi specifici di retreating edges su cui eseguo il controllo della dominanza
+
+\paragraph{trovare il loop naturale}~\\
+
+il loop naturale di un back edge \`e il pi\`u piccolo insieme di nodi che include head e tail del back edge e non ha predecessori fuori da questo insieme 
+
+algoritmo: 9-22
+
+dunque genericamente rappresento i loop in maniera "header-centrica"
+
+\subsection{preheader}
+
+spesso succede che sia necessario (anche propedeuticam ad altre ottimizzazioni) dare la garanzia che quando arrivo all'header block, ci arrivo con un arco di tipo falltrough nel grafo - es per la loop invariant code motion (caso di code hoisting), quindi quando devo spostare un'istruzione in un punto comune al control flow di tutte le iterazioni del loop $\rightarrow$ tipico inserire un blocco detto preheader appena prima del loop, fatto apposta per inserire le istruzioni da eseguire una volta sola in seguito alla code hoisting (operazioni preliminari, eccetera)
+
+IMG 9-23
+
+\begin{emphasize}
+  questo vuol dire che per manipolare le str dati di tipo loop in llvm ci sono a disposizione primitive per recuperare proprio questi blocchi fondamentali (poi per navigare nel resto dei blocchi possiamo usare i classici iteratori, sia seguendo l'ordine del cfg sia non)
+\end{emphasize}
+
+\section{use-def e def-use chains}
+
+per come funziona l'ottimizzazione, abbiamo capito che serve la capacit\`a di ricollegare in maniera efficiente la definizione di una variabile a tutti i suoi usi (per esempio per propagare un risultato) $\rightarrow$ per questo vengono previsti questi riferimenti nell'IR llvm
+
+\subsection{dove viene definita o usata una variabile}
+
+la definizione di def use e use def chain \`e precedente a quella di ssa $\rightarrow$ lo scope lessicale del programma in cui si potevano trovare gli usi della variabile era molto pi\`u ampio
+
+es. loop invariant code motion e copy propagation: 9-25
+
+es licm se le variabili usate nell'espr che definisce a sono definite all'interno del loop evidentemente non posso spostare la definizione fuori dal loop
+
+es cp riprendo il concetto di reaching definition ...
+
+notando l'utilit\`a di poter scorrere in maniera agevole le relazioni def usi, vogliamo un'IR che la preveda $\rightarrow$ permette una forma di analisi "sparsa", ovvero che ignora tutte le istruzioni che non sono casi di uso o definizione specifici all'istruzione correntemente analizzata
+
+9-26: il discorso sulle catene pu\`o essere ulteriormente semplificato se si riesce a ridefinire completamente anche il nome della variabile ad ogni sua ridefinizione (ci avviciniamo a ssa?) (permette catene evidentemente sensibilmente pi\`u corte)
+
+9-28: mostra come le catene possono essere onerose
 
 \end{document}
