@@ -25,6 +25,17 @@ II SEMESTRE/TECNOLOGIE/PYTHON/esercitazioni/biblio/.idea/vcs.xml
 *.xdv
 *-converted-to.*
 
+## Other intermediate compilation files:
+
+*.fdb_latexmk
+*.synctex
+*.synctex(busy)
+*.synctex.gz
+*.synctex.gz(busy)
+*.pdfsync
+*.rubbercache
+rubber.cache
+
 # minted
 _minted*
 *.pyg
