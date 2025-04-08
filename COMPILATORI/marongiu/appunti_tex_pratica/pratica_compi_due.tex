@@ -248,5 +248,63 @@ recupera fine codice da dani e confronta con quello che trovi in script
 
 prova ad estendere un passo qualunque per eseguirlo su modulo invece che su funzione
 
+\part{8 aprile loop}
+
+recupera tutta prima parte
+
+da dani:
+
+\begin{itemize}
+  \item classe \lstinline|llvm/Analysis/LoopInfo.h|: individua i natural loops in un CFG
+  \item recuperare un oggetto \lstinline|LoopInfo| a partire da un functionpass
+  \item la classe loopinfo \textbf{eredita da loopinfobase}
+  \begin{itemize}
+    \item come capiamo se il fcg contiene loop?
+    \item come capire se un bb del cfg \`e l'header di un loop?
+    \item come recuperare l'handle al loop che contiene un dato bb? (\lstinline|LoopInfo|  class)
+  \end{itemize}
+\end{itemize}
+
+in particolare cerchiamo di capire come
+\begin{itemize}
+  \item verificare se un loop \`e in forma normale
+  \begin{itemize}
+    \item in generale, un loop \`e un sottoinsieme di bb del cfg?
+    \item concetto di single-entry: ho un header block che domina tutti gli altri nodi del grafo, che serve proprio a garantire questa propriet\`a
+    \item recupera le proprieta dal link fornito
+    \item terminologia pi\`u specifica a llvm (ma in realta a tutte le infrastrutture di compilatori):
+    \begin{itemize}
+      \item entering block: non fa parte del loop, ma e predecessore dell'header (e dunque rappresenta un entry point al loop)
+      \item exiting point: fa parte del loop, ha come uno dei successori un blocco fuori dal loop
+      \item exit block: non fa parte del loop, successore immediato di un exiting point
+      \item ... skippiamo molta roba che sara utile in futuro ...
+      \item altra cosa che ci interessa ora: loop simplify form $\rightarrow$ forma speciale del loop, detta forma canonica o normale
+    \end{itemize}
+  \item se il loop e in questa forma qui, ho un preheader, un singolo latch, e uscite dedicate $\rightarrow$ non esistono blocchi di uscita per il loop che hanno un predecessore \textbf{fuori dal loop} $\rightarrow$ garanzia: tutti i blocchi del loop sono dominati dal blocco header $\rightarrow$ proprieta molto comode per l'ottimizzazione, motivo per cui spesso prima di ottimizzare un loop lo si porta in forma normalizzata
+  \end{itemize}
+  \item recuperare i blocchi significativi del loop
+  \item scorrere i bb che compongono un loop
+\end{itemize}
+
+\section{esercitazione 3}
+
+scrivere un functionpass chiamato \lstinline|LoopPass| abilitabile con flag \lstinline|-loop-pass| che
+\begin{enumerate}
+  \item verifichi se il cfg corrente contiene loop. se no ritorna immeidatamente
+  \item scorre tutti  ibb e per ciascuno verifichi se e un header di un loop, in tal caso lo stampi (sempre su \lstinline|outs()| come sempre)
+  \item scorra tutti i loop del cfg e per ciascuno di essi (convoluto, ma serve giusto per fare pratica)
+  \begin{enumerate}
+    \item verifichi se e in forma normale
+    \item recuperi header dei loop e da li recuperi l'handle alla funzione che lo contiene. usando questo handle cosi ottenuto, stampa il cfg (\textbf{non sfruttando quello passato dal pass manager})
+    \item stampi tutti i blocchi che compongono i loop
+  \end{enumerate}
+\end{enumerate}
+
+\begin{emphasize-blue}
+    ricorda di usare O0 e di disabilitare optnone e eseguire mem2reg
+\end{emphasize-blue}
+
+infine scrivi i test giocando con i loop e gli innesti
+
 \end{document}
 

@@ -570,79 +570,81 @@ A seconda dei vincoli che ho per l'implementazione pratica:
 \captionof{figure}{Esempio di CFG}
 \end{minipage}
 
-\subsubsection{Dependency Graph}
+\subsubsection{DG (Dependency Graph)}
 
-I nodi di un DG sono istruzioni; un arco connette due nodi di cui \textbf{uno usa il valore definito dall'altro}. Sono indispensabili per l'\textit{instruction scheduling} e per mantenere il CPI della pipeline (ricordiamo quella RISC-V):
+I nodi di un DG sono istruzioni; un arco connette due nodi di cui \textbf{uno usa il valore definito dall'altro}. Sono indispensabili per l'\textit{instruction scheduling} e per mantenere il CPI della pipeline (ricordiamo quella RISC-V):\\
 
+\noindent\begin{minipage}[c]{.6\textwidth}
 \begin{itemize}
-  \item[$\curvearrowright$] Instruction Fetch
-  \item[$\downarrow$] Instruction Decode
-  \item[$\downarrow$] Execute
-  \item[$\downarrow$] Memory Access
-  \item[$\hookleftarrow$] Write Back
+  \item[$\curvearrowright$] IF Instruction Fetch
+  \item[$\downarrow$] ID Instruction Decode
+  \item[$\downarrow$] EXE Execute
+  \item[$\downarrow$] MEM Memory Access
+  \item[$\hookleftarrow$] WB Write Back
 \end{itemize}
+\end{minipage}
+\begin{minipage}[c]{.4\textwidth}
+  \centering
+\includegraphics[width=.85\textwidth]{ir_9.png}
+\captionof{figure}{Esempio di data hazard}
+\end{minipage}\\
 
+\begin{example}[frametitle={Esempio: risultato di una \lstinline|add|}]
+   Se in fase di decode provo a leggere il registro usato in una \lstinline|add| immediatamente precedente, questo ancora non contiene il risultato aggiornato (pronto appena tra 2 cicli) $\rightarrow$ \textbf{data hazard}, gestito solitamente dalla \textbf{forwarding unit} che bypassa MEM e WB e inoltra direttamente il dato 
+\end{example}
 
-ricordiamo pipeline riscv e data hazard: il fatto che un registro voglia leggere da un registro usato in un'op precedente (e non ancora salvato? recupera)
-
-if id exe mem wb le fasi di pipelining
-
-esempio con una mul: se provo a usare il registro usato nell'istr.~prima, il risultato ancora non \`e stato scritto - nella fase di decode ancora non contiene il risultato aggiornato, pronto appena tra 2 cicli
-
-Data hazard, generalmente gestito dalla \textbf{forwarding unit} che bypassa le fasi successive e inoltra direttamente il risultato appena ottenuto
-
-\begin{emphasize}
+\begin{emphasize}[frametitle={Soluzione generica (inefficiente)}]
   Per quanto i controlli vengano svolti dalla fw.~unit, in generale l'unico modo per evitare questo tipo di hazard \`e distanziare le istruzioni tra loro affinch\'e il dato sia disponibile $\rightarrow$ inserisco nop (cicli di stallo), ma vado a "rompere" l'IPC pari a a 1 della pipeline sempre piena ($<$ performance)
+  \mdfsubtitle{Soluzione migliore}
+  \textbf{scheduling} del programma, spostando istruzioni che non dipendono da quei registri al posto di aggiungere \lstinline|nop| $\rightarrow$ uno dei compiti principali di un backend, che per evitare di cercare le istruzioni libere "manualmente" sfrutta la IR di tipo DG che fornisce esattamente le informazioni sulle dipendenze tra istruzioni
 \end{emphasize}
 
-Soluzione migliore: \textbf{scheduling} del programma, spostando istruzioni che non dipendono da quei registri al posto di aggiungere \lstinline|nop|
-questo \`e uno dei compiti principali di un backend - \textbf{in che ordine genero le istruzioni per massimizzare l'efficienza del programma}
-
-come faccio a fare questa cosa? manualmente: vado a guardare le istruzioni e cerco a mano le dipendenze; il backend sfrutta la IR di tipo dg che fornisce esattamente le informazioni sulle dipendenze tra istruzioni
-
-qui si capisce cosa si intende per instruction level parallelism: dunque, quando \`e possibile sfruttare tutte le parti di architettura per "parallelizzare il codice" anche in caso di single thread (ottimizzazione senza reale parallelismo)
-
-
-\subsubsection{data dependency graph ddg}
-
-Specifico per multicore e parallelismo, usato per dare una rappresentazione tra le dipendenze dei \textbf{dati} - tipicamente i loop
-
-per esempio, (loop innestati lavorano tipicamente su str dati complesse e multidimensionali (matrici, immagini, ecc.))
-
-\begin{lstlisting}
-for (i = 0, i < n, i++)
-  A[i]=init();
-\end{lstlisting}
-
-
-Ogni it. resta indipendente dalle altre (uso il solo indice del loop) - basta aggiungere ad es.~ \lstinline|A[i-1] = A[i]| per generare dipendenze tra le iterazioni $\rightarrow$ il loop non \`e pi\`u parallelizzabile, e deve per forza essere eseguito in sequenza
-
-Data la complessit\`a delle casistiche reali,  esistono vari modi per rappresentare lo spazio delle iterazioni di un loop e le dipendenze che ne derivano:\\
-all'oggi usiamo il \textbf{polyhedral model} $\rightarrow$ rappresento lo spazio delle it.~come un poliedro (a seconda del numero di loop innestati), che permette di capire se esiste qualche permutazione dei loop (direzione di attraversamento dello spazio delle iterazioni; ovvero ad esempio scambiare l'ordine dei loop) non soggetta a dipendenze
-
-\subsubsection{call graph}
-
-rappresetnazione grafica a grafo usata per ragionare sulle relazione tra le funzioni della translation unit del file (insieme delle potenziali chiamate tra funzioni)
-
-rappr.~gerarchica, utile soprattutto a livello di analisi \textbf{interprocedurale} (la maggior parte delle ottimizzazioni avvengono a livello \textit{intraprocedurale}) (recupera questo concetto) (lavora sui file che abbiamo chiamato translation units, ovvero quelli da cui poi genero i file oggetto)
-
-$\rightarrow$ evidente come il compilatore abbia visibilita solo fino a livello dei singoli moduli: posso estendere le ottimizzazioni al massimo fino ai legami tra funzioni dello stesso modulo - le ottimizzazioni piu ampie si spostano a framework di ottimizzazione che agiscono a livello di linker per esempio
-
-\section{Ottimizzazione locale e basic value numbering - 24 marzo}
-
-\subsection{scope dell'ottimizzazione}
-
-finora abbiamo lavorato in locale, ovvero all'interno di un singolo BB $\rightarrow$ un'ott.~locale non si preoccupa del flusso di controllo di un programma, mentre una globale lavora a livello dell'intero CFG $\rightarrow$ lo scope viene influenzato da come viene gestito il flusso di controllo in un programma
+\subsubsection{DDG (Data Dependency Graph)}
 
 \begin{itemize}
-  \item ott locale: entro un sibgolo bb, non si preoccupa del flusso
-  \item ott globale: lavora a livello dell'intero CFG
-  \item ott interprocedurale: lavora a livello del call graph, e quindi sui CFG di pi\`u funzioni
+  \item specifico per multicore e parallelismo, usato per dare una rappresentazione tra le dipendenze dei \textbf{dati} - tipicamente i loop, a patto che non ci siano dipendenze di dato tra le varie iterazioni.
+  \item tipicamente uso il \textbf{polyhedral model} $\rightarrow$ rappresento lo spazio delle it.~come un poliedro (a seconda del numero di loop innestati), che permette di capire se esiste qualche permutazione dei loop (direzione di attraversamento dello spazio delle iterazioni; ovvero ad esempio scambiare l'ordine dei loop) \textbf{non soggetta a dipendenze}
 \end{itemize}
 
-\begin{example}[frametitle={dead code elimination}]
-  es di ott locale
-  \begin{lstlisting}
+\subsubsection{CG (Call Graph)}
+
+\noindent\begin{minipage}[c]{.6\textwidth}
+Rappresentazione gerarchica a grafo usata per ragionare sull'insieme delle potenziali chiamate tra funzioni della translation unit del sorgente
+
+\begin{emphasize}[frametitle={Nota}]
+  Il compilatore ha visibilit\`a solo fino a livello dei singoli moduli: posso estendere le ottimizzazioni al massimo fino ai legami tra funzioni dello stesso modulo, quelle pi\`u ampie si spostano a framework di ott.~che agiscono es.~a livello di linker
+\end{emphasize}
+\end{minipage}
+\begin{minipage}[c]{.4\textwidth}
+\includegraphics[width=\textwidth]{ir_10.png}
+\end{minipage}
+
+\section{Ottimizzazione locale e Local Value Numbering (24 mar)}
+
+\subsection{Scope dell'ottimizzazione}
+
+\noindent\begin{minipage}[c]{.55\textwidth}
+Lo scope viene influenzato da come viene gestito il flusso di controllo in un programma
+
+\begin{itemize}
+  \item ott.~\textbf{\textcolor{Emerald}{locale}}: entro un singolo BB, non si preoccupa del flusso
+  \item ott.~\textbf{\textcolor{Orange}{globale}}: lavora a livello dell'intero CFG
+  \item ott.~\textbf{\textcolor{Cerulean}{interprocedurale}}: lavora a livello del call graph, e quindi sui CFG di pi\`u funzioni
+\end{itemize}
+\end{minipage}\hfill
+\begin{minipage}[c]{.4\textwidth}
+\includegraphics[width=\textwidth]{lvn_1.png}
+\end{minipage}
+
+\subsection{Dead Code Elimination}
+
+Cominciamo ragionando su ott.~locali come la DCE (sono \textit{dead code} le istr.~che definiscono una variabile mai utilizzata)
+
+\noindent\begin{minipage}[b]{.65\textwidth}
+Sicuramente va tolta la def.~di c, ma poich\'e \lstinline|print| \textbf{non definisce nulla}, stando alla def.~\`e dead code! $\rightarrow$ Estendiamo la definizione dicendo che lo sono le istr \textbf{prive di side effects} che definiscono ... 
+\end{minipage}\hfill
+\begin{minipage}[c]{.3\textwidth}
+\begin{lstlisting}
 main {
   int a = 4;
   int b = 2;
@@ -650,37 +652,53 @@ main {
   int d = a + b;
   print d;
 }\end{lstlisting}
- evidentemente dobbiamo togliere la def di c, ma: solo quello? ricorda che rappresentano dead code le istr che definiscono (assegnano un valore a) una var che non \`e mai utilizzata $\rightarrow$ poiche la print non definisce nulla, stando a questa def \`e dead code! invece, estendiamo la definizione dicendo che lo sono le istr \textbf{prive di side effects} che definiscono ... 
+\end{minipage}
 
+\subsubsection{Algoritmo per la DCE}
 
-  proviamo a costruire un algoritmo per implementare la dce cos\`i definita:
-  \begin{enumerate}
-    \item $\forall$ istruzione in BB
+\begin{enumerate}
+  \item $\forall$ istruzione in BB
     \begin{itemize}
       \item aggiungi operandi ad un metadato array \lstinline|used|
     \end{itemize}
-    \item $\forall$ istr in BB
+  \item $\forall$ istruzione in BB
     \begin{itemize}
-      \item se istr non ha destinazione e non ha side effects rimuovila
+      \item se non ha destinazione e non ha side effects rimuovila
       \item altrimenti se la destinazione non corrisponde a nessuno degli elem di \lstinline|used| rimuovila
     \end{itemize} 
-  \end{enumerate}
+\end{enumerate}
 
-  dall'esempio vediamo che funziona, ma iterativamente potremmo eliminare poi altre istr $\rightarrow$ soluzione semplice \`e aggiungere la parte iterativa all'algoritmo, che dunque esegue fino a convergenza
+\begin{lstlisting}
+used = {};
+
+for instr in BB:
+  used += instr.args;
+
+for instr in BB:
+  if instr.dest &&
+     instr.dest not in used:
+        delete instr\end{lstlisting}
+
+A questo punto rendiamolo iterativo, per farlo eseguire fino a "convergenza" (elimino tutto il \textit{d-c})
   
-\end{example}
+\begin{lstlisting}
+while prog changed:
+{
+  ... #alg
+}\end{lstlisting}
 
-\begin{example}
-    altro esempio: ridefinizione di una variabile (slide 6-22) - ovvero il nostro algoritmo corrente non gestisce le dead stores
+\begin{lstlisting}
+main {
+  int a = 100;
+  int a = 42;
+  print a;
+}\end{lstlisting}
 
-    \begin{emphasize}
-      in generale, capiamo che scrivere un passo significa prima definire bene cosa deve fare...
-    \end{emphasize}
-    
-    per estendere l'algoritmo, dobbiamo essere in grado di rilevare gli assegnamenti multipli di una variabile, e quindi anche preoccuparci dell'ordine delle istruzioni! (pi\`u complicato)
+Consideriamo questo esempio in cui si ridefinisce una variabile: il nostro algoritmo corrente non elimina nulla perch\'e non gestisce le \textbf{dead stores}
 
-    analizzando pseudocodice a 6-29: lista di variabili definite; itero sulle istruzioni e rimuovo gli operandi da \lstinline|last_def| (sono variabili usate da qualche parte) ; poi controllo le definizioni: se la destinazione dell'istruzione (LHS) si trova ancora in lastdef, la elimino da li e al suo posto metto l'istruzione stessa (??????????) (vedi da 6-29 a 6-38 per spiegazione iterativa fatta benino)
-\end{example}
+per estendere l'algoritmo, dobbiamo essere in grado di rilevare gli assegnamenti multipli di una variabile, e quindi anche preoccuparci dell'ordine delle istruzioni! (pi\`u complicato)
+
+analizzando pseudocodice a 6-29: lista di variabili definite; itero sulle istruzioni e rimuovo gli operandi da \lstinline|last_def| (sono variabili usate da qualche parte) ; poi controllo le definizioni: se la destinazione dell'istruzione (LHS) si trova ancora in lastdef, la elimino da li e al suo posto metto l'istruzione stessa (??????????) (vedi da 6-29 a 6-38 per spiegazione iterativa fatta benino)
 
 \subsection{Local value numbering}
 
