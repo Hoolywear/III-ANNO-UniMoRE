@@ -413,7 +413,7 @@ Contrazione di ast che evita la duplicazione di espressioni $\rightarrow$ \textb
 \end{emphasize}
 
 \begin{example}[frametitle={Esempi}]
-   \noindent\begin{minipage}[c]{.2\textwidth}
+   \noindent\begin{minipage}[c]{.18\textwidth}
    \includegraphics[width=\textwidth]{ir_2.png}
    \end{minipage}
    \begin{minipage}[c]{.23\textwidth}
@@ -427,8 +427,8 @@ t2 = a*t1;
 x = a+t2;
 y = t1*d;
 z = x+y;\end{lstlisting}
-   \end{minipage}\hfill\vline
-   \begin{minipage}[c]{.2\textwidth}
+   \end{minipage}\hfill\vline\hfill
+   \begin{minipage}[c]{.18\textwidth}
    \includegraphics[width=\textwidth]{ir_3.png}
    \end{minipage}
    \begin{minipage}[c]{.35\textwidth}
@@ -451,17 +451,17 @@ c = d + c;\end{lstlisting}
 \begin{minipage}[c]{.65\textwidth}
 Evidentemente adatto: tutte le istr.~del programma vengono spezzettate in istr.~di forma semplice simile all'assembly, di tipo \lstinline|x = y op z| (1 operatore, massimo 3 operandi)
 
-\noindent
+\noindent\hfill
   \begin{minipage}[c]{.3\textwidth}
     \begin{lstlisting}
 x - 2 * y\end{lstlisting}
-  \end{minipage}
-  $\rightarrow$
+  \end{minipage}\hfill
+  $\rightarrow$\hfill
   \begin{minipage}[c]{.32\textwidth}
     \begin{lstlisting}
 t1 = 2 * y
 t2 = x - t1\end{lstlisting}
-  \end{minipage}
+  \end{minipage}\hfill
 \end{minipage}
   \hfill
   \begin{minipage}[c]{.3\textwidth}
@@ -477,24 +477,22 @@ t2 = x - t1\end{lstlisting}
 
 \paragraph{Varianti di 3AC}~\\
 
-A seconda dei vincoli che ho per l'implementazione pratica:
+A seconda dei vincoli che ho per l'implementazione pratica:\\
 
 \noindent\begin{minipage}[c]{.7\textwidth}
 \begin{itemize}
   \item \textbf{quadruple}: id istruzione, opcode, i 3 registri $\rightarrow$ semplice struttura record, facile da analizzare e riordinare ma i nomi espliciti prendono pi\`u spazio
   \item \textbf{triple}: id istruzione, opcode, 2 operandi $\rightarrow$ uso l'indice dell'espressione nell'array come "nome" del registro destinazione $\rightarrow$ risparmio spazio, ma diventa piu complesso da analizzare (nomi impliciti) e riordinare
 \end{itemize}
+\begin{emphasize}[frametitle={Inapplicabilit\`a diretta della Constant Propagation con forma 3AC}]
+  La CP \`e applicabile solo se la variabile \textbf{se non cambia nel frattempo} $\rightarrow$ una IR di tipo 3AC non pu\`o applicarla immediatamente (devo prima analizzare il resto del codice)
+\end{emphasize}
 \end{minipage}
 \begin{minipage}[c]{.3\textwidth}
 \centering
 \includegraphics[width=.7\textwidth]{ir_5.png}
 \includegraphics[width=.7\textwidth]{ir_6.png}
 \end{minipage}
-
-
-\begin{emphasize}[frametitle={Inapplicabilit\`a diretta della Constant Propagation con forma 3AC}]
-  La CP \`e applicabile solo se la variabile \textbf{se non cambia nel frattempo} $\rightarrow$ una IR di tipo 3AC non pu\`o applicarla immediatamente (devo prima analizzare il resto del codice)
-\end{emphasize}
 
 \subsubsection{SSA (Static Single Assignment)}
 
@@ -526,29 +524,36 @@ A seconda dei vincoli che ho per l'implementazione pratica:
 \includegraphics[width=\textwidth]{ir_7.png}
 \end{minipage}
 
-\begin{itemize}
-  \item un BB \`e una seq.~di istruzioni in forma 3AC
-    \begin{itemize}
-      \item singolo \textit{entry point}: solo la prima istruzione puo essere raggiunta dall'esterno
-      \item singolo \textit{exit point}: se eseguo la prima istr.~\textbf{devo eseguire tutte le altre} - garantisco che venga \textbf{eseguito interamente}
-      \item Le chiamiamo sezioni single-entry, single-exit (possono essere sezioni anche piu grandi, ma le piu piccole di questo tipo sono i BB)
-    \end{itemize}
-  \item un arco connette due nodi $B_{i}\rightarrow B_{j}$ $\iff$ $b_{j}$ pu\`o eseguire dopo $B_{i}$ in qualche percorso del ctrl flow del programma
-    \begin{itemize}
-      \item prima istr.~di $B_{j}$ \`e target dell'istr.~di salto al termine di $B_{i}$
-      \item[$\lor$] $B_{i}$ non ha un istr.~di salto come ultima istr.~(nodo \textit{falltrough}) e $B_{j}$ \`e suo unico successore
-    \end{itemize}
-  \item un CFG \textbf{normalizzato} ha i BB \textbf{massimali}
-    \begin{itemize}
-      \item non possono essere resi pi\`u grandi senza violare condizioni
-      \item unisco i BB fallthrough che non hanno label all'inizio
-      \item posso avere CFG non norm.~dopo qualche generico passo di ottimizzazione (non le facciamo accadere "spontaneamente")
-    \end{itemize}
-\end{itemize}
+{%
+  \begin{wrapfigure}{r}{.325\textwidth}
+		\vspace{5em}
+    \hfill\includegraphics[width=0.3\textwidth]{ir_8.png}
+		\captionof{figure}{Esempio di CFG}
+  \end{wrapfigure}
+	\noindent\par \begin{itemize}
+		\item un BB \`e una seq.~di istruzioni in forma 3AC
+			\begin{itemize}
+				\item singolo \textit{entry point}: solo la prima istruzione puo essere raggiunta dall'esterno
+				\item singolo \textit{exit point}: se eseguo la prima istr.~\textbf{devo eseguire tutte le altre} - garantisco che venga \textbf{eseguito interamente}
+				\item Le chiamiamo sezioni single-entry, single-exit (possono essere sezioni anche piu grandi, ma le piu piccole di questo tipo sono i BB)
+			\end{itemize}
+		\item un arco connette due nodi $B_{i}\rightarrow B_{j}$ $\iff$ $b_{j}$ pu\`o eseguire dopo $B_{i}$ in qualche percorso del ctrl flow del programma
+			\begin{itemize}
+				\item prima istr.~di $B_{j}$ \`e target dell'istr.~di salto al termine di $B_{i}$
+				\item[$\lor$] $B_{i}$ non ha un istr.~di salto come ultima istr.~(nodo \textit{falltrough}) e $B_{j}$ \`e suo unico successore
+			\end{itemize}
+		\item un CFG \textbf{normalizzato} ha i BB \textbf{massimali}
+			\begin{itemize}
+				\item non possono essere resi pi\`u grandi senza violare condizioni
+				\item unisco i BB fallthrough che non hanno label all'inizio
+				\item posso avere CFG non norm.~dopo qualche generico passo di ottimizzazione (non le facciamo accadere "spontaneamente")
+			\end{itemize}
+	\end{itemize}%
+}
+
 
 \paragraph{Algoritmo per la costruzione del CFG}~\\
 
-\noindent\begin{minipage}[c]{.65\textwidth}
 \begin{enumerate}
   \item identificare il \textbf{leader} di ogni BB:
     \begin{itemize}
@@ -564,11 +569,6 @@ A seconda dei vincoli che ho per l'implementazione pratica:
       \item \textbf{false}: il secondo blocco \`e raggiungibile dal primo se un condizionale \`e \lstinline|false|
     \end{itemize}
 \end{enumerate}
-\end{minipage}\hfill
-\begin{minipage}[c]{.3\textwidth}
-\includegraphics[width=\textwidth]{ir_8.png}
-\captionof{figure}{Esempio di CFG}
-\end{minipage}
 
 \subsubsection{DG (Dependency Graph)}
 
@@ -687,22 +687,44 @@ while prog changed:
   ... #alg
 }\end{lstlisting}
 
+\noindent\begin{minipage}[c]{.3\textwidth}
 \begin{lstlisting}
 main {
-  int a = 100;
-  int a = 42;
-  print a;
+	int a = 100;
+	int a = 42;
+	print a;
 }\end{lstlisting}
-
+\end{minipage}\hfill $\rightarrow$ \hfill
+\begin{minipage}[c]{.62\textwidth}
 Consideriamo questo esempio in cui si ridefinisce una variabile: il nostro algoritmo corrente non elimina nulla perch\'e non gestisce le \textbf{dead stores}
+\end{minipage}
 
-per estendere l'algoritmo, dobbiamo essere in grado di rilevare gli assegnamenti multipli di una variabile, e quindi anche preoccuparci dell'ordine delle istruzioni! (pi\`u complicato)
+\noindent $\rightarrow$ per estenderlo dobbiamo poter \textbf{rilevare gli assegnamenti multipli} di una variabile, e quindi anche \textbf{preoccuparci dell'ordine} delle istruzioni! (pi\`u complicato senza forma SSA)
 
-analizzando pseudocodice a 6-29: lista di variabili definite; itero sulle istruzioni e rimuovo gli operandi da \lstinline|last_def| (sono variabili usate da qualche parte) ; poi controllo le definizioni: se la destinazione dell'istruzione (LHS) si trova ancora in lastdef, la elimino da li e al suo posto metto l'istruzione stessa (??????????) (vedi da 6-29 a 6-38 per spiegazione iterativa fatta benino)
+\begin{itemize}
+  \item dopo ogni istr.~teniamo traccia delle variabili definite, ma non usate
+  \item se troviamo un altro assegnamento alla stessa variabile prima della fine del blocco sappiamo che quello precedente pu\`o essere eliminato
+\end{itemize}
 
-\subsection{Local value numbering}
+\begin{lstlisting}
+last_def = {}; /* lista di variabili definite ma non usate (ptr alla piu' recente per le sole variabili mai usate) */
 
-tecnica utilizzata per considerare il concetto di ordine delle definizioni in assenza di propriet\`a di tipo SSA (che ti permette di non avere questo problema)
+for instr in BB:
+	last_def -= instr.args; /*rimuovo ogni argomento (operando) dell'istruzione corrente: se presente, e' un uso della variabile */
+
+	if instr.dest in last_def:
+		delete last_def[instr.dest]; /*se a questo punto la destinazione dell'istr. corrente e' presente in last_def posso sovrascrivere la definizione precedente*/
+	last_def[instr.dest]=instr;\end{lstlisting}
+
+\begin{itemize}
+  \item nota: per situazioni tipo \lstinline|x=2; x=x+3;| si vuole evitare che la seconda istr.~venga eliminata perch\'e non ho realizzato che \lstinline|x| \`e usata (non \`e \textit{d-c}) $\rightarrow$ per questo controllo prima gli usi e poi le definizioni
+  \item anche questo algoritmo va ripetuto fino a convergenza
+\end{itemize}
+
+
+\subsection{Local Value numbering}
+
+Tecnica utilizzata per considerare il concetto di ordine delle definizioni in assenza di propriet\`a di tipo SSA
 
 osserviamo 3 pattern che forniscono opportunit\`a di eliminazione di codice ridondante:
 \begin{itemize}
@@ -711,92 +733,95 @@ osserviamo 3 pattern che forniscono opportunit\`a di eliminazione di codice rido
   \item common subexpression elimination: 1 valore (in forma di espressione) e piu variabili
 \end{itemize}
 
-\begin{lstlisting}
-main {
-  int a = 100;
-  int a = 42;
-  print a;
-}\end{lstlisting}
-
-\begin{lstlisting}
-main {
-  int x = 4;
-  int copy1 = x;
-  int copy2 = copy1;
-  int copy3 = copy2;
-  print copy3;
-}\end{lstlisting}
-
-\begin{lstlisting}
-main {
-  int a = 4;
-  int b = 2;
-  int sum1 = a + b;
-  int sum2 = a + b;
-  int prod = sum1 * sum2;
-  print prod;
-}\end{lstlisting}
-
 sono tutti modelli di computazione che si focalizzano sulle \textbf{variabili} $\rightarrow$ focalizzandoci sui \textbf{valori} possiamo eliminare tutte le forme di ridondanza
 
-soluzione ai tempi in cui ancora non era in uso il modello ssa: local value numbering
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=.65\textwidth]{lvn_2.png}
+  \caption{Esempi di codice legati ai pattern citati}
+\end{figure}
 
-tecnica che ci aiuta nelle ott.~proprio per il cambio focus da variabili a valori
+\begin{itemize}
+	\item costruisco un metadato in forma di tabella che riscrive le espr.~(istruzioni) in funzione dei valori gia osservati $\rightarrow$ evitando di riassegnare lo stesso valore a piu variabili si evita la ridondanza
+	\item analizzo le istruzioni in termini del value, e in caso questo coincida con entry della tabella gi\`a presenti punto direttamente a quella
+\end{itemize}
 
-costruisco un metadato in forma di tabella che riscrive le espr (istruzioni) in funzione dei valori gia osservati $\rightarrow$ evitando di riassegnare lo stesso valore a piu var si evita la ridondanza
+\begin{example}
+	\noindent\begin{minipage}[c]{.6\textwidth}
+		\includegraphics[width=\textwidth]{lvn_3.png}
+		\captionof{figure}{Esempio di ottimizzazione tramite LVN}
+	\end{minipage}\hfill
+	\begin{minipage}[c]{.3\textwidth}
+		\centering
+		\begin{lstlisting}
+	main {
+		int a = 4;
+		int b = 2;
+		int sum1 = a + b;
+		int prod = sum1 * sum1;
+		print prod;
+	}\end{lstlisting}
 
-esempio da 6-46 a 6-56
+	Risultato ottenuto
+\end{minipage}
+\end{example}
 
-analizzo le istruzioni in termini del value, e in caso questo coincida con entry della tabella gia presenti punto direttamente a quella
 
-semplice variante del programma:
+\noindent\begin{minipage}[c]{.3\textwidth}
 \begin{lstlisting}
 #...
 int sum1 = a + b;
 int sum2 = b + a;\end{lstlisting}
+\end{minipage}\hfill $\rightarrow$
+\begin{minipage}[c]{.65\textwidth}
+Semplice variante del programma non riconosciuta dall'algoritmo (non conosce la pr.~commutativa della somma) $\rightarrow$ vado a \textbf{canonicalizzare} l'algoritmo, ovvero imporre un ordine numerico tra le entry (i valori) e usarle sempre in ordine crescente per le op.~commutative (di fatto svolto da tutti i compilatori)
+\end{minipage}
 
-evidentemente nascono problemi, poiche il nostro algoritmo non conosce le proprieta aritmetiche delle operazioni $\rightarrow$ non vado a rimuovere l'istruzione
+\section{Data Flow Analysis}
 
-$\rightarrow$ soluzione semplice: \textbf{canonicalizzare} l'algoritmo, ovvero imporre un ordine numerico tra le entry (i valori) e usarle sempre in ordine crescente per le op. commutative (di fatto \`e la tecnica usata da tutti i compilatori, essendo al piu semplice?)
+\subsection{Cos'\`e la DFA}
 
-\section{data flow analysis}
-
-step successivo dell'analisi, da immaginare come un framework di analisi alla base per costruire la forma ssa (?) ; o come una metodologia di analisi
-
-\subsection{cos'\`e la dfa}
+La possiamo vedere come una \textbf{metodologia} o come un \textbf{framework} di analisi, applicabile a vari problemi di ottimizzazione (CP, CSE, DCE, ...)
 
 \begin{itemize}
-  \item analisi locale: si focalizza sull'effetto di ogni istruzione $\rightarrow$ posso comporre gli effetti di tutte el istr per derivare informazione dall'inizio del bb ad ogni istruzione
-  \item analisi globale - dataflowanalysis: simile, ma molto pi\`u complessa $\rightarrow$ analizza l'effetto di ogni BB, e poi ha una metodologia per comporre l'effetto dei BB ai CONFINI degli stessi per derivare informazione
+  \item analisi \textbf{locale}: si focalizza sull'effetto di ogni istruzione $\rightarrow$ posso comporre gli effetti di tutte le istr.~per derivare informazione dall'inizio del BB ad ogni istruzione
+  \item analisi \textbf{globale} (DFA): simile, ma molto pi\`u complessa $\rightarrow$ analizza l'effetto di ogni BB, e poi ha una metodologia per comporre l'effetto dei BB ai CONFINI degli stessi per derivare informazione
 \end{itemize}
 
-skip 7-6
+La DFA \`e \textbf{sensibile al flusso di controllo in una funzione} e prevede un'analisi \textbf{intraprocedurale} (singola funzione, singolo CFG)
 
-esempio 7-7 struttura ad amaca (hammock) - statement di tipo if che dirama su due possibili flussi di controllo $\rightarrow$ per ogni variabile x consente di derivare
-\begin{itemize}
-  \item valore di x?
-  \item quale "definizione" definisce x?
-  \item la definizione \`e ancora valida (\textit{live})?
-\end{itemize}
-
-osserviamo che queste risposte noi le abbiamo gia ottenute in maniera molto semplice, grazie alla forma SSA delle istruzioni! e alla struttura di llvm
-
-nota: stiamo "costruendo" la forma SSA, considerando un caso in cui non abbiamo ancora quel liverllo?
-
-\subsection{rappresentazione del programma statica o dinamica}
-
-statica: programma finito, un pezzo di codice $\rightarrow$ molto facile da analizzare
-dinamica: pu\`o avere infiniti percorsi di esecuzione, rappresenta una possibile esecuzione reale! $\rightarrow$ es. loop che si basa sull'analisi di un input
-
-sono condizioni che un compilatore non pu\`o analizzare, soprattutto non in maniera statica e "finita" in termini di possibili istanze
+\begin{example}
+	\noindent\begin{minipage}[c]{.3\textwidth}
+		\includegraphics[width=\textwidth]{dfa_1.png}
+	\end{minipage}\hfill
+	\begin{minipage}[c]{.65\textwidth}
+		La DFA ci permette di derivare informazioni da un CFG, ad esempio $\forall$ variabile \lstinline|x| in ogni punto del grafo:
+		\begin{itemize}
+			\item qual \`e il suo valore?
+			\item quale "definizione" la definisce?
+			\item la definizione \`e ancora "valida" (\textit{live})?
+		\end{itemize}
+	\end{minipage}
 
 \begin{emphasize}
-    capacita di analisi dei compilatori: limitata alle condizioni analizzabili e determinabili \textbf{staticamente}
-
-    motivo per cui spesso si passano al compilatore informazioni di "profiling" , misurate durante ripetute esecuzioni del programma prima di darlo in pasto al compilatore e i relativi passi di ottimizzazione
+	Queste risposte normalmente le otteniamo grazie alla forma SSA delle istruzioni e alla struttura di LLVM, ma qui stiamo ancora "costruendo" la forma SSA
 \end{emphasize}
+\end{example}
 
-con la dfa siamo in grado di dire \textbf{per ogni punto del programma} qualcosa; combinando informazioni relative a tutte le possibili istanze dello stesso p.to
+\subsubsection{Rappresentazione del programma statica o dinamica}
+
+\begin{itemize}
+	\item \textbf{statica}: programma finito, un pezzo di codice $\rightarrow$ molto facile da analizzare
+	\item \textbf{dinamica}: pu\`o avere infiniti percorsi di esecuzione, rappresenta una possibile esecuzione reale!
+		\begin{itemize}
+			\item es. loop che si basa sull'analisi di un input
+		\end{itemize}
+		\begin{emphasize}
+			condizioni che un compilatore \textbf{non pu\`o analizzare}, soprattutto non in maniera statica e \textit{finita} in termini di possibili istanze $\rightarrow$ spesso si passano al comp.~informazioni di "profiling" misurate durante ripetute esecuzioni del programma pre-ottimizzato
+		\end{emphasize}
+\end{itemize}
+
+Con la DFA siamo in grado di dire qualcosa \textbf{per ogni punto del programma}, combinando informazioni relative a \textbf{tutte le possibili istanze} dello stesso p.to
 
 esempio di problema dfa: quale def definisce il valore usato nello statement \lstinline|b=a|? vedi da slide 7-8 il codice
 
