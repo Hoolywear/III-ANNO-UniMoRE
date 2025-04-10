@@ -388,11 +388,12 @@ console.log(result);\end{lstlisting}
 
 Albero i cui nodi rappresentano diverse parti del programma: il nodo radice rappresenta il \textbf{programma}, il quale a sua volta contiene un blocco di istruzioni dal quale discendono tanti figli quante le sue istruzioni
 
+\vspace{1em}
 \noindent\begin{minipage}[c]{.3\textwidth}
 \includegraphics[width=\textwidth]{ir_1.png}
-\end{minipage}
-\begin{minipage}[c]{.7\textwidth}
-\begin{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}[c]{.67\textwidth}
+\begin{lstlisting}[linewidth=.5\linewidth]
 x = a + a * (b - c)
 y = (b - c ) * d
 z = x + y\end{lstlisting}
@@ -785,7 +786,7 @@ La possiamo vedere come una \textbf{metodologia} o come un \textbf{framework} di
 
 \begin{itemize}
   \item analisi \textbf{locale}: si focalizza sull'effetto di ogni istruzione $\rightarrow$ posso comporre gli effetti di tutte le istr.~per derivare informazione dall'inizio del BB ad ogni istruzione
-  \item analisi \textbf{globale} (DFA): simile, ma molto pi\`u complessa $\rightarrow$ analizza l'effetto di ogni BB, e poi ha una metodologia per comporre l'effetto dei BB ai CONFINI degli stessi per derivare informazione
+  \item analisi \textbf{globale} (DFA): simile, ma molto pi\`u complessa $\rightarrow$ analizza l'effetto di ogni BB, e poi ha una metodologia per comporre l'effetto dei BB ai \textbf{confini} degli stessi per derivare informazione
 \end{itemize}
 
 La DFA \`e \textbf{sensibile al flusso di controllo in una funzione} e prevede un'analisi \textbf{intraprocedurale} (singola funzione, singolo CFG)
@@ -821,234 +822,418 @@ La DFA \`e \textbf{sensibile al flusso di controllo in una funzione} e prevede u
 		\end{emphasize}
 \end{itemize}
 
-Con la DFA siamo in grado di dire qualcosa \textbf{per ogni punto del programma}, combinando informazioni relative a \textbf{tutte le possibili istanze} dello stesso p.to
+\noindent $\rightarrow$ Con la DFA siamo in grado di dire qualcosa \textbf{per ogni punto del programma}, combinando informazioni relative a \textbf{tutte le possibili istanze} dello stesso p.to
 
-esempio di problema dfa: quale def definisce il valore usato nello statement \lstinline|b=a|? vedi da slide 7-8 il codice
+\subsubsection{Effetti di istruzioni e BB}
 
-\subsubsection{effetti di un bb}
-
-effetti di un'istruzione:
+Effetti di un'istruzione: (\lstinline|a = b + c;|)
 \begin{itemize}
-  \item uses : delle variabili
-  \item kills : una precedente definizione
-  \item defines : una variabile
+  \item \textbf{uses}: delle variabili (\lstinline|b,c|)
+  \item \textbf{kills}: una precedente definizione (\lstinline|a|)
+  \item \textbf{defines}: una variabile (\lstinline|a|)
 \end{itemize}
-combinando gli effetti delle singole istr si definiscono gli effetti di un BB:
+Combinando gli effetti delle singole istr.~si definiscono gli \textbf{effetti di un BB}:
 \begin{itemize}
-  \item uso localmente esposto (locally exposed use): in un bb \`e un uso di una var che non \`e preceduto nei bb da una definizione della stessa variabile
-  \item ogni definizione di una variabile nel BB killa tutte le definizioni delal stessa variabile che \textbf{raggiungono} il BB
-  \item definizione localmente disponibile (locally available definition): ultima definizione di una variabile nel bb
+  \item \textbf{uso localmente esposto} (\textit{locally exposed use}): in un BB \`e un uso di una var.~che non \`e preceduto nel BB da una definizione della stessa variabile
+  \item ogni definizione di una var.~nel BB \textbf{killa} tutte le definizioni delal stessa variabile che \textbf{raggiungono} il BB
+  \item \textbf{definizione localmente disponibile} (\textit{locally available definition}): ultima definizione di una variabile nel BB
 \end{itemize}
 
-esempio: 7-15
-
-\subsubsection{reaching definition}
-
-ogni istruzione di assegnamento \`e una definizione
-una definizione \textit{d} raggiunge (reaches) un punto it\textit{p} se esiste un percorso da \textit{d} a \textit{p} tale per chu d non \`e uccisa (sovrascritta) lungo quel percorso
-
-definizione del problema: determinare per ogni punto del programma se ogni definizione nel programma raggiunge quel punto - come lo facciamo? $\rightarrow$ usiamo un \textbf{bit vector} per ciascun punto del programma (ogni istruzione), con lunghezza del vettore pari al numero di definizioni $\Rightarrow$ diventa una sorta di matrice con righe le istruzioni, colonne le definizioni
-
-\subsubsection{schema dfa}
-
-consideriamo un flow graph che ha sempre un BB entry e uno exit (single-entry e single-exit $\rightarrow$ sempre possibile)
-
-come faccio a stabilire l'effetto del codice in ciascun BB? uso quelle che si chiamano funzioni di trasferimento: fz che correlano input e output tra loro per un dato bb
-
-qual \`e l'effetto del flusso di controllo? lo stabilisco in base alla vicinanza dei blocchi: correlo outp e inp di blocchi adiacenti
-
-alla fine dobbiamo solo risolvere queste equazioni 
-
-\subsubsection{effetti di uno statement}
-
-partiamo dalle fz di trasf di statement (astrazione per indicare un istr? di assegnamento?)
-
-l'output di uno statement ... rec blabla
-
-ricorda che stiamo lavorando su bit vector!!!!!!!!!!!!!! una fz di trasferimento riempie out[s] a partire da in[s] e applicando qualche tipo di calcolo
-
-alla fine posso combinare queste funzioni di trasferimento in maniera lineare! (non lo dim ma si potrebbe)
-
-quindi la funz di tr di un BB compone linearmente le fz dei suoi statements
-
-rec da carta e slide
-
-\subsubsection{effetti degli archi aciclici}
-
-caso predecessori multipli: unisco l'informazione con che criterio? join
-
-oggi fino slide 7-42
-
-ricordiamo che in generale stiamo usando un "approccio" bit-vector, che non possiede nozione di ordine di esecuzione - quando calcolo i kill, li calcolo sempre relativamente a \textbf{tutti gli altri blocchi!} es. slide 7-36: $Kill[B_1] = \left\lbrace0,2,3,4,6\right\rbrace$
-
-riprendiamo la questione sugli effetti degli archi aciclici, nel caso di un nodo con predecessori multipli:
-\begin{itemize}
-  \item $out[b] = f_b(in[b])$
-  \item nodo di unione (join): nodo con predecessori multipli
-  \item operatore di unione (meet): $in[b] = out[p_1] \cap out[p_2] \cap \ldots \cap out[p_n]$ con $p_1,\ldots,p_n$ tutti predecessori di $b$
-  \item caso entry block: $out[\text{entry}] = \emptyset \implies in[B_1] = \emptyset$ \textbf{boundary condition}
-  \item caso exit dall'esempio: $in[\text{entry}] = out[B_2] \cap out[B_3] = \lbrace 2,3,4,5,6 \rbrace$
-\end{itemize}
-
-notiamo come i due modi (bit-vector oppure usare join e meet) sono equivalenti (?)
-
-\subsubsection{effetti degli archi ciclici}
-
-notiamo un problema con gli archi \textbf{ciclici} - posso arrivare a condizioni in cui non ho ancora calcolato l'out di un qualche bb, ma mi serve per un arco ciclico appunto che punta a un blocco precedente
-
-soluzione: devo iterare fino a convergenza, ma soprattutto definire delle condizioni iniziali (come per l'out dell'entry block) che ci dicono che in uscita ad ogni blocco (all'inizio) trovo l'insieme vuoto (necessaria per avere qualcosa su cui operare alla prima iterazione che considera dei backedge)
-
-\subsection{liveness analysis}
-
-\subsubsection{live variable analysis}
-
-definizioni: variabile live o dead: una var \`e viva in un punto p del programma se il valore di v \`e usato da quel punto in avanti da qualche parte nel programma - altrimenti \`e morta
-
-altri possibili motivi di questa analisi (oltre alla dce): register allocation: nel momento in cui devo fare i conti con un'architettura specifica, devo decidere come allocare i registri (non sono illimitati) - register allocation \`e l'op.~che cerca di evitare le spill in cache e in memoria, e che cerca i casi in cui risulta possibile riutilizzare un certo registro: dipende evidentemente dalla liveness di una variabile!
-
-definizione del problema in termini di dfa: $\forall$ BB devo stabilire se ogni variabile \`e viva in ciascuno di essi $\rightarrow$ bit vector di lunghezza pari al numero di variabili (evidentemente...)
-
-\subsubsection{funzione di trasferimento}
-
-recupera questione su forward analysis
-
-che informazione sto cercando per capire se una definizione raggiunge o meno un punto del programma? devo analizzare "il passato" - gli statement tra la definizione e il punto di interesse per cercare eventuali kill (analizzo dal punto all'entry point, a ritroso)
-
-nel contesto della liveness analysis invece, devo analizzare il "futuro" - dal punto p all'exit point cerco gli usi della variabile
-
-(abbiamo spiegato la differenza tra forward e backward analysis, nelle sezioni prima abbiamo implicitamente considerato backward analysis per il problema di reaching definition)
-
-per la formulazione pi\`u tipica della liveness analysis (ce ne sono diverse, a seconda delle fonti) usiamo
-\begin{itemize}
-  \item l'insieme delle variabili vive che pu\`o generare un BB (use)
-  \item l'insieme delle variabili definite nel BB (def)
-  \item le variabili vive in ingresso che il bb pu\`o propagare (out - def)
-  \item fz di trasferimento quindi \`e: in = use U out - def
-\end{itemize}
-
-\begin{emphasize}
-    nota che di fatto stiamo riscrivendo quello che abbiamo detto per la reaching definition! solo al contrario - in questo momento stiamo risalendo al contrario per calcolare gli insiemi che ci servono e le funzioni di trasferimento, e sarebbe sufficiente "sostituire" come nomenclatura use e def con gen e kill (non mi ricordo se questo \`e l'ordine giusto)
-\end{emphasize}
-
-anche qui abbiamo quindi un operatore di meet, applicabile ai join node (nodi con \textbf{successori} multipli)
-
-esempio 7-56 e 7-57, recupera appunti da dani
-
-algoritmo iterativo a 7-58
-
-boundary condition: input dell'exit block \`e l'insieme vuoto, cos\`i come le starting conditions per tutti i bb tranne l'entry block
-
-da cosa deriva questa scelta delle condizioni iniziali? ovviamente dall'operatore di meet - se stessimo usando per qualsiasi motivo un meet op di tipo intersezione, usare l'insieme vuoto "pialla tutto" e impedisce la propagazione dell'informazione
-
-7-73 : a convergenza si arriva indipendentemente dall'ordine in cui calcolo le funzioni dei bb (cambia al massimo il numero di iterazioni per arrivare a convergenza)
-
-7-74 : tabella di confronto tra i due problemi visti, volendoli formalizzare tramite il framework della dfa
-
-\subsection{available expressions}
-
-altro problema modellabile tramite dfa
-
-esempio:
-\begin{lstlisting}
-if (...) {
-  x = m + n;
-} else {
-  y = m + n;
-}
-z = m + n;\end{lstlisting}
-
-dunque risulta utile ad es per ottimizzazioni come la common subexpr elimination
-
-ma cosa succede se l'espressione non viene calcolata nel ramo else invece? $\rightarrow$ la possibile soluzione a livello di sorgente sarebbe calcolare l'espressione prima dell'if, e usarlo poi nelle definizioni successive che la richiedono
-
-concetto di available expressions
-
-\subsubsection{available expressions}
-
-Il concetto di available expr.~\`e necessario come maniera rigorosa di ragionare sulla ridondanza
-
-Consideriamo come dominio l'insieme di tutte le espressioni del programma (solo espr binarie del tipo x + cerchiato y) - (stiamo considerando match ... ? recupera)
-
-OCIO CHE FORWARD E BACKWARD SI RIFERISCONO (PRIMA ERANO INVERTITI MI PARE) ALLA DIREZIONE CHE VADO A CONSIDERARE RISPETTO ALLA DIREZIONE CLASSICA DEL FLUSSO ENTRY $\rightarrow$ EXIT - fw va da entry a punto p, backward da exit a p
-
-recupera tutto bene fino a 7-79
-
-7-80: esempio 
-
-7-81 fino a 7-87 spiega come mai stiamo facendo fw analysis $\rightarrow$ per capire quali expr.~eliminare dobbiamo guardare al passato - elimino quelle che non sono state calcolate in tutti i blocchi predecessori (available appunto in questo caso appena descritto) $\rightarrow$ \`e proprio il motivo per cui sto usando come operatore di meet l'\textbf{intersezione}
-
-7-88 fino 7-92 : condizioni al contorno e condizioni iniziali - non posso usare l'insieme vuoto con l'intersezione, devo usare quello che in insiemistica chiamo insieme universo (o universale), dunque in termini di bit vector un vettore di tutti 1
-
-7-93 : tabella riassuntiva , ricordiamo che il dominio sono tutte le operazioni con due operandi del programma e quindi lunghezza vettore pari alla sua cardinalit\`a
-
+\newpage
 \begin{example}
-    immagine 7-94
-
-    risolvere il problema di dfa delle available expr per il cfg in figura
-
-    dominio:
-    \begin{itemize}
-      \item \lstinline|a-b|
-      \item \lstinline|a*b|
-      \item \lstinline|a-1|
-    \end{itemize}
-    
-    condizione di partenza: out[entry] = out[bb1] = emptyset
-
-    recupera da foglio
-
+\noindent \begin{minipage}[c]{.45\textwidth}
+    \begin{lstlisting}[numbers=right,numbersep=-10pt]
+t1 = r1+r2
+r2 = t1
+t2 = r2+r1
+r1 = t2
+t3 = r1*r1
+r2 = t3
+if r2>100 goto L1\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}[c]{.55\textwidth}
+\begin{itemize}
+  \item usi loc.~esposti: 1 (\lstinline|r1,r2|), 3 (\lstinline|r2|), ...
+  \item kill: 2 (\lstinline|r2|), ...
+  \item definizioni loc.~disponibili: 6 (\lstinline|r2|), 5 (\lstinline|t3|), ...
+\end{itemize}
+\end{minipage}
 \end{example}
 
-essendo la dfa per natura statica, l'esempio mostra come l'essere statici \`e di per se pessimistico - considero sempre il caso peggiore (stiamo parlando dell'espressione condizionale?)
+\subsection{Reaching Definitions}
 
-il risultato dell'analisi sarebbe diverso se conoscessi l'istanza specifica - sapendo ad esempio che bb4 sar\`a falso potrei fare delle assunzioni che, staticamente, non posso fare, e dunque devo conservativamente ritornare sempre al caso peggiore che il loop esegua almeno una volta ?
+\noindent \begin{minipage}[c]{.6\textwidth}
+Primo esempio di problema inquadrabile e risolvibile mediante DFA
+\begin{itemize}
+  \item ogni istruzione di assegnamento \`e una definizione
+  \item una definizione \textit{d} raggiunge (reaches) un punto it\textit{p} se esiste un percorso da \textit{d} a \textit{p} tale per chu d non \`e uccisa (sovrascritta) lungo quel percorso
+\end{itemize}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{.3\textwidth}
+\includegraphics[width=\textwidth]{dfa_2.png}
+\captionof{figure}{Esempio}
+\end{minipage}
 
-in ogni caso, sono informazioni aggiuntive relative al comportamento dinamico (a esecuzione) del programma che il compilatore non conosce a priori - posso al massimo fornirgliele io dall'esterno
+Definizione del problema:
+\begin{itemize}
+  \item determinare \textbf{per ogni punto} del programma se \textbf{ogni definizione} nel programma \textbf{raggiunge} quel punto
+  \item[$\rightarrow$] usiamo un \textbf{bit vector} per ogni istruzione, con lunghezza del vettore pari al numero di definizioni $\Rightarrow$ diventa una sorta di matrice con righe le istruzioni, colonne le definizioni
+\end{itemize}
 
-\section{1 aprile - 2o assignment su dfa}
+\begin{example}
+      \centering
+      \includegraphics[width=.45\textwidth]{dfa_3.png}\hfill
+      \includegraphics[width=.35\textwidth]{dfa_4.png}\\
+      \includegraphics[width=.45\textwidth]{dfa_5.png}\hfill
+      \includegraphics[width=.45\textwidth]{dfa_6.png}
+\end{example}
 
-per ciascuno dei 3 problemi di analisi, definire dominio direzione fz di trasf meet op e condizioni di boundary e iniziali
 
-inoltre per il cfg di esempio fornito bisogna compilare una tabella per descrivere le iterazioni che servono a raggiungere convergenza
+\subsubsection{Schema DFA}
 
-per validare la formulazione, fate domande del tipo es. liveness aanalysis: questa variabile \`e viva in questo punto? eccetera
+\noindent\begin{minipage}[c]{.67\textwidth}
+Consideriamo un flow graph:
+\begin{itemize}
+  \item aggiungiamo un \textbf{BB entry} e uno \textbf{exit} $\rightarrow$ garantisco \textit{single-entry} e \textit{single-exit} points
+  \item per stabilire l'effetto del codice \textbf{in ciascun BB} uso delle \textbf{funzioni di trasferimento} $f_{B}$, che correlano $out[B], in[B]$ per un dato BB $B$
+  \item stabilisco l'effetto \textbf{del flusso di controllo} in base alla vicinanza dei blocchi: correlo $out[B_{i}], in[B_{j}]$ di blocchi adiacenti
+  \item infine dobbiamo solo risolvere le equazioni 
+\end{itemize}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{.3\textwidth}
+\includegraphics[width=\textwidth]{dfa_7.png}
+\end{minipage}
 
-\subsection{very busy expressions}
+\vspace{-1em}
+\begin{emphasize}
+    Nota: stabiliamo anche una cosiddetta \textbf{boundary condition}, ovvero qual \`e l'informazione che riceve il primo BB dall'\textit{entry block} $\rightarrow$ per le Reaching Definitions stabiliamo $out[entry] = \emptyset$
+\end{emphasize}
 
-very busy se indipendentemente dal percorso preso, l'espr. viene usata prima che uno dei suoi operandi venga definito (viene usata)
-ci interessa conoscere le espressioni disponibili .. ?
 
-utile perche permette code hoisting (tecnica usata in loop invariant code motion, vedi inizio, recupera)
+\subsubsection{Effetti di uno statement}
 
-sposto prima del loop una certa espressione: posso farlo solo se sono sicuro che qualsiasi espr che usa il valore dell'espr da spostare ... rec
+\begin{itemize}
+  \item la fz.~di trasferimento di uno statement astrae l'esecuzione rispetto al problema di interesse
+  \item per uno statement $s$ (\lstinline|d: x = y + z|):
+  \begin{itemize}
+    \item $Gen[s]$: definizioni \textbf{generate} ($Gen[s] = \lbrace\texttt{d}\rbrace$)
+    \item definizioni \textbf{propagate}: $in[s] - Kill[s]$ dove $Kill[s]$ sono le altre definizioni di \lstinline|x| nel resto del programma
+    \item funzione di trasferimento di uno statement $s$:
+    \begin{equation*}
+      out[s] = f_{s}(in[s]) = Gen[s] \cup (in[s] - Kill[s]) 
+    \end{equation*}
+    
+  \end{itemize}
+  
+  \item in altre parole, $Gen$ \`e l'insieme di propriet\`a \textbf{generate} dal blocco, $Kill$ l'insieme di quelle \textbf{eliminate} nel blocco e $in$ l'insieme di quelle \textbf{ereditate}
+  \begin{emphasize}
+      Stiamo lavorando su bit vector $\rightarrow$ una $f_{s}$ riempie $out[s]$ a partire da $in[s]$ e applicando qualche tipo di calcolo
+  \end{emphasize}
+\end{itemize}
 
-capire se posso evitare di ripetere un'op in maniera ridondante eseguendola una voltra asola in un punto dove il control flow e comune a tutti i path?
+\vspace{-2em}
+\subsubsection{Effetti di un BB}
 
-in ogni caso ci ritorneremo, per ora ci limitiamo a ragionare in termini di dfa relativamente al sottoproblema delle vbexpr
+\begin{itemize}
+  \item la fz.~di trasferimento di un BB compone linearmente le fz.~dei suoi \textit{statements}
+    \begin{equation*}
+      \begin{split}
+        \boxed{out[B]} = f_{B}(in[B]) &= f_{dn}\cdot\ldots\cdot f_{d0} \\
+                                      &= \boxed{Gen[B] \cup (in[B] - Kill[B])}
+      \end{split}
+    \end{equation*}
+    \begin{itemize}
+      \item $Gen[B]$: definizioni localmente disponibili (\textbf{a fine BB})
+      \item $Kill[B]$: definizioni uccise da B \textbf{in tutto il programma}
+    \end{itemize}
+  \item una $f_{B}$ associa \textbf{incoming reaching definitions} $\rightarrow$ \textbf{outgoing reaching definitions}
+\end{itemize}
 
-\subsection{dominator analysis}
+\vspace{-1em}
+\begin{example}
+  \begin{center}
+    \includegraphics[width=.35\textwidth]{dfa_2.png}\hfill
+    \includegraphics[width=.55\textwidth]{dfa_8.png}
+  \end{center}
+  \begin{emphasize}
+    NB: in $Kill[B1]$ \lstinline|d0| e \lstinline|d2| si uccidono a vicenda $\rightarrow$ l'approccio bit-vector \textbf{non ha nozione di ordine di esecuzione}
+  \end{emphasize}
+\end{example}
 
-analisi dei dominatori - inizieremo a parlarne quando inizieremo a parlare dei loop, fondamentale per riconoscere l'esistenza di un loop
+\vspace{-1em}
+\subsubsection{Effetti degli archi aciclici}
 
-riconoscere l'esistenza di un loop significa in primis riconoscere la presenza di un ciclo
+In caso di predecessori multipli, devo decidere con che criterio unire l'informazione:
+\begin{itemize}
+  \item nodo di unione (\textbf{join}): nodo con \textbf{predecessori} multipli
+  \item operatore di \textbf{meet} ($\wedge$): $in[B] = out[p_1] \cup \ldots \cup out[p_n]$ con $p_1,\ldots,p_n$ tutti predecessori di $B$
+  \begin{emphasize}
+    Il meet operator \`e \textbf{specifico del problema}, non dell'analisi mediante DFA!
+    \noindent $\rightarrow$ Per il problema delle reaching definitions, usiamo $\wedge = \cup$ in quanto la condizione deve essere verificata per \textit{almeno un percorso}
+  \end{emphasize}
+\end{itemize}
 
-un blocco domina un altro blocco se il primo appare sempre in ogni percorso prima del secondo - in questo caso x domina y
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=.65\textwidth]{dfa_9.png}
+  \caption{Esempio (continua)}
+\end{figure}
 
-questa era la condizione di dominanza; unendola alla condizione di "direzione" dell'arco, posso rilevare la presenza di cicli (ne parleremo in dettaglio)
+\subsubsection{Effetti degli archi ciclici e condizioni iniziali}
 
-come impostare il framework di dfa per capire quali blocchi sono dominanti rispetto agli altri?
+Gli archi ciclici (\textit{backedges}) possono cambiare le loro $out$ o non averle ancora calcolate durante l'esecuzione dell'algoritmo:
+\begin{itemize}
+  \item \textbf{itero fino a convergenza}
+  \item definisco delle \textbf{condizioni iniziali} per inizializzare ogni BB (similmente alla boundary condition): stabilisco $out[B] = \emptyset$ (specifico per Reaching Defs.)
+\end{itemize}
 
-da esempio: i blocchi che dominano f sono a c f, non d ed e perche sono opzioni "mutualm escl" ovvero non necessariamente devo passare attraverso uno dei due; inoltre f perche un blococ e sempre dominatore di se stesso
+\subsubsection{Algoritmo iterativo}
 
-\subsection{constant propagation}
+\begin{lstlisting}
+input: control flow graph CFG = (N, E, Entry, Exit)
+// Boundary condition
+  out[Entry] = $\emptyset$
 
-per poter trovare i punti del programma in cui le var hanno valore costante bisogna usare un dominio speciale: devo associare sia nome variabile che valore della costante - se una var viene nel frattempo riassegnata l'informazione di constant pr cambia
+// Initialization for iterative algorithm
+  for each basic block B other than Entry
+    out[B] = $\emptyset$
 
-dominio fatto da coppie del tipo var,val-costante \lstinline|(x,c)|
+// Iterate
+  while (changes to any out[] occur) {
+    in[B] = $\cup$ (out[p]), for all predecessors p of B
+    out[B] = f$_B$(in[B])   // $\textcolor{codeblue}{out[B] = Gen[B] \cup (in[B] - Kill[B])}$
+  }\end{lstlisting}
 
-dunque garantisco che per coppie x,c ad ogni uso di x sia associata c (il suo valore)
+\begin{example}[frametitle={Esempio di eseguzione}]
+    \noindent\begin{minipage}[c]{.45\textwidth}
+    \begin{emphasize-blue}
+      La rappresentazione del bit-vector segue l'ordine di numerazione delle definizioni: \lstinline|IN[B1] = <000 00 0 0>| con \lstinline|d1| primo bit, ...
+    \end{emphasize-blue}
+    
+    Nota: dopo la seconda iterazione $out[B2]$ non cambia pi\`u
+    \end{minipage}
+  \begin{minipage}[c]{.55\textwidth}
+  \includegraphics[width=\textwidth]{dfa_10.png}
+  \end{minipage}
+\end{example}
 
-questa analisi riesce a determinare il valore costante di espr binarie dove 1 o entrambi gli operandi son ocsotanti note - nel determinare le equazioni possiamo tenere conto di questa info, e quindi eventualmente fare constant folding (non obbligatorio?)
+\subsubsection{Algoritmo Worklist}
+
+La worklist contiene le variabili che devono ancora essere processate. Quando la worklist \`e vuota l'algoritmo termina.
+  
+\begin{lstlisting}
+input: control flow graph CFG = (N, E, Entry, Exit)
+
+// Initialize
+  out[Entry] = $\emptyset$  // can set out[Entry] to special def
+                  // if reaching then undefined use
+  for all nodes i
+    out[i] = $\emptyset$    // can optimize by out[i] = gen[i]
+  ChangedNodes = N
+
+// Iterate
+  while ChangedNodes $\neq \emptyset$ {
+  remove i from ChangedNodes
+  in[i] = $\cup$ (out[p]), for all predecessors p of i
+  oldout = out[i]
+  out[i] = f$_i$(in[i])     // $\textcolor{codeblue}{out[B] = Gen[B] \cup (in[B] - Kill[B])}$
+  if (oldout $\neq$ out[i]){
+    for all successors s of i
+      add s to ChangedNodes
+  }
+}\end{lstlisting}
+
+\subsection{Liveness Analysis}
+
+\subsubsection{Live Variable Analysis}
+
+\noindent\begin{minipage}[c]{.7\textwidth}
+\paragraph{Definizione:}
+
+Una variabile \lstinline|v| \`e \textbf{viva} (\textit{live}) in un punto \textit{p} del programma se il valore di \lstinline|v| \`e usato lungo qualche percorso del FG a partire da \textit{p} (altrimenti \`e \textbf{morta})\\
+
+\paragraph{Motivi dell'analisi:}
+
+(oltre alla DCE) es. \textit{register allocation}: i registri reali sono limitati - la \textit{ra} \`e l'operazione che cerca di evitare le spill in cache e in memoria, cercando i casi in cui risulta possibile \textbf{riutilizzare} un certo registro $\rightarrow$ dipende evidentemente dalla liveness di una variabile\\
+
+\paragraph{Definizione del problema DFA}
+
+\begin{itemize}
+  \item devo stabilire $\forall$ BB quali sono le variabili \textbf{vive} in ciascuno di essi
+  \item bit-vector di lunghezza pari al numero di variabili
+\end{itemize}
+\end{minipage}
+\begin{minipage}[c]{.3\textwidth}
+\includegraphics[width=\textwidth]{dfa_11.png}
+\includegraphics[width=\textwidth]{dfa_12.png}
+\end{minipage}
+
+\subsubsection{Forward e Backward analysis}
+
+es.~\textit{Reaching Definitions}: che informazione sto cercando per capire se una definizione raggiunge o meno un punto \textit{p} del programma? Devo analizzare il "\textbf{passato}" - gli statement tra la definizione e \textit{p} per cercare eventuali kill (analizzo da \textit{entry} a \textit{p})
+
+\noindent $\rightarrow$ Nel contesto della \textit{Liveness Analysis} invece, devo analizzare il "\textbf{futuro}" - cerco gli usi della variabile da \textit{exit} a \textit{p}
+
+\subsubsection{Funzione di trasferimento}
+
+Per la formulazione pi\`u tipica della \textit{LA} (ce ne sono diverse, a seconda delle fonti) usiamo
+\begin{itemize}
+  \item l'insieme delle variabili vive che pu\`o \textbf{generare} un BB ($Use[B]$)
+  \item l'insieme delle variabili \textbf{definite} nel BB ($Def[B]$)
+  \item le variabili vive in ingresso che il bb pu\`o propagare ($Out[B] - Def[B]$)
+  \item[$\rightarrow$] \textbf{funzione di trasferimento} per il blocco $B$:
+  \begin{equation*}
+    In[B] = Use[B] \cup (Out[B] Def[B]) 
+  \end{equation*}
+\end{itemize}
+
+\paragraph{Flow Graph}
+
+\begin{itemize}
+  \item $In[B] = f(Out[B])$ (\textit{backward analysis}, contrario rispetto a \textit{Reaching Definitions})
+  \item \textbf{join} node: nodo con \textbf{successori} multipli
+  \item \textbf{meet} operator ($\wedge$): $out[B] = in[s_1] \cup \ldots \cup in[s_n]$ con $s_1,\ldots,s_n$ tutti predecessori di $B$\\
+    (ricorda: $\cup \implies \exists$ almeno un percorso)
+\end{itemize}
+
+\subsubsection{Algoritmo iterativo}
+
+\noindent\begin{minipage}[c]{.3\textwidth}
+\begin{itemize}
+  \item \textbf{boundary condition}: $\emptyset$
+  \item \textbf{starting conditions}: $\emptyset$
+\end{itemize}
+\end{minipage}\hfill
+\begin{minipage}[c]{.67\textwidth}
+\begin{emphasize}
+  La scelta delle condizioni iniziali deriva principalmente dalla scelta del meet operator - se per qualsiasi motivo scegliessimo come meet operator $\cap$, usare $\emptyset$ impedirebbe qualsiasi propagazione dell'informazione
+\end{emphasize}
+\end{minipage}
+
+\vspace{1em}
+\begin{lstlisting}
+input: control flow graph CFG = (N, E, Entry, Exit)
+
+// Boundary condition
+  in[Exit] = $\emptyset$
+
+// Initialization for iterative algorithm
+  for each basic block B other than Exit
+    in[B] = $\emptyset$
+
+// Iterate
+  while (changes to any in[] occur) {
+    for each basic block B other than Exit {
+      out[B] = $\cup$ (in[s]), for all successors s of B
+      in[B] = f$_B$(out[B])   // $\textcolor{codeblue}{in[B] = Use[B] \cup (Out[B] - Def[B])}$
+    }
+}\end{lstlisting}
+
+\begin{emphasize}
+  A convergenza si arriva \textbf{indipendentemente dall'ordine} in cui calcolo le funzioni dei BB (cambia al massimo il numero di iterazioni per arrivarci)
+\end{emphasize}
+
+\begin{example}
+  \begin{center}
+    \includegraphics[width=.5\textwidth]{dfa_13.png}
+  \end{center}
+\end{example}
+
+\subsection{Framework per DFA}
+
+Possiamo usare una tabella di questo tipo per descrivere problemi nell'ambito della DFA:
+
+\begin{center}
+  \includegraphics[width=.65\textwidth]{dfa_14.png}
+\end{center}
+
+\subsection{Available Expressions}
+
+Altro problema modellabile tramite DFA, utile ad es.~per la Common Subexpression Elimination
+
+\begin{center}
+  \begin{minipage}[c]{.4\textwidth}
+    \begin{lstlisting}[linewidth=.6\linewidth]
+  if (...) {
+    x = m + n;
+  } else {
+    y = m + n;
+  }
+    z = m + n;\end{lstlisting}
+    \lstinline|m + n| \`e ridondante perch\'e gi\`a calcolato
+  \end{minipage}\quad
+  \begin{minipage}[c]{.5\textwidth}
+    \begin{lstlisting}[linewidth=.48\linewidth]
+  if (...) {
+    x = m + n;
+  } else {
+    ...
+  }
+    z = m + n;\end{lstlisting}
+    Cosa cambia se non viene calcolato nel ramo \lstinline|else|?
+  \end{minipage}
+\end{center}
+
+Il concetto di available expr.~\`e necessario come maniera rigorosa di ragionare sulla \textbf{ridondanza}
+
+\paragraph{Definizione del problema:}
+
+\begin{itemize}
+  \item \textbf{dominio}: tutte le espressioni del programma
+    \begin{itemize}
+      \item consideriamo solo espr.~binarie del tipo $x \oplus y$
+    \end{itemize}
+  \item un'espressione $x \oplus y$ \`e \textbf{available} in un punto \textit{p} del programma se \textbf{ogni} percorso che parte da \textit{Entry} e arriva a \textit{p} valuta l'espressione
+  \item \textbf{funzione di trasferimento} di un BB:
+    \begin{equation*}
+      f_{B}(x) = Gen[B] \cup (x - Kill[B])
+    \end{equation*}
+    \begin{itemize}
+      \item un blocco \textbf{genera} l'espressione $x \oplus y$ se la valuta e \textbf{non ridefinisce in seguito} \textit{x} o \textit{y}
+      \item un blocco \textbf{uccide} l'espr. $x \oplus y$ se assegna (o potrebbe assegnare) un valore a \textit{x} o \textit{y} e non ricalcola successivamente l'espressione
+    \end{itemize}
+  \item \textbf{direzione di analisi}: \textbf{forward}
+    \begin{itemize}
+      \item nell'analisi delle \textit{Available Expressions} eliminiamo un'espr.~perch\'e \`e stata calcolata \textbf{in passato}
+      \item (nell'analisi delle \textit{Live Variables} eliminiamo una var.~perch\'e non verr\`a usata \textbf{in futuro})
+    \end{itemize}
+  \item equazioni $Out$: $Out[B] = f_{b}(In[B])$
+  \item equazioni $In$: $In[B] = \wedge _{p\in pred(B)}(Out[B])$
+  \item \textbf{meet} operator ($\wedge$): $\cap$ ("\textbf{ogni percorso} che parte da Entry [...]")
+    \begin{center}
+      \includegraphics[width=.5\textwidth]{dfa_15.png}
+    \end{center}
+\end{itemize}
+
+\noindent\begin{minipage}[c]{.5\textwidth}
+\begin{itemize}
+  \item \textbf{boundary conditions}: $Out[Entry] = \emptyset$
+  \item \textbf{initial conditions}:
+    \begin{itemize}
+      \item $\textcolor{red}{\xcancel{\textcolor{black}{Out[B_{i}] = \emptyset}}}$ $\rightarrow$ il meet op.~\`e $\cap$
+      \item $Out[B_{i}] = \mathcal{U}$
+    \end{itemize}
+\end{itemize}
+\end{minipage}\hfill
+\begin{minipage}[c]{.4\textwidth}
+\includegraphics[width=\textwidth]{dfa_17.png}
+\captionof{figure}{Tabella completa}
+\end{minipage}
+
+\begin{example}
+\noindent\begin{minipage}[c]{.65\textwidth}
+  Risolto su fogli, dominio $\lbrace$\lstinline|a=b,a*b,a-1|$\rbrace$
+\begin{emphasize}
+  Essendo la DFA per natura \textbf{statica}, considera sempre il caso \textbf{peggiore} di esecuzione.\\
+  Il risultato dell'analisi sarebbe diverso se conoscessi l'istanza specifica - sapendo ad es.~che BB4 sar\`a falso potrei fare delle assunzioni che, staticamente, non posso fare $\rightarrow$ ritorno conservativamente al caso peggiore che il loop esegua almeno una volta
+\end{emphasize}
+\end{minipage}\hfill
+\begin{minipage}[c]{.3\textwidth}
+\includegraphics[width=\textwidth]{dfa_16.png}
+\end{minipage}
+\end{example}
 
 \section{sezione 9 2 aprile}
 
