@@ -14,6 +14,7 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
+\usepackage{cancel}
 \usepackage{algorithmicx}
 \usepackage[noend]{algpseudocode}
 \usepackage{wrapfig}
@@ -46,6 +47,10 @@
 
 \lstdefinestyle{code}{
     backgroundcolor=\color{gray!10},   
+    framexleftmargin=1pt,
+    framextopmargin=1pt,
+    frame=shadowbox,
+    rulesepcolor=\color{codeblue!10!gray},
     basicstyle=\ttfamily,
     commentstyle=\color{codeblue},
     keywordstyle=\color{codered},
@@ -101,7 +106,8 @@ frametitle={}]{algorithmic}
 
 % emphasize environment
 \newmdenv[style=emphasize,%
-          linecolor=emp!70!red,backgroundcolor=emp]{emphasize}
+          linecolor=emp!70!red,backgroundcolor=emp,%
+          subtitlebackgroundcolor=emp]{emphasize}
 
 % blue emphasize environment
 \newmdenv[style=emphasize,%
