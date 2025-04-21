@@ -1235,15 +1235,13 @@ Il concetto di available expr.~\`e necessario come maniera rigorosa di ragionare
 \end{minipage}
 \end{example}
 
-\section{sezione 9 2 aprile}
+\section{Loops e UD-DU chains 2 aprile}
 
-\subsection{cos e un loop}
+\subsection{Cos'\`e un loop}
 
-slide 9-4: obiettivo $\rightarrow$ definire un loop in termini di teoria dei grafi (cfg), ovvero indipendentemente dalla loro sintassi e dal tipo (for, while, goto, eccetera ... o anche costrutti stile assembly con salti condizionati e non)
+Sapendo che un programma spende la maggior parte del tempo nei loop, l'obiettivo \`e definire un loop \textbf{in termini di teoria dei grafi} (CFG), ovvero \textbf{indipendentemente dalla loro sintassi e dal tipo} (\lstinline|for|, \lstinline|while|, \lstinline|goto|, costrutti stile assembly con salti condizionati e non...)
 
-accordiamoci sulla terminologia: cos\`e un loop e con quale terminologia lo definiamo
-
-generalmente, non tutti i cicli sono un "loop" da un pto di vista dell'ottimizzazione $\rightarrow$ es. 9-5 a-c-d \`e un ciclo, ma anche un loop? e c-d ?
+Generalmente, non tutti i \textit{cicli} sono un "loop" da un p.to di vista dell'ottimizzazione $\rightarrow$ es. 9-5 a-c-d \`e un ciclo, ma anche un loop? e c-d ?
 
 elementi chiave per riconoscere un loop:
 \begin{itemize}
