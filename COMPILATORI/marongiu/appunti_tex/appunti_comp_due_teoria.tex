@@ -1290,6 +1290,7 @@ Modo per rappresentare la propriet\`a di dominanza \textbf{in forma di albero}
    \end{minipage}\hfill\vline\hfill
    \begin{minipage}[c]{.48\textwidth}
    \includegraphics[width=\textwidth]{uddu_4.png}
+   \label{example-dt}
    \end{minipage}
 \end{example}
 
@@ -1360,7 +1361,7 @@ Il percorso della visita definisce un \textbf{depth-first spanning tree (DFST)}:
 \end{emphasize}
 \end{minipage}\hfill
 \begin{minipage}[c]{.3\textwidth}
-\includegraphics[width=\textwidth]{uddu_5.png}
+\includegraphics[width=\textwidth]{uddu_5b.png}
 \end{minipage}
 
 \subsubsection{Trovare il loop naturale associato}
@@ -1568,7 +1569,7 @@ Risulta interessante considerare i BB "appena prima" o "appena dopo" i blocchi d
 
 \begin{example}
     \noindent\begin{minipage}[c]{.5\textwidth}
-      Per il CFG di esempio, \underline{$DF(5) = \left\lbrace 4,5,12,13 \right\rbrace$}: osservando il DT, notiamo che 4, 12, 13 sono successori di 6, 7, 8 (prima parte della condizione), e non sono dominati da 5 (dunque neppure strettamente, seconda parte). Anche 5 \`e successore di 8, e poich\'e un nodo non domina strettamente se stesso, lo includiamo nella $DF$
+      Per il CFG di esempio, \underline{$DF(5) = \left\lbrace 4,5,12,13 \right\rbrace$}: osservando il DT (pag.~\pageref{example-dt}), notiamo che 4, 12, 13 sono successori di 6, 7, 8 (prima parte della condizione), e non sono dominati da 5 (dunque neppure strettamente, seconda parte). Anche 5 \`e successore di 8, e poich\'e un nodo non domina strettamente se stesso, lo includiamo nella $DF$
     \end{minipage}
     \begin{minipage}[c]{.5\textwidth}
     \includegraphics[width=\textwidth]{uddu_18.png}
