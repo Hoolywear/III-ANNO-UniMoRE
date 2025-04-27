@@ -1390,26 +1390,191 @@ $\rightarrow$ tipicamente inserisco un blocco \textit{preheader} appena prima de
   Per manipolare i loop in LLVM esistono primitive per recuperare proprio questi blocchi fondamentali (poi per navigare nel resto dei BB usiamo gli iteratori, sia seguendo l'ordine del CFG sia non)
 \end{emphasize}
 
-\section{Use-def e Def-use chains}
+\subsection{Use-def e Def-use chains}
 
 La capacit\`a di ricollegare in maniera efficiente la definizione di una variabile a tutti i suoi usi (per esempio per propagare un risultato) \`e indispensabile all'ottimizzazione $\rightarrow$ per questo vengono previsti questi riferimenti nell'IR LLVM
 
-\subsection{Dove viene definita o usata una variabile}
+\subsubsection{Dove viene definita o usata una variabile}
 
 Le definizioni di DU e UD chain \textbf{precedono quella di SSA} $\rightarrow$ lo scope lessicale del programma in cui si potevano trovare gli usi della variabile era molto pi\`u ampio
 
+\begin{example}[frametitle={Esempi}]
+  \noindent 
+  \begin{minipage}[c]{.65\textwidth}
+    \begin{itemize}
+      \item LICM: se le var.~usate nell'espressione che definisce \lstinline|A| sono \textbf{definite all'interno del loop}, non posso spostare la definizione fuori
+      \item CP: per un dato uso di \lstinline|X|, trovo le sue \textit{reaching definitions} (es.~\lstinline|X = Y|) e, se non sono ridefinite (appunto "reaching") vado a sostituirne gli usi
+    \end{itemize}
+
+  \end{minipage}\hfill
+  \begin{minipage}[c]{.25\textwidth}
+    \includegraphics[width=\textwidth]{uddu_7.png}
+  \end{minipage}
+
+\noindent A questo tipo di ottimizzazioni beneficia molto poter scorrere agevolmente le relazioni DU delle variabili $\rightarrow$ vogliamo un'IR che lo preveda e dunque permetta una \textbf{forma di analisi "sparsa"} (ignoro tutte le istruzioni non relative alla var.~correntemente analizzata)
+\end{example}
+
+In generale le catene possono essere onerose (per $N$ defs e $M$ uses, $O(NM)$ spazio e tempo) $\rightarrow$ Possiamo semplificare ulteriormente se riusciamo a \textbf{ridefinire completamente anche il nome della variabile ad ogni sua ridefinizione} (ci avviciniamo a SSA) (permette catene sensibilmente pi\`u corte)
+
+\noindent\begin{minipage}[b]{.45\textwidth}
+  \centering
+\includegraphics[width=.65\textwidth]{uddu_8.png}
+\captionof{figure}{Un altro motivo per rinominare le ridefinizioni \`e che occorrenze della stessa variabile potrebbero essere scorrelate e dunque ottimizzabili separatamente}
+\end{minipage}\hfill
+\begin{minipage}[b]{.5\textwidth}
+  \centering
+\includegraphics[width=.65\textwidth]{uddu_9.png}
+\captionof{figure}{Esempio di catena onerosa. Ulteriore soluzione \`e \underline{limitare ogni variabile a una definizione}}
+\end{minipage}
+
+\section{Static Single Assignment (SSA)}
+
+\noindent\begin{minipage}[t]{.4\textwidth}
+  \vspace{.5em}
+Forma di IR dove ad ogni variabile viene \textbf{assegnato un valore solo una volta}\\ $\rightarrow$ Facile dentro ad un BB, ma cosa succede nei punti di \textbf{join} di un CFG?\\
+$\rightarrow$ \textbf{usiamo una notazione fittizia: la $\Phi$ function}
+\end{minipage}\hfill
+\begin{minipage}[t]{.58\textwidth}
+\begin{example}[frametitle={Local value numbering}]
+  \begin{center}
+    \includegraphics[width=\textwidth]{uddu_10.png}
+  \end{center}
+
+    All'interno di un BB posso fare \textit{local value numbering}, visitando ogni istruzione in ordine:
+    \begin{itemize}
+      \item LHS: assegna ad una nuova versione della variabile
+      \item RHS: usa la versione pi\`u recente della stessa
+    \end{itemize}
+
+\end{example}
+\end{minipage}
+
+\noindent\begin{minipage}[c]{.4\textwidth}
+\begin{lstlisting}
+c $\leftarrow$ 12
+if (i) {
+  a $\leftarrow$ x + y
+  b $\leftarrow$ a + x
+} else {
+  a $\leftarrow$ b + 2
+  c $\leftarrow$ y + 1
+}
+a $\leftarrow$ c + a\end{lstlisting}
+\end{minipage} \hfill $\rightarrow$ \hfill
+\begin{minipage}[c]{.4\textwidth}
+\includegraphics[width=\textwidth]{uddu_10b.png}
+\end{minipage}
+
+\subsection{La funzione $\Phi$}
+
+\noindent\begin{minipage}[c]{.65\textwidth}
+\begin{itemize}
+  \item $\Phi$ fonde multiple definizioni derivanti da multipli percorsi in una singola definizione
+  \item per un BB con \textit{p} predecessori ci sono \textit{p} argomenti nella funzione $\Phi$:
+  \begin{lstlisting}
+xnew $\leftarrow \Phi$(x1, x2, ..., xp)\end{lstlisting}
+\item tipicamente \textbf{non ci interessa quale \lstinline|xi| usare} $\rightarrow$ se rilevante, usiamo le definizioni derivanti dall'arco di interesse
+\end{itemize}
+\end{minipage}\hfill
+\begin{minipage}[c]{.3\textwidth}
+\includegraphics[width=\textwidth]{uddu_11.png}
+\end{minipage}
+
+\begin{example}[frametitle={Come si implementa $\Phi$}]
+  \noindent \begin{minipage}[c]{.5\textwidth}
+    Di fatto, a tempo di esecuzione ci sar\`a sempre un percorso \textbf{effettivamente eseguito} $\rightarrow$ per questo consideriamo $\Phi$ come notazione fittizia
+  \end{minipage}\hfill
+  \begin{minipage}[c]{.3\textwidth}
+    \includegraphics[width=\textwidth]{uddu_12.png}
+  \end{minipage}
+\end{example}
+
+\subsection{SSA triviale}
+
+\noindent \begin{minipage}[c]{.4\textwidth}
+\begin{itemize}
+  \item ogni assegnamento genera una nuova versione della variabile
+  \item aggiungiamo una fz.~$\Phi$ \textbf{ad ogni p.to di join $\forall$ le variabili \textit{live}}  
+\end{itemize}
+\end{minipage}\hfill
+\begin{minipage}[c]{.55\textwidth}
+  \centering
+\includegraphics[width=.7\textwidth]{uddu_13.png}
+\captionof{figure}{Molte di queste funzioni $\Phi$ non sono necessarie}
+\end{minipage}
+
+\subsection{SSA minimale}
+
+\noindent \begin{minipage}[c]{.6\textwidth}
+\begin{itemize}
+  \item ogni assegnamento genera una nuova versione della variabile
+  \item aggiungiamo una fz.~$\Phi$ ad ogni p.to di join $\forall$ le variabili \textit{live} \textbf{con definizioni multiple} 
+\end{itemize}
+\end{minipage}\hfill
+\begin{minipage}[c]{.25\textwidth}
+\includegraphics[width=\textwidth]{uddu_14.png}
+\end{minipage}
+
+\begin{example}[frametitle={Esempio con loop}]
+  \noindent\begin{minipage}[c]{.5\textwidth}
+  \lstinline|c1| altro non \`e che la rappresentazione del valore iniziale che assume \lstinline|c| a tempo del primo assegnamento (prima esecuzione del loop), mentre \lstinline|c2| il valore della variabile all'iterazione precedente
+  \end{minipage}\hfill
+  \begin{minipage}[c]{.45\textwidth}
+  \includegraphics[width=\textwidth]{uddu_15.png}
+  \end{minipage}
+\end{example}
+
+\subsection{Dove inserire le funzioni $\Phi$}
+
+\noindent \begin{minipage}[c]{.7\textwidth}
+Inserisco una $\Phi$ per una variabile \lstinline|a| nel blocco \textit{Z} $\iff$:
+\begin{itemize}
+  \item \lstinline|a| \`e stata definita pi\`u di una volta (es.~in \textit{X} e \textit{Y}, $X\neq Y$)
+  \item $\exists$ due percorsi da \textit{X} a \textit{Z} e da \textit{Y} a \textit{Z} t.c.
+  \begin{itemize}
+    \item $Pxz \cap Pyz = \left\lbrace Z \right\rbrace$ (\textbf{\textit{Z} unico BB comune} tra i percorsi)
+    \item $Z \notin Pxq \lor Z \notin Pyr,\, \text{dove}\, Pxz = Pxq \rightarrow Z, Pyz = Pyr \rightarrow Z$ (almeno un percorso \textbf{raggiunge \textit{Z} per la prima volta})
+  \end{itemize}
+\end{itemize}
+\end{minipage}\hfill
+\begin{minipage}[c]{.25\textwidth}
+\includegraphics[width=\textwidth]{uddu_17.png}
+\end{minipage}
+
+\begin{emphasize}[frametitle={Note}]
+  \begin{itemize}
+    \item\textit{ENTRY} contiene una definizione implicita di tutte le variabili
+    \item\lstinline|v = |$\Phi$\lstinline|(...)| \`e una definizione di \lstinline|v|
+\end{itemize}
+\end{emphasize}
+
+\subsection{Propriet\`a di dominanza della forma SSA}
+
+Nella forma SSA le \textbf{definizioni dominano gli usi}:
+\begin{itemize}
+  \item se \lstinline|xi| \`e usato in \lstinline|x| $\leftarrow \Phi$ \lstinline|(..., xi, ...)| $\implies$ BB(\lstinline|xi|) \textbf{domina} il predecessore i-esimo di BB($\Phi$)
+  \item se \lstinline|x| \`e usato in \lstinline|y| $\leftarrow$ \lstinline|... x ...| $\implies$ BB(\lstinline|x|) \textbf{domina} BB(\lstinline|y|)
+\end{itemize}
+
+SI pu\`o usare questa propriet\`a per derivare un algoritmo efficiente per convertire la IR in forma SSA
+
+\subsection{Dominanza e Dominance Frontier}
+
+Risulta interessante considerare i BB "appena prima" o "appena dopo" i blocchi dominati o che ci dominano $\rightarrow$ i \textbf{dominators} e \textbf{postdominators} ci dicono quale BB \textbf{deve} essere eseguito \textbf{prima}, o \textbf{dopo}, un certo BB \textit{x}\\
+
+\noindent\textbf{Dominance Frontier} di un nodo \textit{x}: $\boxed{DF(x) = \left\lbrace w | x\, dom\, pred(w) \land !(x\, sdom\, w)\right\rbrace}$
+
+\noindent $\rightarrow$ ovvero, l'insieme di tutti i BB che sono successori immediati dei blocchi dominati da \textit{x}, ma che non sono strettamente dominati da \textit{x}
+
+\begin{example}
+    \noindent\begin{minipage}[c]{.5\textwidth}
+      Per il CFG di esempio, \underline{$DF(5) = \left\lbrace 4,5,12,13 \right\rbrace$}: osservando il DT, notiamo che 4, 12, 13 sono successori di 6, 7, 8 (prima parte della condizione), e non sono dominati da 5 (dunque neppure strettamente, seconda parte). Anche 5 \`e successore di 8, e poich\'e un nodo non domina strettamente se stesso, lo includiamo nella $DF$
+    \end{minipage}
+    \begin{minipage}[c]{.5\textwidth}
+    \includegraphics[width=\textwidth]{uddu_18.png}
+    \end{minipage}
+\end{example}
 
 
-es. loop invariant code motion e copy propagation: 9-25
-
-es licm se le variabili usate nell'espr che definisce a sono definite all'interno del loop evidentemente non posso spostare la definizione fuori dal loop
-
-es cp riprendo il concetto di reaching definition ...
-
-notando l'utilit\`a di poter scorrere in maniera agevole le relazioni DU, vogliamo un'IR che la preveda $\rightarrow$ permette una forma di analisi "sparsa", ovvero che ignora tutte le istruzioni che non sono casi di uso o definizione specifici all'istruzione correntemente analizzata
-
-9-26: il discorso sulle catene pu\`o essere ulteriormente semplificato se si riesce a ridefinire completamente anche il nome della variabile ad ogni sua ridefinizione (ci avviciniamo a SSA) (permette catene sensibilmente pi\`u corte)
-
-9-28: mostra come le catene possono essere onerose
 
 \end{document}
