@@ -1576,6 +1576,115 @@ Risulta interessante considerare i BB "appena prima" o "appena dopo" i blocchi d
     \end{minipage}
 \end{example}
 
+\subsection{Utilizzo della Dominance Frontier per calcolare la forma SSA}
+
+I passaggi da seguire sono
+\begin{enumerate}
+  \item posizionare tutte le funzioni $\Phi$ (se c'\`e una definizione di \lstinline|a| nel blocco \textit{x}, i nodi nella \textit{DF(x)} \textbf{necessitano di una funzione $\Phi$} per \lstinline|a|)
+  \item rinominare tutte le variabili
+\end{enumerate}
+
+\subsubsection{Utilizzo della DF per posizionare le funzioni $\Phi()$}
+
+\begin{itemize}
+  \item identifico tutti i siti dove vengono definite le variabili 
+  \item $\forall$ variabile \lstinline|v|:
+  \begin{itemize}
+    \item $\forall$ sito di definizione \textit{n} (\textbf{non siamo ancora in forma SSA, la stiamo costruendo}):
+    \begin{itemize}
+      \item $\forall$ nodo in \textit{DF(n)}
+      \begin{itemize}
+        \item se non c'\`e una $\Phi()$ nel nodo, mettiamone una
+        \item se questo nodo non definiva la variabile in precedenza, aggiungiamo questo nodo alla lista dei siti di definizione
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\paragraph{Algoritmo}~\\
+
+
+\begin{lstlisting}[morekeywords={foreach,node,variable,in,remove,from,insert,defined}]
+foreach node n {
+  foreach variable v defined in n {
+  orig[n] $\cup =$ {v}
+  defsites[v] $\cup =$ {n}
+  }
+}
+foreach variable v {
+  W = defsites[v]
+  while W not empty {
+    n = remove node from W
+    foreach y in DF[n] {
+      if y $\notin$ PHI[v] {
+        insert "v $\leftarrow \Phi$(v,v,...)" at top of y
+        PHI[v] $\cup =$ {y}
+        if v $\notin$ orig[y]: W = W $\cup$ {y}
+      }
+    }
+  }
+}\end{lstlisting}
+
+Questo algoritmo calcola iterativamente la DF, inserendo il numero minimo necessario di funzioni $\Phi()$
+
+\subsubsection{Rinominare le variabili}
+
+\paragraph{Algoritmo}
+
+\begin{itemize}
+  \item scorrere il DT, rinominando le variabili come le si incontra
+  \item rimpiazzare gli usi con la pi\`u recente definizione rinominata
+  \item in presenza di branch e join: usare la definizione pi\`u vicina tale per cui la definizione si trova \textbf{prima dell'uso} nel DT
+\end{itemize}
+
+\paragraph{Algoritmo per implementazione tramite stack}~\\
+
+\begin{lstlisting}[morekeywords={foreach,statement,node,variable,in,remove,from,insert,defined,replace,define,push,onto,by}]
+// inizializza stacks e contatori
+foreach variable v {
+  stacks[v] = $\emptyset$
+  counters[v] = 0
+}
+
+// procedura per la generazione del prossimo nome
+define GenName(variable v) {
+  i = counters[v]
+  replace v by v$_i$
+  push i onto stacks[v]
+  counters[v]++
+}
+
+// procedura per il renaming visitando in pre-order il DT
+define Rename (node X) {
+  foreach $\Phi$ p in X { // scorro i phi
+    GenName(LHS(p)) // nuova def.
+  } 
+
+  foreach statement a in X { // scorro il resto degli statement
+    foreach variable v in RHS(a) {
+      i = top(stacks([v])
+      replace v by v$_i$ // sostituisco gli usi con la def. piu' recente
+    }
+    foreach variable v in LHS(a): GenName(v) // nuova def.
+  }
+
+  foreach Y in succ(X) { // sostituisco gli usi nelle phi dei successori
+    j = "position in Y's $\Phi$ corresponding to X"
+    foreach $\Phi$ p in Y { 
+      v$_k$ = LHS(p) // k fittizio, utile solo per recuperare stacks[v]
+      i = top(stacks[v])
+      replace RHS(p)[j] by v$_i$
+    }
+  }
+
+  foreach Y in succ(X) { // visito ricorsivamente i successori
+    Rename(Y)
+  }
+
+  foreach $\Phi$ or statement a in X { // pop delle var. definite in X
+    foreach v$_i$ in LHS(a): pop(stacks[v])
+  }
+}\end{lstlisting}
 
 
 \end{document}
