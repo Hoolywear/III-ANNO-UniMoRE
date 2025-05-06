@@ -1686,5 +1686,175 @@ define Rename (node X) {
   }
 }\end{lstlisting}
 
+\section{Ottimizzazioni sulla memoria}
+
+6 maggio
+
+ricordiamo alcune cose sulla memoria come funziona (vedi architettura calcolatori)
+
+\paragraph{dram technology}~\\
+
+in generale le ott sulla mem sono architecture dependent e quindi effettuate nel backend?? ma alcune si possono gia fare nel middle end, dovendo conoscere "alcune, poche" caratteristiche fisiche (???????)
+
+problematica di efficienza della dram: partiamo da come funziona la dram (ricordiamo)
+
+\begin{itemize}
+  \item ram: celle, condensatori, in cui c'\`e o non c'\`e carica elettrica, e i dati vengono immagazzinati in questo modo
+  \item inoltre, la carica non rimane per sempre: man mano diminuisce, e dunque va effettuata periodicamente una operazione di \textit{refresh}
+  \item altro concetto: riga dram $\rightarrow$ un insieme di condensatori, solitamente lunga un certo numero di \textit{words}
+  \item essendo gli accessi in memoria costosi, si cerca di minimizzare gli accessi, e in particolare si cerca di massimizzare gli accessi nella riga acceduta attualmente
+  \item negli anni si sono studiate varie possibili ottimizzazioni, in particolare per il modo in cui si accede
+    \begin{itemize}
+      \item es burst mode (recupera)
+    \end{itemize}
+
+  \item ddr dram: double data rate dram: sfrutta sia il fronte di salita che di discesa del clock del circuito elettronico come momenti di trasferimento dati (accesso alle righe?)
+  \item rec, in ogni caso: sono tutti trucchi per migliorare i tempi delle operazioni su hw che di base \`e "lento"
+  \item breve slide su questioni sviluppo/storiche: costo si e abbassato moltissimo, e soprattutto molto cost effective (costo per unita di memoria); la latenza di accesso invece e diminuita di meno (decremento dei tempi non lineare)
+  \item $\rightarrow$ scarsa in termini di performance
+  \item altri performance factors e tecniche:
+    \begin{itemize}
+      \item row buffer: mantengo un buffer delle righe accedute di frequente
+      \item dram sincrona: sfrutta accessi in burst per migliorare la banda (quantita di mem acceduta in un periodo di tempo, o trasferita)
+      \item dram banking: 
+        \begin{itemize}
+          \item concetto di \textit{master}: processore, ma anche periferiche, altri dispositivi, tutti quelli che possono essere utilizzatori della memoria
+          \item gia e lenta, se poi abbiamo tanti master che devono accedervi, la dram diventa il collo di bottiglia delle prestazioni
+          \item il concetto di banking sfrutta il concetto di parallelismo: ho piu "banchi" di dram che operano \textbf{indipendentemente} tra loro $\rightarrow$ mediamente il tempo di accesso diventa piu basso, perche i diversi master accederanno a risorse che non necessariamente si trovano sullo stesso banco
+        \end{itemize}  
+    \end{itemize}
+
+  \item the memory wall: uno dei "muri" tecnologici che hanno portato alla rivoluzione dei primi 2000 sul passaggio da single a multicore cpu
+    \begin{itemize}
+      \item negli anni cresce la performance delle cpu, \textbf{molto di piu rispetto a quella della dram} (55\% annuo rispetto al 7\% della dram!) $\rightarrow$ il divario cresce di molto
+      \item problema: cpi ideale per un istruzione = 1 (o meno se possibile) minimo sindacale, \textbf{MA} le istr di tipo load e store (ricordiamo che sono le uniche in riscv che interagiscono con la dram) hanno un cpi molto piu alto di 1! (circa 100 cicli)
+      \item per questo ovviamente c'e la presenza delle cache, che abbassano il cpi medio
+      \item naturalmente non esistono programmi che non usano load e store
+      \item in base a tutto questo, ci si e posto il problema di cambiare qualcosa (evidentemente negli anni 80 le cache non esistevano, essendo il costo di op su dram equivalente a quello di op sulla cpu)
+      \item le cache
+        \begin{itemize}
+          \item sono un tipo di tecnologia diverso dalla dram: sono SRAM (static ram), che alla base ha un transistor: decido se far passare o meno corrente $\rightarrow$ "cittadino dello stesso livello della cpu" $\rightarrow$ sono sulla motherboard molto vicino alla cpu, dunque gia per questo sono molto piuveloci!
+          \item dunque tempi di accesso estremamente ridotti
+          \item inoltre densita molto piu alta
+          \item ovviamente, a discapito del costo
+          \item quindi chiaramente abbiamo tempi di accesso incredibilmente piu veloci (ordine dei ns, dunque frequenze di GHz, veloci tanto quanto la CPU!!), posso metterne molti tutti vicini, ma mi costano incredibilmente di piu (costi inversamente proporzionali)
+          \item per questo usiamo le gerarchie di memoria!
+            \begin{itemize}
+              \item L1: 1 o 2 cicli per accesso (pari a cpu), ma molto molto piccola
+              \item perche l1 risponde in 1 ciclo, mentre l2 in media 1 ordine di grandezza in piu (tra 5 e 10)? (nonostante usino la stessa tecnologia) certo il fatto che aumento la dimensione della cache, ma anche la questione del \textbf{critical path} $\rightarrow$ il path fisico piu lungo che potrebbe dover percorrere la corrente nel circuito elettrico - il clock rate deve evidentemente adattarsi al critical path (piu e lungo piu lungo il clock rate e dunque minore la frequenza)
+              \item scelta di design basilare: spezzare il critical path con dei registri intermedi $\rightarrow$ per evitare di avere un critical path enorme per via dell'accesso in l2, spezzo con registri intermedi, tutti segmenti lunghi come il critical path della cpu
+              \item hit e miss: concetti legati al recupero di informazioni tramite cache, in base al fatto se il dato e presente nell'attuale livello di cache o meno - se non lo e devo fermare la loadstore unit e scendere di un livello di cache, avanti cosi
+              \item miss penalty: tempo necessario per gestire la miss
+
+            \end{itemize}
+
+          \item tutto questo per sfruttare il principio di localita spaziale e temporale:
+            \begin{itemize}
+              \item si basa su come solitamente funzionano i programmi
+              \item temporale: probabilita che accedo piu volte ad uno stesso elemento piu volte nel tempo seguente
+              \item spaziale: es. array, probabilita di accedere a elementi vicini e successivi al primo nel tempo seguente
+              \item esempio a slide 14-15: esempio di esecuzione di un programma, con asse x gli indirizzi della memoria e y il tempo
+                  \item pattern di no locality: segmenti in cui non ho accessi o non ho pattern di accesso
+                  \item temporal locality: righe dritte orizzontali: accedo ripetutamente allo stesso indirizzo
+                  \item spatial locality: righe diagonali: accedo a elementi successivi
+            \end{itemize}
+
+          \item notiamo che il concetto di cache viene usato in vari casi e a vari livelli (concettualmente parlando proprio): es la dram di fatto e una cache per il disco
+          \item oppure la cache del browser, ec ec ec
+          \item ricordiamo ora diversi tipi di cache miss:
+            \begin{itemize}
+              \item un compilatore puo aiutarmi per cosa? per risolvere alcuni problemi di accesso alla memoria $\rightarrow$ dunque risulta utile ottenere alcune informazioni sulle diverse tipologie di miss per risolvere correttamente il rproblema della miss (?)
+              \item cold cache (compulsory): non ci sono dati nella cella della cache (tipicamente appena eseguo il programma)
+              \item conflict: quando due indirizzi in dram sono mappati alla stessa linea di cache
+              \item capacity: ho finito lo spazio disponibile in cache
+              \item di abse le ultime due, avvengono in tipi specifici di cache:
+              \item direct mapping: sfrutto parti dell'indirizzo per decidere dove mappare in cache: non avro mai capacity misses? $\rightarrow$ mentre possono avere conflicts, esempio quando i bit delle locazioni sono gli stessi $\rightarrow$ ho una sola scelta riguardo a dove inserire il dato nella cache $\rightarrow$ rete logica semplicissima, pochi gate, dunque poca area occupata, dunque meno costose e velocissime $\rightarrow$ contro: posso avere le conflict misses
+              \item fully associative: altra tecnica, ovvero continuo ad inserire uno dopo l'altro i dati $\rightarrow$ il dato potrebbe finire in qualsiasi locazione della cache $\rightarrow$ devo scorrere tutte le entry della cache, in termini di rete logica dunque ho tanti circuiti comparatori quante sono le righe della cache, ovvero approccio molto costoso in termini di area $\rightarrow$ pro: gestisce molto meglio i problemi relativi alle conflict misses
+              \item n-way set associative: mantiene il concetto di bit di indice, per indicare non un indirizzo unico ma un \textbf{set} di indirizzi, e poi tanti comparatori quanti gli elementi del set 
+            \end{itemize}
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\subsection{memory hierarchy optimizations}
+
+queste ottimizzazioni vogliono
+\begin{itemize}
+  \item ridurre la latenza di accesso alla memoria: ovvero ottenere un cpi piu basso
+  \item massimizzare la banda di memoria: poter accedere a piu dati nella stessa unita di tempo (stesso concetto della pipeline: non riduco il tempo totale di un'esecuzione di una singola istruzione, ma a regime riesco ad avere piu istruzioni diverse che eseguono e dunque posso aumentare il throughput) (throughput usato specifico per operazioni di calcolo, analogamente uso bandwidth per gli accessi alla memoria)
+  \item gestire overhead: i costi addizionali dovuti all'ottimizzazione, per operazioni che senza non avrei dovuto fare ; il compilatore puo mascherare questo tempo psasato a fare queste operazioni aggiuntive facendogli fare anche altre cose nel mentre (?)
+\end{itemize}
+
+\subsection{reuse and locality}
+
+consideriamo come accediamo ai dati:
+\begin{itemize}
+  \item data reuse: sfrutta la localita temporale, dunque il riuso di degli stessi dati o molto vicini tra loro - il compilatore puo ad esempio assicurare che il dato acceduto rimanga sempre in cache
+  \item data locality: quando es accedo agli array : il compilatore si deve assicurare che questi dati vengano acceduti in questo modo, e poi garantire la loro presenza??
+\end{itemize}
+
+\subsection{optimizing cache performance}
+
+rec
+
+\subsection{tipi di oggetti da considerare}
+
+\begin{itemize}
+  \item scalari: tipi di dato semplici, non aggregati
+  \item strutture dati e puntatori (piu complessi)
+  \item array
+\end{itemize}
+
+\subsubsection{scalari}
+
+a loro volta diverse tipologie:
+\begin{itemize}
+  \item var locali (scope e tempo di vita locale alla funzione in cui sono definite)
+  \item var globali (scope e tempo di vita globali pari alla vita del programma)
+  \item argomenti delle funzioni
+\end{itemize}
+
+tipicamente gli scalari sono gestiti sempre tramite registri $\rightarrow$ non dobbiamo gestire gli accessi alla memoria! mi trovo gia in cpu e non devo "uscirne" durante le operazioni (di fatto sto saltando la fase di memory, e la load store unit non esegue nulla per questa istruzione)
+
+unico caso in cui potremmo doverci preoccupare della cache: finiscono i registri utilizzabili $\rightarrow$ devo fare uno spill sulla memoria, in particolare sullo stack frame (ovvero faccio una store, e poi una load) , esattamente come funzionano i save registers (quelli modificati da una chiamata a funzione, che alla fine dell'esecuzione deve ripristinarli)
+
+ma poiche la conoscenza della calling convention e del register file e dell'isa (...?) sono specifici al hw, sono ottimizzazioni di backend 
+
+\subsubsection{strutture dati e puntatori}
+
+cosa puo fare il compilatore per migliorare l'esecuzione di un programma che usa strutture dati? dove posso avere rallentamenti dovuti alla cache? es. struct a slide 14-45
+
+struct: di base e un'aggregazione di bytes $\rightarrow$ i suoi elementi sono contigui in memoria
+
+dall esempio delle slide, notiamo che in generale un oggetto complesso potrebbe non essere grande un multiplo di una word, o di una riga di cache! dunque non posso sftuttare il principio di localita spaziale
+
+dunque l'ottimizzazione potrebbe comprendere il trasformare completamente la struttura del dato, ad esempio estraendo dati di tipi primitivi (nel caso di array di tipi composti) e costruendo separatamente array di questi 
+
+per farlo devo avere a disposizione la struttura della struttura dati
+
+\subsubsection{array}
+
+evidentemente qui abbiamo le maggiori possibilita di ottimizzazione
+
+solitamente vi accediamo tramite loop nests (per array multidimensionali ad es ma anche per operazioni matriciali o altro)
+
+dunque che possibilita abbiamo di ott? staticamente, possiamo analizzare l'andamento es della posizione relativa dell'elemento acceduto, ovvero l'evoluzione dell'\textbf{iteration space}
+
+concetto di iteration space, e visualizzazione a partire dalla slide 14-47
+
+una volta fatto questo, possiamo pensare di analizzare l'andamento del \textbf{data space} e dunque capire come mai avvengono le miss
+
+\paragraph{cache miss in questo caso}~\\
+
+immaginiamo una cache vuota in partenza, e una cache di 4 parole per riga e 8 righe
+\begin{itemize}
+  \item inizialmente avro una cold cache miss
+  \item per gli elementi 2 3 4 ho delle hit avendo caricato l'intera riga !
+  \item accade nuovamente per 5, e poi 6 7 8, eccetera
+  \item a partire dalla nona miss (17), avro una conflict miss (i bit usati per indexing si sovrappongono)
+\end{itemize}
+ notiamo pero che non cambia il pattern di miss! rimane sempre 1 ogni 4
+
+ per quanto riguarda la matrice \lstinline|B| invece, vediamo che gli accessi avvengono in modo diverso - stiamo forzando una situazione di miss sistematica, e questo appunto e una situaizone rilevabile e che si puo correggere
 
 \end{document}
