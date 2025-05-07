@@ -1857,4 +1857,154 @@ immaginiamo una cache vuota in partenza, e una cache di 4 parole per riga e 8 ri
 
  per quanto riguarda la matrice \lstinline|B| invece, vediamo che gli accessi avvengono in modo diverso - stiamo forzando una situazione di miss sistematica, e questo appunto e una situaizone rilevabile e che si puo correggere
 
+7 maggio
+
+recupera inizio lezione
+
+notiamo proprio dal secondo esempio di accessi che iteration space $\neq$ data space (o meglio, non sempre appunto?) $\rightarrow$ dunque possiamo distinguere tra accessi \textbf{cache friendly} e non
+
+\begin{emphasize}
+    ricordiamo che il comportamento dell'indexing della cache \`e simile a quello che fa l'operatore di modulo $\rightarrow$ tanti indirizzi in memoria condivdono la stessa configurazione di bit di index (in ogni caso recupera discorso anche da appunti vecchi)
+
+    inoltre, poi uso dei bit di offset per poter accedere separatamente a ciascun byte all'interno della riga (nel nostro caso righe da 4 word, supponendo 4B per word ho 16B per riga e dunque ho bisogno di 4byte di offset)
+\end{emphasize}
+
+
+ripetiamo comportamento relativo agli accessi a \lstinline|B|:
+\begin{itemize}
+  \item \lstinline|B[0][0]| cold cache miss
+  \item sono tutte cold cache misses fino a \lstinline|B[7][0]| ???
+  \item no in realta no, stiamo inserendo una riga ogni 2? e quindi ogni 4 righe per forza andiamo a sovrascrivere una riga precedente per via di una prima conflict miss (ripeti!)
+\end{itemize}
+
+\subsubsection{cache behavior of array accesses}
+
+dobbiamo dunque chiederci, per ottimizzare questi accessi, 
+\begin{itemize}
+  \item \textbf{quando} avvengono le miss $\rightarrow$ usiamo la \textbf{locality analysis}, che naturalmente rimane una stima ma non possiamo averne certezza! sono ottimizzazioni di tipo "best effort", e dunque in generale vanno ad ottimizzare, e nel caso peggiore non ottimizzano nulla ma \textbf{non peggiorano l'esecuzione}
+  \item possiamo cambiare \textbf{ordine delle iterazioni (o possibilmente il data layout)} per migliorare il comportamento degli accessi? $\rightarrow$ devo anche valutare il \textbf{costo} di tutte le varie ipotesi, per stimare il beneficio ottenuto (es.: creo una copia della matrice e ne calcolo la trasposta $\rightarrow$ ovviamente l'operazione \`e giustificata solo se ne ho bisogno abbastanza volte da non aumentare il costo totale - in qualche modo devo coprire il costo aggiuntivo in poche parole)
+  \item ottengo sempre risultati corretti? $\rightarrow$ devo verificare (come sempre) gli effetti "collaterali": devo verificare che le istruzioni affette dall'ottimizzazione siano indipendenti da altre
+  \begin{itemize}
+    \item caso di loop-carried dependency semplice: \lstinline|A[i] = A[i+1]|
+    \item dipendenza intesa come \textbf{vincolo nell'ordine di esecuzione delle istruzioni}: dunque un vincolo nell'iteration space, che previene 
+    \item esistono framework di analisi molto sofisticati, basati solitamente sul \textit{polyhedral model}
+  \end{itemize}
+\end{itemize}
+
+\begin{emphasize}
+    se ho variabili di cui non conosco il valore staticamente? 2 approcci:
+    \begin{itemize}
+      \item conservativo: non so determinare il valore, dunque pessimisticamente non faccio nulla
+      \item altrimenti, posso generare entrambe le versioni del codice, e stabilire poi \textbf{a runtime} quale eseguire, aggiungendo una semplice condizione che stabilisce quando eseguire (es. con \lstinline|N|, la condizione far\`a eseguire il programma con ottimizzazione solo se questo \lstinline|N| \`e abbastanza grande da giustificare il costo aggiuntivo)
+    \end{itemize}
+    
+\end{emphasize}
+
+\subsection{esempi di trasformazioni di loop}
+
+principali usate: loop interchange e loop tiling/blocking
+
+\subsubsection{loop interchange}
+
+fondamentalmente, \textbf{scambio} (o permuto) l'ordine dei loop
+\begin{itemize}
+  \item in assenza di dipendenze, non altero in nessun modo il risultato finale e evidentemente miglioro la performance (pur magari non accedendo nello stesso ordine di prima, ma appunto non ci interessa in assenza di dipendenze)
+\end{itemize}
+
+\paragraph{goal della permutazione}~\\
+
+\begin{itemize}
+  \item locality optimization (specialmente quella spaziale)
+  \item riarrangiare i loop nest per "migliorare" la \textbf{granularit\`a} del parallelismo (arrivare a quella necessaria)
+  \begin{itemize}
+    \item verso l'interno: sto andando verso un parallelismo \textit{fine-grain} $\rightarrow$ pro: sto spezzettando la quantita di lavoro in mattoncini piu piccoli, e dunque posso mantenere piu stabile e paragonabile tra loro la quantita di lavoro tra i diversi thread e tra i diversi processori (caso diametralmente opposto: pochi pezzi rispetto ai processori disponibili: se un processore si ritrova un blocco "lento" da eseguire es con un sacco di miss, allora gli altri processori dovranno aspettarlo una volta finito il loro lavoro) $\rightarrow$ allora come mai non scegliere sempre la grana fina? ovviamente per l'overhead generato, come ad es creare i thread, assegnare il lavoro, sincronizzare i processori; inoltre, tipicamente il costo di creazione di un thread ha costo fisso $\rightarrow$ task sempre piu piccoli significa che durano sempre meno, e dunque posso arrivare a un overhead maggiore del tempo di esecuzione della task assegnata $\rightarrow$ per questo dobbiamo assegnare il giusto carico di lavoro, e trovare la giusta granularita $\rightarrow$ solitamente, sono questioni gestite dall'hardware rispetto all'overhead!!! e dunque se ne occupera poi lui, ad es nel caso delle schede grafiche moderne che hanno hw dedicato proprio a decidere la granularita? e dunque es per chi inizia a programmare in cuda, viene detto sempre di scrivere i task piu piccoli possibile, sara poi la gpu a gestire la granularita
+    \item esterno: \textit{coarse-grain} parallelism
+  \end{itemize}
+  
+\end{itemize}
+
+\subsubsection{loop tiling/blocking}
+
+matrix multiplication: esempio di come applicare il tiling
+\begin{example}
+    matrix multiplication: 3 matrici di uguali dimensioni (ricorda da calcolo), ogni casella della matrice risultante contiene la somma dei prodotti tra iesima riga della prima con jesima colonna della seconda
+    
+    dunque, ho 3 loop innestati, di cui i primi due iterano sugli elementi della risultante, e il terzo permette lo scorrere la riga e colonna corrispondenti
+
+    cosa succede se le matrici sono abbastanza grandi da non stare per intero all'interno della cache?
+
+    notiamo che questo programma ha un sacco di riuso:
+    \begin{itemize}
+      \item bloccando una riga di A, noto che i suoi dati mi servono per ciascuna colonna di B (e viceversa, ma sappiamo che scorrere righe risulta molto piu cache friendly)
+      \item supponiamo inoltre che una riga di matrice sia piu lunga di una linea di cache, e dunque per accedere a una riga intera servano multipli accessi in cache
+      \item per massimizzare il riuso dei dati, vado a cercare una dimensione ottimale di "blocco" che mi permette di \textbf{avvicinare temporalmente il riuso dei dati}
+      \begin{itemize}
+        \item riuso di un dato: proprieta del programma
+        \item iteration space: recupera
+      \end{itemize}
+
+    \item cambiare l'ordine delle iterazioni e iterare "a blocchi" permette dunque di sfruttare al massimo il riuso dei dati - se non lo usassimo, siamo sicuri che i dati siano talmente lontani che verranno per forza sovrascritti causa conflict miss (spero si capisca nel futuro)
+    \end{itemize}
+
+    la soluzione dunque \`e semplicemente aggiungere dei loop nest, che permettono di iterare blocco per blocco invece che a dimensione intera
+    
+\end{example}
+
+in generale, il tiling viene usato a "tutti" i livelli di memoria (registri, caches, buffer software, memorie principali piccole, ...), e puo essere applicato in maniera gerarchica su tutti i vari livelli
+
+\subsection{loop fusion}
+
+vedremo meglio nell'assignment: in sostanza, si tratta di fondere tra loro 2 o piu loop che riutilizzano gli stessi dati
+
+esempio a 13-102: che dati sono riutilizzati tra i due loop? \lstinline|a| e \lstinline|c|
+
+vedendo poi la soluzione, come mai siamo sicuri di stare ottimizzando? proprio perche stiamo avvicinando sensibilmente l'uso degli stessi dati!!! dunque abbiamo annullato la distanza tra le due occorrenze di uso di uno stesso indirizzo, e dunque possiaom essere sicuri che sia in cache (prima dovevamo eseguire l'intero loop precedente pria di arrivarci, e dunque praticamente sicuramente non lo ritroveremo in cache)
+
+come faccio ad essere sicuro che ne valga la pena? quando proprio sicuramente non ne vale la pena di applicare l'ottimizzazione?? $\rightarrow$ quando sono sicuro che l'ottimizzazione non sara migliore della versione non ottimizzata, ovvero $\rightarrow$ quando sono sicuro che tutte le matrici stanno contemporaneamente in cache!!! ovvero quando la somma delle dimensioni delle matrici e minore della dimensione delle cache, e quindi avro comunque i dati ancora presenti quando eseguo il secondo loop
+
+$\rightarrow$ quindi, praticamente io sto valutando se conviene cambiare il programma o no (aumentando quindi il compile time? ma non solo? fa parte dell'overhead?)
+
+\subsection{software prefetching}
+
+ultimo concetto relativo alle ottimizzazioni in memoria che vediamo (?)
+
+prefetching inteso come caricare dei dati in memoria prima che siano riutilizzati $\rightarrow$ noto che e esattamente quello che facciamo caricando le linee intere in cache invece che solo il dato che ci serve!
+
+i modi per gestire la latenza della memoria sono appunto 1 ridurre la latenza tramite locality optimizations, ma poi anche 2 tollerare la latenza e fare ad es prefetching, ovvero spostare i dati prima che effettivamente mi servano!
+
+dunque stiamo operando in maniera non lazy
+
+software prefetching: si intende che il prefetching viene inserito direttamente all'interno del software ovvero non avviene con le cache ma viene specificato nel programma, o manualmente gia nel sorgente oppure specificandolo al compilatore!
+
+ottimizzazione mirata a "nascondere" le latenze: certo che l'operazione non mi costa meno, ma la infilo sotto ad altre operazioni e dunque "non la vedo" (appartiene a quella categoria di ottimizzazioni che si chiamano latency hiding, ottimizzazioni che sono molto brave a fare le gpu)
+
+tornando alle cpu, come faccio a fare prefetching? $\rightarrow$ 13-108 grafico che mostra come spostando il fetching (prefetching) a prima del momento in cui ho bisogno del dato, io posso averlo poi gia disponibile al momento dell'uso
+
+come lo faccio? riscrivendo il programma, e sapendo quando avro bisogno di fare gli accessi in memoria
+
+un istruzione di prefetch e di fatto una load non bloccante $\rightarrow$ questa la differenza da prima, perche non sto facendo stallare la loadstore unit quando devo fare la load richiesta, avendo gia gestito precedentemente la miss e avendo dunque gia caricato il dato in cache
+
+concetto di \textbf{sovrapporre computazione con accessi in memoria} $\rightarrow$ tutti i sistemi hw moderni hanno la possibilita di disaccoppiare le due operazioni
+
+ovviamente, realizzarla in pratica non risulta per nulla lineare: il concetto di prefetch si basa sul fatto che sono "certo" dei tempi in cui ho bisogno di un certo dato, e da per scontato che nessun altro processo non vada in conflitto con quella particolare linea di cache (ricordiamo che sono risorse condivise)
+
+dunque, in pratica e ad alto livello, come faccio? parto con il calcolare la \textbf{distanza di prefetch} (tempo di prefetch) $\rightarrow$ tipicamente lo faccio nei loop ??? (sono strutture la cui esecuzione e lineare?? regolare forse)
+
+loop sono regolari dunque posso esprimere il tempo di prefetch come il numero di iterazioni del loop stesso ??
+
+dunque io cosa faccio, conosco la latenza della memoria e blabla recupera
+
+insomma, io vado a risolvere il problema suddividendo il loop in 3 parti: 
+\begin{itemize}
+  \item prolog: faccio solo prefetch, 5 volte perche ho stabilito che mi servono 5 iterazioni del loop per avere a disposizione il dato
+  \item steady state ovvero stato a regime: qui vado avanti a prefetchare ma anche accedo ai dati pronti
+  \item epilog: semplicemente finisco di lavorare sugli ultimi dati prefetchati
+\end{itemize}
+
+(13-111)
+
+sono tutte euristiche che si basano sul caso best effort $\rightarrow$ nel caso peggiore "non c'e danno", ovvero il programma esegue come eseguiva prima, mentre nel caso medio aumenta la prestazione (a volte sono anche disposto a perderci un poco nel worst case, visto che stiamo lavorando su ottimizzazioni sulla media) 
+
+ovviamente sono ottimizzazioni che non posso fare su feature e sistemi ritenuti critici!!!!
+
 \end{document}
