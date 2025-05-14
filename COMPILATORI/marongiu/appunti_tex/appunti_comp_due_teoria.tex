@@ -1,7 +1,7 @@
 \input{../../../preamble}
 
 \title{%
-Compilatori\\
+  Compilatori\\
 \large Parte Due}
 
 \begin{document}
@@ -23,7 +23,7 @@ Ricordiamo il ruolo del compilatore tra le tecnologie informatiche, quello dell'
 \begin{itemize}
   \item Funzione principale e pi\`u nota: trasformare il codice \textbf{da un linguaggio ad un altro} (es. C $\rightarrow$ Assembly RISC-V) (ricordiamo che \`e solo il primo passo di un'intera toolchain di programmi per creare eseguibili)
 
-\item Gestendo la traduzione a linguaggio macchina al posto dei programmatori, l'altra funzione importante \`e l'\textbf{ottimizzazione} del codice, che permette la \textbf{produzione di eseguibili di stesse funzionalit\`a}, ma diversi a livello di \textbf{dimensioni} (es. per sistemi embedded e high-performance), \textbf{consumo energetico}, \textbf{velocit\`a di esecuzione}, ma anche in termini di determinate \textbf{caratteristiche architetturali} utilizzate (es. proc.~multicore)
+  \item Gestendo la traduzione a linguaggio macchina al posto dei programmatori, l'altra funzione importante \`e l'\textbf{ottimizzazione} del codice, che permette la \textbf{produzione di eseguibili di stesse funzionalit\`a}, ma diversi a livello di \textbf{dimensioni} (es. per sistemi embedded e high-performance), \textbf{consumo energetico}, \textbf{velocit\`a di esecuzione}, ma anche in termini di determinate \textbf{caratteristiche architetturali} utilizzate (es. proc.~multicore)
 \end{itemize}
 
 \subsubsection{L'evoluzione dei compilatori}
@@ -31,7 +31,7 @@ Ricordiamo il ruolo del compilatore tra le tecnologie informatiche, quello dell'
 Le rivoluzioni in termini di "classe" di dispositivi e di dimensioni dei transistor sono molto frequenti (Bell, Moore), e nei primi 2000 si arriva ai \textbf{limiti fisici della miniaturizzazione e della frequenza} operativa dei processori (problemi di dissipazione del calore) $\rightarrow$ idea di cambiare il paradigma di sviluppo di un processore: dal singolo core sempre pi\`u potente passo a \textbf{pi\`u core "isopotenti"} sullo stesso chip
 \begin{wrapfigure}{l}{.3\textwidth}
   \centering
-\includegraphics[width=.25\textwidth]{intro_1.png}
+  \includegraphics[width=.25\textwidth]{intro_1.png}
 \end{wrapfigure}
 
 \noindent$\sim$ 2005: plateau di consumo, frequenza e performance di programmi \textit{sequenziali}, aumento di performance di p.~che \textbf{sfruttano la parallelizzazione} $\rightarrow$ i programmi devono essere "consapevoli" che il processore \`e multicore!\\
@@ -47,14 +47,14 @@ Questo complica ulteriormente la scrittura del software, e dunque impone altre e
 Ricordiamo le metriche usate:
 
 \noindent\begin{minipage}[c]{.5\textwidth}
-\begin{equation*}
-  \text{Performance} = {{1}\over\text{Execution Time}}
-\end{equation*}
+  \begin{equation*}
+    \text{Performance} = {{1}\over\text{Execution Time}}
+  \end{equation*}
 \end{minipage}
 \begin{minipage}[c]{.5\textwidth}
-\begin{equation*}
-  \text{Execution Time} = {\textcolor{blue}{\text{Instruction Count}} \times \textcolor{red}{\text{CPI}} \over \textcolor{red}{\text{Frequency}}}
-\end{equation*}
+  \begin{equation*}
+    \text{Execution Time} = {\textcolor{blue}{\text{Instruction Count}} \times \textcolor{red}{\text{CPI}} \over \textcolor{red}{\text{Frequency}}}
+  \end{equation*}
 \end{minipage}\\
 
 Le ottimizzazioni possono avvenire dal punto di vista \textcolor{red}{HW (parametri architetturali)} e da quello \textcolor{blue}{SW (p.~di programma)}. Il compilatore pu\`o agire anche ad es. a livello di cache, aiutando a ridurre i miss e dunque i CPI delle istruzioni \lstinline|load| e \lstinline|store| (sappiamo che il costo di accesso aumenta di ordini di grandezza)
@@ -66,50 +66,49 @@ Le ottimizzazioni possono avvenire dal punto di vista \textcolor{red}{HW (parame
 \end{emphasize}
 
 \begin{itemize}
-  \item \textbf{AS (Algebraic Semplification)}Semplification: ottimizzazione a runtime
-  \begin{lstlisting}
+  \item \textbf{AS (Algebraic Semplification)}: ottimizzazione a runtime
+    \begin{lstlisting}
 -(-i); $\rightarrow$ i;
 b or true; $\rightarrow$ true; //cortocircuito logico\end{lstlisting}
   \item \textbf{CF (Constant Folding)}:  valutare ed espandere espressioni costanti a compile time
-  \begin{lstlisting}
+    \begin{lstlisting}
 c = 1+3; $\rightarrow$ c = 4;
 (100<0) $\rightarrow$ false\end{lstlisting}
-  
-  \item \textbf{SR (Strength Reduction)}: sostituisco op. costose con altre pi\`u semplici: classico es. \lstinline|MUL| rimpiazzate da \lstinline|ADD/SHIFT| (esecuzione in 1 ciclo invece di multic.):\\
-  \begin{minipage}[c]{.4\textwidth}
-  \begin{lstlisting}
+
+\item \textbf{SR (Strength Reduction)}: sostituisco op. costose con altre pi\`u semplici: classico es. \lstinline|MUL| rimpiazzate da \lstinline|ADD/SHIFT| (esecuzione in 1 ciclo invece di multic.):\vspace{.5em}\\
+    \begin{minipage}[c]{.4\textwidth}
+      \begin{lstlisting}
 y = x*2;
 y = x * 17;\end{lstlisting}
-  \end{minipage}
-  \hfill
-  $\rightarrow$
-  \hfill
-  \begin{minipage}[c]{.4\textwidth}
-  \begin{lstlisting}
+    \end{minipage}
+    \hfill
+    $\rightarrow$
+    \hfill
+    \begin{minipage}[c]{.4\textwidth}
+      \begin{lstlisting}
 y = x+x;
 y = (x<<4) + x;\end{lstlisting}
-  \end{minipage}\\
-  es.~sofisticato: \lstinline|for| con operazioni su array, sostituito da operazioni su puntatori (aritmetica dei pt.) $\rightarrow$ il risultato si vede nel codice assembly\\
-  \begin{minipage}[c]{.4\textwidth}
-  \begin{lstlisting}
+    \end{minipage}\\
+    es.~sofisticato: \lstinline|for| con operazioni su array, sostituito da operazioni su puntatori (aritmetica dei pt.) $\rightarrow$ il risultato si vede nel codice assembly\\
+    \begin{minipage}[c]{.4\textwidth}
+      \begin{lstlisting}
 for (i=0; i<100; i++)
-  a[i] = i*100;
-  \end{lstlisting} 
-  \end{minipage}
-  \hfill
-$\rightarrow$
-  \hfill
-  \begin{minipage}[c]{.4\textwidth}
-  \begin{lstlisting}
+  a[i] = i*100;\end{lstlisting} 
+      \end{minipage}
+      \hfill
+      $\rightarrow$
+      \hfill
+      \begin{minipage}[c]{.4\textwidth}
+        \begin{lstlisting}
 t = 0;
 for (; t<10000; t += 100) {
   *a = t;
   a = a + 4;
 }\end{lstlisting}
-  \end{minipage}
-  
-  \begin{minipage}[c]{.4\textwidth}
-  \begin{lstlisting}
+    \end{minipage}
+
+    \begin{minipage}[c]{.4\textwidth}
+      \begin{lstlisting}
 li s0, 0 // i = 0
 li s1, 100
 LOOP:
@@ -121,12 +120,12 @@ sw s3, 0(s2)
 addi s0, s0, 1
 jal zero, LOOP
 EXIT:\end{lstlisting} 
-  \end{minipage}
-  \hfill
-$\rightarrow$
-  \hfill
-  \begin{minipage}[c]{.4\textwidth}
-  \begin{lstlisting}
+      \end{minipage}
+      \hfill
+      $\rightarrow$
+      \hfill
+      \begin{minipage}[c]{.4\textwidth}
+        \begin{lstlisting}
 li s0, 0 // t = 0
 li s1, 10000
 LOOP:
@@ -135,125 +134,125 @@ sw s0, 0(a0)
 addi a0, a0, 4
 jal zero, LOOP
 EXIT:\end{lstlisting}
-  \end{minipage}
-  
-\item \textbf{CSE (Common Subexpression Elimination)}: elimino i calcoli ridondanti di una stessa espressione riutilizzata in pi\`u istruzioni (statement)\\
-  \begin{minipage}[c]{.4\textwidth}
-    \begin{lstlisting}
+      \end{minipage}
+
+    \item \textbf{CSE (Common Subexpression Elimination)}: elimino i calcoli ridondanti di una stessa espressione riutilizzata in pi\`u istruzioni (statement)\\
+      \begin{minipage}[c]{.4\textwidth}
+        \begin{lstlisting}
 y = b * c + 4
 z = b * c - 1\end{lstlisting}
-  \end{minipage}
-\hfill $\rightarrow$ \hfill
-\begin{minipage}[c]{.4\textwidth}
-\begin{lstlisting}
+      \end{minipage}
+      \hfill $\rightarrow$ \hfill
+      \begin{minipage}[c]{.4\textwidth}
+        \begin{lstlisting}
 x = b * c
 y = x + 4
 z = x - 1\end{lstlisting}
-\end{minipage}
-\item \textbf{DCE (Dead Code Elimination)}: elimino tutte le istruzioni che producono codice mai letto (e dunque utilizzato), es. variabili assegnate e mai lette, codice irraggiungibile $\rightarrow$ uno dei passi eseguiti pi\`u di frequente durante l'ottimizzazione del codice da parte del compilatore, per rimuovere anche tutto il dead code generato dagli altri passi di ottimizzazione\\
-  \begin{minipage}[c]{.4\textwidth}
-  \begin{lstlisting}
+      \end{minipage}
+    \item \textbf{DCE (Dead Code Elimination)}: elimino tutte le istruzioni che producono codice mai letto (e dunque utilizzato), es. variabili assegnate e mai lette, codice irraggiungibile $\rightarrow$ uno dei passi eseguiti pi\`u di frequente durante l'ottimizzazione del codice da parte del compilatore, per rimuovere anche tutto il dead code generato dagli altri passi di ottimizzazione\vspace{.5em}\\
+      \begin{minipage}[c]{.4\textwidth}
+        \begin{lstlisting}
 b = 3
 c = 1 + 3
 d = 3 + c\end{lstlisting}
-  \end{minipage}
-  \hfill $\rightarrow$ \hfill
-  \begin{minipage}[c]{.4\textwidth}
-  \begin{lstlisting}
+      \end{minipage}
+      \hfill $\rightarrow$ \hfill
+      \begin{minipage}[c]{.4\textwidth}
+        \begin{lstlisting}
 c = 1 + 3
 d = 3 + c\end{lstlisting}
-  \end{minipage}
+      \end{minipage}
 
-  \begin{minipage}[c]{.25\textwidth}
-  \begin{lstlisting}
+      \begin{minipage}[c]{.25\textwidth}
+        \begin{lstlisting}
 if (100<0)
-{a = 5}\end{lstlisting}
-  \end{minipage}
-  \hfill $\rightarrow$ \hfill
-  \begin{minipage}[c]{.25\textwidth}
-  \begin{lstlisting}
+  {a = 5}\end{lstlisting}
+      \end{minipage}
+      \hfill $\rightarrow$ \hfill
+      \begin{minipage}[c]{.25\textwidth}
+        \begin{lstlisting}
 if (false)
-{}\end{lstlisting}
-  \end{minipage}
-  \hfill $\rightarrow$ \hfill
-  \begin{minipage}[c]{.25\textwidth}
-  \begin{lstlisting}
+  {}\end{lstlisting}
+      \end{minipage}
+      \hfill $\rightarrow$ \hfill
+      \begin{minipage}[c]{.25\textwidth}
+        \begin{lstlisting}
 
-  \end{lstlisting}
-  \end{minipage}
-\item \textbf{Copy Propagation}: per uno statement \lstinline|x = y|, sostituisco gli usi futuri di \lstinline|x| con \lstinline|y| se non sono cambiati nel frattempo (propedeutico alla DCE)\\
-  \begin{minipage}[c]{.25\textwidth}
-  \begin{lstlisting}
+        \end{lstlisting}
+      \end{minipage}
+    \item \textbf{Copy Propagation}: per uno statement \lstinline|x = y|, sostituisco gli usi futuri di \lstinline|x| con \lstinline|y| se non sono cambiati nel frattempo (propedeutico alla DCE)\vspace{.5em}\\
+      \begin{minipage}[c]{.25\textwidth}
+        \begin{lstlisting}
 x = y;
 c = 1 + x;
 d = y + c;\end{lstlisting}
-  \end{minipage}
-  \hfill $\rightarrow$ \hfill
-  \begin{minipage}[c]{.25\textwidth}
-  \begin{lstlisting}
+      \end{minipage}
+      \hfill $\rightarrow$ \hfill
+      \begin{minipage}[c]{.25\textwidth}
+        \begin{lstlisting}
 x = y;
 c = 1 + y;
 d = y + c;\end{lstlisting}
-  \end{minipage}
-  \hfill $\tiny\underrightarrow{\text{DCE}}$ \hfill
-  \begin{minipage}[c]{.25\textwidth}
-  \begin{lstlisting}
+      \end{minipage}
+      \hfill $\tiny\underrightarrow{\text{DCE}}$ \hfill
+      \begin{minipage}[c]{.25\textwidth}
+        \begin{lstlisting}
 c = 1 + y;
 d = y + c;\end{lstlisting}
-  \end{minipage}
-\item \textbf{CP (Constant Propagation)}: sostituisco usi futuri di una variabile con assegnato valore costante con la costante stessa (se la variabile non cambia) (sempre ipotesi che i valori a fine es.~siano poi \textbf{usati}, e non dead code)\\
-  \begin{minipage}[c]{.25\textwidth}
-  \begin{lstlisting}
+      \end{minipage}
+    \item \textbf{CP (Constant Propagation)}: sostituisco usi futuri di una variabile con assegnato valore costante con la costante stessa (se la variabile non cambia) (sempre ipotesi che i valori a fine es.~siano poi \textbf{usati}, e non dead code)\vspace{.5em}\\
+      \begin{minipage}[c]{.25\textwidth}
+        \begin{lstlisting}
 b = 3;
 c = 1 + b;
 d = b + c;\end{lstlisting}
-  \end{minipage}
-  \hfill $\tiny\underrightarrow{\text{CP}}$ \hfill
-  \begin{minipage}[c]{.25\textwidth}
-  \begin{lstlisting}
+      \end{minipage}
+      \hfill $\tiny\underrightarrow{\text{CP}}$ \hfill
+      \begin{minipage}[c]{.25\textwidth}
+        \begin{lstlisting}
 b = 3;
 c = 1 + 3;
 d = 3 + c;\end{lstlisting}
-  \end{minipage}
-  \hfill $\tiny\underrightarrow{\text{CF}}$ \hfill
-  \begin{minipage}[c]{.25\textwidth}
-  \begin{lstlisting}
+      \end{minipage}
+      \hfill $\tiny\underrightarrow{\text{CF}}$ \hfill
+      \begin{minipage}[c]{.25\textwidth}
+        \begin{lstlisting}
 b = 3;
 c = 4;
 d = 3 + c;\end{lstlisting}
-  \end{minipage}
-  \hfill $\tiny\underrightarrow{\text{CP}}$ \hfill
+      \end{minipage}
+      \hfill $\tiny\underrightarrow{\text{CP}}$ \hfill
 
-  \hfill $\tiny\underrightarrow{\text{CP}}$ \hfill
-  \begin{minipage}[c]{.25\textwidth}
-  \begin{lstlisting}
+      \hfill $\tiny\underrightarrow{\text{CP}}$ \hfill
+      \begin{minipage}[c]{.25\textwidth}
+        \begin{lstlisting}
 b = 3;
 c = 4;
 d = 3 + 4;\end{lstlisting}
-  \end{minipage}
-  \hfill $\tiny\underrightarrow{\text{CF}}$ \hfill
-  \begin{minipage}[c]{.25\textwidth}
-  \begin{lstlisting}
+      \end{minipage}
+      \hfill $\tiny\underrightarrow{\text{CF}}$ \hfill
+      \begin{minipage}[c]{.25\textwidth}
+        \begin{lstlisting}
 b = 3;
 c = 4;
 d = 7;\end{lstlisting}
-  \end{minipage}
-  \hfill $\tiny\underrightarrow{\text{DCE}}$ \hfill
-  \begin{minipage}[c]{.25\textwidth}
-  \begin{lstlisting}
+      \end{minipage}
+      \hfill $\tiny\underrightarrow{\text{DCE}}$ \hfill
+      \begin{minipage}[c]{.25\textwidth}
+        \begin{lstlisting}
 d = 7;\end{lstlisting}
-  \end{minipage}
-\item LICM (Loop Invariant Code Motion): si occupa di muovere fuori dai loop tutto il codice \textbf{loop invariant}; evita i calcoli ridondanti\\
-  \begin{minipage}[c]{.4\textwidth}
-  \begin{lstlisting}
+      \end{minipage}
+    \item LICM (Loop Invariant Code Motion): si occupa di muovere fuori dai loop tutto il codice \textbf{loop invariant}; evita i calcoli ridondanti\\
+      \begin{minipage}[c]{.4\textwidth}
+        \begin{lstlisting}
 while (i < 100) {
   *p = x / y + i;
   i = i + 1;
 }\end{lstlisting}
-  \end{minipage}
-  \hfill $\rightarrow$ \hfill
-  \begin{minipage}[c]{.4\textwidth}
-  \begin{lstlisting}
+    \end{minipage}
+    \hfill $\rightarrow$ \hfill
+    \begin{minipage}[c]{.4\textwidth}
+      \begin{lstlisting}
 t = x / y;
 while (i < 100) {
   *p = t + i;
@@ -288,14 +287,14 @@ while (i < 100) {
 
 sono flag che passo al compilatore (al pass manager) per influenzare \textbf{ordine e numero dei passi di ottimizzazione}
 \begin{multicols}{2}
-\begin{itemize}
-  \item \lstinline|-g|: solo debugging, nessuna ottimizzazione
-  \item \lstinline|-O0|: nessuna ottimizzazione
-  \item \lstinline|-O1|: solo ott. semplici
-  \item \lstinline|-O2|: ott. pi\`u aggressive
-  \item \lstinline|-O3|: ordine dei passi che sfrutta compromessi tra velocit\`a e spazio occupato
-  \item \lstinline|-OS|: ottimizza per dimensione del compilato
-\end{itemize}
+  \begin{itemize}
+    \item \lstinline|-g|: solo debugging, nessuna ottimizzazione
+    \item \lstinline|-O0|: nessuna ottimizzazione
+    \item \lstinline|-O1|: solo ott. semplici
+    \item \lstinline|-O2|: ott. pi\`u aggressive
+    \item \lstinline|-O3|: ordine dei passi che sfrutta compromessi tra velocit\`a e spazio occupato
+    \item \lstinline|-OS|: ottimizza per dimensione del compilato
+  \end{itemize}
 \end{multicols}
 
 
@@ -354,7 +353,7 @@ scegliamo IR diverse a seconda del loro uso, in generale alcune caratteristiche 
     \begin{itemize}
       \item orientate ai grafi
       \item molto usate nella source-to-source translation, tipicam.~per ott.~che non hanno bisogno della struttura sofisticata di un middle-end\\
-      es.~openMP: di fatto annotazioni sul codice, come strumento semplice per la parall.~(es. \textbf{outlining}: prendo es un loop e lo impacchetto in una funzione che poi dovra essere eseguita dai thread per la parallelizzazione) - non sto ottimizzando nel senso proprio del termine, ma sto trasformando il codice e lo sto rendendo eseguibile in maniera parallela
+        es.~openMP: di fatto annotazioni sul codice, come strumento semplice per la parall.~(es. \textbf{outlining}: prendo es un loop e lo impacchetto in una funzione che poi dovra essere eseguita dai thread per la parallelizzazione) - non sto ottimizzando nel senso proprio del termine, ma sto trasformando il codice e lo sto rendendo eseguibile in maniera parallela
       \item solitamente voluminose (basate su grafi) - tradeoff con il fatto che non coinvolgono il middle-end
       \item es.~AST, DAG
     \end{itemize}
@@ -390,7 +389,7 @@ Albero i cui nodi rappresentano diverse parti del programma: il nodo radice rapp
 
 \vspace{1em}
 \noindent\begin{minipage}[c]{.3\textwidth}
-\includegraphics[width=\textwidth]{ir_1.png}
+  \includegraphics[width=\textwidth]{ir_1.png}
 \end{minipage}\hfill
 \begin{minipage}[c]{.67\textwidth}
 \begin{lstlisting}[linewidth=.5\linewidth]
@@ -414,11 +413,11 @@ Contrazione di ast che evita la duplicazione di espressioni $\rightarrow$ \textb
 \end{emphasize}
 
 \begin{example}[frametitle={Esempi}]
-   \noindent\begin{minipage}[c]{.18\textwidth}
-   \includegraphics[width=\textwidth]{ir_2.png}
-   \end{minipage}
-   \begin{minipage}[c]{.23\textwidth}
-      \begin{lstlisting}
+  \noindent\begin{minipage}[c]{.18\textwidth}
+    \includegraphics[width=\textwidth]{ir_2.png}
+  \end{minipage}
+  \begin{minipage}[c]{.23\textwidth}
+    \begin{lstlisting}
 x = a+a*(b-c);
 y = (b-c)*d;
 z = x+y;
@@ -428,12 +427,12 @@ t2 = a*t1;
 x = a+t2;
 y = t1*d;
 z = x+y;\end{lstlisting}
-   \end{minipage}\hfill\vline\hfill
-   \begin{minipage}[c]{.18\textwidth}
-   \includegraphics[width=\textwidth]{ir_3.png}
-   \end{minipage}
-   \begin{minipage}[c]{.35\textwidth}
-      \begin{lstlisting}
+  \end{minipage}\hfill\vline\hfill
+  \begin{minipage}[c]{.18\textwidth}
+    \includegraphics[width=\textwidth]{ir_3.png}
+  \end{minipage}
+  \begin{minipage}[c]{.35\textwidth}
+    \begin{lstlisting}
 a = b + c;
 b = a - d;
 c = b + c;
@@ -442,7 +441,7 @@ d = a - d;
 a = b + c; # cambia val.
 d = a - d;
 c = d + c;\end{lstlisting}
-   \end{minipage}
+  \end{minipage}
 \end{example}
 
 
@@ -450,9 +449,9 @@ c = d + c;\end{lstlisting}
 \subsubsection{3AC (3-Address Code)}
 
 \begin{minipage}[c]{.65\textwidth}
-Evidentemente adatto: tutte le istr.~del programma vengono spezzettate in istr.~di forma semplice simile all'assembly, di tipo \lstinline|x = y op z| (1 operatore, massimo 3 operandi)
+  Evidentemente adatto: tutte le istr.~del programma vengono spezzettate in istr.~di forma semplice simile all'assembly, di tipo \lstinline|x = y op z| (1 operatore, massimo 3 operandi)
 
-\noindent\hfill
+  \noindent\hfill
   \begin{minipage}[c]{.3\textwidth}
     \begin{lstlisting}
 x - 2 * y\end{lstlisting}
@@ -464,10 +463,10 @@ t1 = 2 * y
 t2 = x - t1\end{lstlisting}
   \end{minipage}\hfill
 \end{minipage}
-  \hfill
-  \begin{minipage}[c]{.3\textwidth}
+\hfill
+\begin{minipage}[c]{.3\textwidth}
   \includegraphics[width=\textwidth]{ir_4.png}
-  \end{minipage}
+\end{minipage}
 
 \textbf{PRO}:
 \begin{itemize}
@@ -481,18 +480,18 @@ t2 = x - t1\end{lstlisting}
 A seconda dei vincoli che ho per l'implementazione pratica:\\
 
 \noindent\begin{minipage}[c]{.7\textwidth}
-\begin{itemize}
-  \item \textbf{quadruple}: id istruzione, opcode, i 3 registri $\rightarrow$ semplice struttura record, facile da analizzare e riordinare ma i nomi espliciti prendono pi\`u spazio
-  \item \textbf{triple}: id istruzione, opcode, 2 operandi $\rightarrow$ uso l'indice dell'espressione nell'array come "nome" del registro destinazione $\rightarrow$ risparmio spazio, ma diventa piu complesso da analizzare (nomi impliciti) e riordinare
-\end{itemize}
-\begin{emphasize}[frametitle={Inapplicabilit\`a diretta della Constant Propagation con forma 3AC}]
-  La CP \`e applicabile solo se la variabile \textbf{se non cambia nel frattempo} $\rightarrow$ una IR di tipo 3AC non pu\`o applicarla immediatamente (devo prima analizzare il resto del codice)
-\end{emphasize}
+  \begin{itemize}
+    \item \textbf{quadruple}: id istruzione, opcode, i 3 registri $\rightarrow$ semplice struttura record, facile da analizzare e riordinare ma i nomi espliciti prendono pi\`u spazio
+    \item \textbf{triple}: id istruzione, opcode, 2 operandi $\rightarrow$ uso l'indice dell'espressione nell'array come "nome" del registro destinazione $\rightarrow$ risparmio spazio, ma diventa piu complesso da analizzare (nomi impliciti) e riordinare
+  \end{itemize}
+  \begin{emphasize}[frametitle={Inapplicabilit\`a diretta della Constant Propagation con forma 3AC}]
+    La CP \`e applicabile solo se la variabile \textbf{se non cambia nel frattempo} $\rightarrow$ una IR di tipo 3AC non pu\`o applicarla immediatamente (devo prima analizzare il resto del codice)
+  \end{emphasize}
 \end{minipage}
 \begin{minipage}[c]{.3\textwidth}
-\centering
-\includegraphics[width=.7\textwidth]{ir_5.png}
-\includegraphics[width=.7\textwidth]{ir_6.png}
+  \centering
+  \includegraphics[width=.7\textwidth]{ir_5.png}
+  \includegraphics[width=.7\textwidth]{ir_6.png}
 \end{minipage}
 
 \subsubsection{SSA (Static Single Assignment)}
@@ -514,42 +513,42 @@ A seconda dei vincoli che ho per l'implementazione pratica:\\
 \subsubsection{CFG (Control Flow Graph)}
 
 \noindent\begin{minipage}[c]{.65\textwidth}
-\begin{itemize}
-  \item modella il trasferimento (flusso) del controllo in un programma tra \textbf{blocchi} di istruzioni
-  \item permette di aggiungere informazioni sui \textbf{salti} al di sopra di una IR lineare
-  \item i suoi nodi sono Basic Block
-  \item gli archi rappresentano il flusso di controllo del programma (loop, condizioni, ecc.)
-\end{itemize}
+  \begin{itemize}
+    \item modella il trasferimento (flusso) del controllo in un programma tra \textbf{blocchi} di istruzioni
+    \item permette di aggiungere informazioni sui \textbf{salti} al di sopra di una IR lineare
+    \item i suoi nodi sono Basic Block
+    \item gli archi rappresentano il flusso di controllo del programma (loop, condizioni, ecc.)
+  \end{itemize}
 \end{minipage}
 \begin{minipage}[c]{.35\textwidth}
-\includegraphics[width=\textwidth]{ir_7.png}
+  \includegraphics[width=\textwidth]{ir_7.png}
 \end{minipage}
 
 {%
   \begin{wrapfigure}{r}{.325\textwidth}
-		\vspace{5em}
+    \vspace{5em}
     \hfill\includegraphics[width=0.3\textwidth]{ir_8.png}
-		\captionof{figure}{Esempio di CFG}
+    \captionof{figure}{Esempio di CFG}
   \end{wrapfigure}
-	\noindent\par \begin{itemize}
-		\item un BB \`e una seq.~di istruzioni in forma 3AC
-			\begin{itemize}
-				\item singolo \textit{entry point}: solo la prima istruzione puo essere raggiunta dall'esterno
-				\item singolo \textit{exit point}: se eseguo la prima istr.~\textbf{devo eseguire tutte le altre} - garantisco che venga \textbf{eseguito interamente}
-				\item Le chiamiamo sezioni single-entry, single-exit (possono essere sezioni anche piu grandi, ma le piu piccole di questo tipo sono i BB)
-			\end{itemize}
-		\item un arco connette due nodi $B_{i}\rightarrow B_{j}$ $\iff$ $b_{j}$ pu\`o eseguire dopo $B_{i}$ in qualche percorso del ctrl flow del programma
-			\begin{itemize}
-				\item prima istr.~di $B_{j}$ \`e target dell'istr.~di salto al termine di $B_{i}$
-				\item[$\lor$] $B_{i}$ non ha un istr.~di salto come ultima istr.~(nodo \textit{falltrough}) e $B_{j}$ \`e suo unico successore
-			\end{itemize}
-		\item un CFG \textbf{normalizzato} ha i BB \textbf{massimali}
-			\begin{itemize}
-				\item non possono essere resi pi\`u grandi senza violare condizioni
-				\item unisco i BB fallthrough che non hanno label all'inizio
-				\item posso avere CFG non norm.~dopo qualche generico passo di ottimizzazione (non le facciamo accadere "spontaneamente")
-			\end{itemize}
-	\end{itemize}%
+  \noindent\par \begin{itemize}
+    \item un BB \`e una seq.~di istruzioni in forma 3AC
+      \begin{itemize}
+        \item singolo \textit{entry point}: solo la prima istruzione puo essere raggiunta dall'esterno
+        \item singolo \textit{exit point}: se eseguo la prima istr.~\textbf{devo eseguire tutte le altre} - garantisco che venga \textbf{eseguito interamente}
+        \item Le chiamiamo sezioni single-entry, single-exit (possono essere sezioni anche piu grandi, ma le piu piccole di questo tipo sono i BB)
+      \end{itemize}
+    \item un arco connette due nodi $B_{i}\rightarrow B_{j}$ $\iff$ $b_{j}$ pu\`o eseguire dopo $B_{i}$ in qualche percorso del ctrl flow del programma
+      \begin{itemize}
+        \item prima istr.~di $B_{j}$ \`e target dell'istr.~di salto al termine di $B_{i}$
+        \item[$\lor$] $B_{i}$ non ha un istr.~di salto come ultima istr.~(nodo \textit{falltrough}) e $B_{j}$ \`e suo unico successore
+      \end{itemize}
+    \item un CFG \textbf{normalizzato} ha i BB \textbf{massimali}
+      \begin{itemize}
+        \item non possono essere resi pi\`u grandi senza violare condizioni
+        \item unisco i BB fallthrough che non hanno label all'inizio
+        \item posso avere CFG non norm.~dopo qualche generico passo di ottimizzazione (non le facciamo accadere "spontaneamente")
+      \end{itemize}
+  \end{itemize}%
 }
 
 
@@ -576,22 +575,22 @@ A seconda dei vincoli che ho per l'implementazione pratica:\\
 I nodi di un DG sono istruzioni; un arco connette due nodi di cui \textbf{uno usa il valore definito dall'altro}. Sono indispensabili per l'\textit{instruction scheduling} e per mantenere il CPI della pipeline (ricordiamo quella RISC-V):\\
 
 \noindent\begin{minipage}[c]{.6\textwidth}
-\begin{itemize}
-  \item[$\curvearrowright$] IF Instruction Fetch
-  \item[$\downarrow$] ID Instruction Decode
-  \item[$\downarrow$] EXE Execute
-  \item[$\downarrow$] MEM Memory Access
-  \item[$\hookleftarrow$] WB Write Back
-\end{itemize}
+  \begin{itemize}
+    \item[$\curvearrowright$] IF Instruction Fetch
+    \item[$\downarrow$] ID Instruction Decode
+    \item[$\downarrow$] EXE Execute
+    \item[$\downarrow$] MEM Memory Access
+    \item[$\hookleftarrow$] WB Write Back
+  \end{itemize}
 \end{minipage}
 \begin{minipage}[c]{.4\textwidth}
   \centering
-\includegraphics[width=.85\textwidth]{ir_9.png}
-\captionof{figure}{Esempio di data hazard}
+  \includegraphics[width=.85\textwidth]{ir_9.png}
+  \captionof{figure}{Esempio di data hazard}
 \end{minipage}\\
 
 \begin{example}[frametitle={Esempio: risultato di una \lstinline|add|}]
-   Se in fase di decode provo a leggere il registro usato in una \lstinline|add| immediatamente precedente, questo ancora non contiene il risultato aggiornato (pronto appena tra 2 cicli) $\rightarrow$ \textbf{data hazard}, gestito solitamente dalla \textbf{forwarding unit} che bypassa MEM e WB e inoltra direttamente il dato 
+  Se in fase di decode provo a leggere il registro usato in una \lstinline|add| immediatamente precedente, questo ancora non contiene il risultato aggiornato (pronto appena tra 2 cicli) $\rightarrow$ \textbf{data hazard}, gestito solitamente dalla \textbf{forwarding unit} che bypassa MEM e WB e inoltra direttamente il dato 
 \end{example}
 
 \begin{emphasize}[frametitle={Soluzione generica (inefficiente)}]
@@ -610,14 +609,14 @@ I nodi di un DG sono istruzioni; un arco connette due nodi di cui \textbf{uno us
 \subsubsection{CG (Call Graph)}
 
 \noindent\begin{minipage}[c]{.6\textwidth}
-Rappresentazione gerarchica a grafo usata per ragionare sull'insieme delle potenziali chiamate tra funzioni della translation unit del sorgente
+  Rappresentazione gerarchica a grafo usata per ragionare sull'insieme delle potenziali chiamate tra funzioni della translation unit del sorgente
 
-\begin{emphasize}[frametitle={Nota}]
-  Il compilatore ha visibilit\`a solo fino a livello dei singoli moduli: posso estendere le ottimizzazioni al massimo fino ai legami tra funzioni dello stesso modulo, quelle pi\`u ampie si spostano a framework di ott.~che agiscono es.~a livello di linker
-\end{emphasize}
+  \begin{emphasize}[frametitle={Nota}]
+    Il compilatore ha visibilit\`a solo fino a livello dei singoli moduli: posso estendere le ottimizzazioni al massimo fino ai legami tra funzioni dello stesso modulo, quelle pi\`u ampie si spostano a framework di ott.~che agiscono es.~a livello di linker
+  \end{emphasize}
 \end{minipage}
 \begin{minipage}[c]{.4\textwidth}
-\includegraphics[width=\textwidth]{ir_10.png}
+  \includegraphics[width=\textwidth]{ir_10.png}
 \end{minipage}
 
 \section{Ottimizzazione locale e Local Value Numbering}
@@ -625,16 +624,16 @@ Rappresentazione gerarchica a grafo usata per ragionare sull'insieme delle poten
 \subsection{Scope dell'ottimizzazione}
 
 \noindent\begin{minipage}[c]{.55\textwidth}
-Lo scope viene influenzato da come viene gestito il flusso di controllo in un programma
+  Lo scope viene influenzato da come viene gestito il flusso di controllo in un programma
 
-\begin{itemize}
-  \item ott.~\textbf{\textcolor{Emerald}{locale}}: entro un singolo BB, non si preoccupa del flusso
-  \item ott.~\textbf{\textcolor{Orange}{globale}}: lavora a livello dell'intero CFG
-  \item ott.~\textbf{\textcolor{Cerulean}{interprocedurale}}: lavora a livello del call graph, e quindi sui CFG di pi\`u funzioni
-\end{itemize}
+  \begin{itemize}
+    \item ott.~\textbf{\textcolor{Emerald}{locale}}: entro un singolo BB, non si preoccupa del flusso
+    \item ott.~\textbf{\textcolor{Orange}{globale}}: lavora a livello dell'intero CFG
+    \item ott.~\textbf{\textcolor{Cerulean}{interprocedurale}}: lavora a livello del call graph, e quindi sui CFG di pi\`u funzioni
+  \end{itemize}
 \end{minipage}\hfill
 \begin{minipage}[c]{.4\textwidth}
-\includegraphics[width=\textwidth]{lvn_1.png}
+  \includegraphics[width=\textwidth]{lvn_1.png}
 \end{minipage}
 
 \subsection{Dead Code Elimination}
@@ -642,10 +641,10 @@ Lo scope viene influenzato da come viene gestito il flusso di controllo in un pr
 Cominciamo ragionando su ott.~locali come la DCE (sono \textit{dead code} le istr.~che definiscono una variabile mai utilizzata)
 
 \noindent\begin{minipage}[b]{.65\textwidth}
-Sicuramente va tolta la def.~di c, ma poich\'e \lstinline|print| \textbf{non definisce nulla}, stando alla def.~\`e dead code! $\rightarrow$ Estendiamo la definizione dicendo che lo sono le istr \textbf{prive di side effects} che definiscono ... 
+  Sicuramente va tolta la def.~di c, ma poich\'e \lstinline|print| \textbf{non definisce nulla}, stando alla def.~\`e dead code! $\rightarrow$ Estendiamo la definizione dicendo che lo sono le istr \textbf{prive di side effects} che definiscono ... 
 \end{minipage}\hfill
 \begin{minipage}[c]{.3\textwidth}
-\begin{lstlisting}
+  \begin{lstlisting}
 main {
   int a = 4;
   int b = 2;
@@ -678,10 +677,10 @@ for instr in BB:
 for instr in BB:
   if instr.dest &&
      instr.dest not in used:
-        delete instr\end{lstlisting}
+delete instr\end{lstlisting}
 
 A questo punto rendiamolo iterativo, per farlo eseguire fino a "convergenza" (elimino tutto il \textit{d-c})
-  
+
 \begin{lstlisting}
 while prog changed:
 {
@@ -689,15 +688,15 @@ while prog changed:
 }\end{lstlisting}
 
 \noindent\begin{minipage}[c]{.3\textwidth}
-\begin{lstlisting}
+  \begin{lstlisting}
 main {
-	int a = 100;
-	int a = 42;
-	print a;
+  int a = 100;
+  int a = 42;
+  print a;
 }\end{lstlisting}
 \end{minipage}\hfill $\rightarrow$ \hfill
 \begin{minipage}[c]{.62\textwidth}
-Consideriamo questo esempio in cui si ridefinisce una variabile: il nostro algoritmo corrente non elimina nulla perch\'e non gestisce le \textbf{dead stores}
+  Consideriamo questo esempio in cui si ridefinisce una variabile: il nostro algoritmo corrente non elimina nulla perch\'e non gestisce le \textbf{dead stores}
 \end{minipage}
 
 \noindent $\rightarrow$ per estenderlo dobbiamo poter \textbf{rilevare gli assegnamenti multipli} di una variabile, e quindi anche \textbf{preoccuparci dell'ordine} delle istruzioni! (pi\`u complicato senza forma SSA)
@@ -711,11 +710,11 @@ Consideriamo questo esempio in cui si ridefinisce una variabile: il nostro algor
 last_def = {}; /* lista di variabili definite ma non usate (ptr alla piu' recente per le sole variabili mai usate) */
 
 for instr in BB:
-	last_def -= instr.args; /*rimuovo ogni argomento (operando) dell'istruzione corrente: se presente, e' un uso della variabile */
+  last_def -= instr.args; /*rimuovo ogni argomento (operando) dell'istruzione corrente: se presente, e' un uso della variabile */
 
-	if instr.dest in last_def:
-		delete last_def[instr.dest]; /*se a questo punto la destinazione dell'istr. corrente e' presente in last_def posso sovrascrivere la definizione precedente*/
-	last_def[instr.dest]=instr;\end{lstlisting}
+  if instr.dest in last_def:
+    delete last_def[instr.dest]; /*se a questo punto la destinazione dell'istr. corrente e' presente in last_def posso sovrascrivere la definizione precedente*/
+last_def[instr.dest]=instr;\end{lstlisting}
 
 \begin{itemize}
   \item nota: per situazioni tipo \lstinline|x=2; x=x+3;| si vuole evitare che la seconda istr.~venga eliminata perch\'e non ho realizzato che \lstinline|x| \`e usata (non \`e \textit{d-c}) $\rightarrow$ per questo controllo prima gli usi e poi le definizioni
@@ -743,39 +742,39 @@ sono tutti modelli di computazione che si focalizzano sulle \textbf{variabili} $
 \end{figure}
 
 \begin{itemize}
-	\item costruisco un metadato in forma di tabella che riscrive le espr.~(istruzioni) in funzione dei valori gia osservati $\rightarrow$ evitando di riassegnare lo stesso valore a piu variabili si evita la ridondanza
-	\item analizzo le istruzioni in termini del value, e in caso questo coincida con entry della tabella gi\`a presenti punto direttamente a quella
+  \item costruisco un metadato in forma di tabella che riscrive le espr.~(istruzioni) in funzione dei valori gia osservati $\rightarrow$ evitando di riassegnare lo stesso valore a piu variabili si evita la ridondanza
+  \item analizzo le istruzioni in termini del value, e in caso questo coincida con entry della tabella gi\`a presenti punto direttamente a quella
 \end{itemize}
 
 \begin{example}
-	\noindent\begin{minipage}[c]{.6\textwidth}
-		\includegraphics[width=\textwidth]{lvn_3.png}
-		\captionof{figure}{Esempio di ottimizzazione tramite LVN}
-	\end{minipage}\hfill
-	\begin{minipage}[c]{.3\textwidth}
-		\centering
-		\begin{lstlisting}
-	main {
-		int a = 4;
-		int b = 2;
-		int sum1 = a + b;
-		int prod = sum1 * sum1;
-		print prod;
-	}\end{lstlisting}
+  \noindent\begin{minipage}[c]{.6\textwidth}
+    \includegraphics[width=\textwidth]{lvn_3.png}
+    \captionof{figure}{Esempio di ottimizzazione tramite LVN}
+  \end{minipage}\hfill
+  \begin{minipage}[c]{.3\textwidth}
+    \centering
+    \begin{lstlisting}
+main {
+  int a = 4;
+  int b = 2;
+  int sum1 = a + b;
+  int prod = sum1 * sum1;
+  print prod;
+}\end{lstlisting}
 
-	Risultato ottenuto
+  Risultato ottenuto
 \end{minipage}
 \end{example}
 
 
 \noindent\begin{minipage}[c]{.3\textwidth}
-\begin{lstlisting}
+  \begin{lstlisting}
 #...
 int sum1 = a + b;
 int sum2 = b + a;\end{lstlisting}
 \end{minipage}\hfill $\rightarrow$
 \begin{minipage}[c]{.65\textwidth}
-Semplice variante del programma non riconosciuta dall'algoritmo (non conosce la pr.~commutativa della somma) $\rightarrow$ vado a \textbf{canonicalizzare} l'algoritmo, ovvero imporre un ordine numerico tra le entry (i valori) e usarle sempre in ordine crescente per le op.~commutative (di fatto svolto da tutti i compilatori)
+  Semplice variante del programma non riconosciuta dall'algoritmo (non conosce la pr.~commutativa della somma) $\rightarrow$ vado a \textbf{canonicalizzare} l'algoritmo, ovvero imporre un ordine numerico tra le entry (i valori) e usarle sempre in ordine crescente per le op.~commutative (di fatto svolto da tutti i compilatori)
 \end{minipage}
 
 \section{Data Flow Analysis}
@@ -792,34 +791,34 @@ La possiamo vedere come una \textbf{metodologia} o come un \textbf{framework} di
 La DFA \`e \textbf{sensibile al flusso di controllo in una funzione} e prevede un'analisi \textbf{intraprocedurale} (singola funzione, singolo CFG)
 
 \begin{example}
-	\noindent\begin{minipage}[c]{.3\textwidth}
-		\includegraphics[width=\textwidth]{dfa_1.png}
-	\end{minipage}\hfill
-	\begin{minipage}[c]{.65\textwidth}
-		La DFA ci permette di derivare informazioni da un CFG, ad esempio $\forall$ variabile \lstinline|x| in ogni punto del grafo:
-		\begin{itemize}
-			\item qual \`e il suo valore?
-			\item quale "definizione" la definisce?
-			\item la definizione \`e ancora "valida" (\textit{live})?
-		\end{itemize}
-	\end{minipage}
+  \noindent\begin{minipage}[c]{.3\textwidth}
+    \includegraphics[width=\textwidth]{dfa_1.png}
+  \end{minipage}\hfill
+  \begin{minipage}[c]{.65\textwidth}
+    La DFA ci permette di derivare informazioni da un CFG, ad esempio $\forall$ variabile \lstinline|x| in ogni punto del grafo:
+    \begin{itemize}
+      \item qual \`e il suo valore?
+      \item quale "definizione" la definisce?
+      \item la definizione \`e ancora "valida" (\textit{live})?
+    \end{itemize}
+  \end{minipage}
 
-\begin{emphasize}
-	Queste risposte normalmente le otteniamo grazie alla forma SSA delle istruzioni e alla struttura di LLVM, ma qui stiamo ancora "costruendo" la forma SSA
-\end{emphasize}
+  \begin{emphasize}
+    Queste risposte normalmente le otteniamo grazie alla forma SSA delle istruzioni e alla struttura di LLVM, ma qui stiamo ancora "costruendo" la forma SSA
+  \end{emphasize}
 \end{example}
 
 \subsubsection{Rappresentazione del programma statica o dinamica}
 
 \begin{itemize}
-	\item \textbf{statica}: programma finito, un pezzo di codice $\rightarrow$ molto facile da analizzare
-	\item \textbf{dinamica}: pu\`o avere infiniti percorsi di esecuzione, rappresenta una possibile esecuzione reale!
-		\begin{itemize}
-			\item es. loop che si basa sull'analisi di un input
-		\end{itemize}
-		\begin{emphasize}
-			condizioni che un compilatore \textbf{non pu\`o analizzare}, soprattutto non in maniera statica e \textit{finita} in termini di possibili istanze $\rightarrow$ spesso si passano al comp.~informazioni di "profiling" misurate durante ripetute esecuzioni del programma pre-ottimizzato
-		\end{emphasize}
+  \item \textbf{statica}: programma finito, un pezzo di codice $\rightarrow$ molto facile da analizzare
+  \item \textbf{dinamica}: pu\`o avere infiniti percorsi di esecuzione, rappresenta una possibile esecuzione reale!
+    \begin{itemize}
+      \item es. loop che si basa sull'analisi di un input
+    \end{itemize}
+    \begin{emphasize}
+      condizioni che un compilatore \textbf{non pu\`o analizzare}, soprattutto non in maniera statica e \textit{finita} in termini di possibili istanze $\rightarrow$ spesso si passano al comp.~informazioni di "profiling" misurate durante ripetute esecuzioni del programma pre-ottimizzato
+    \end{emphasize}
 \end{itemize}
 
 \noindent $\rightarrow$ Con la DFA siamo in grado di dire qualcosa \textbf{per ogni punto del programma}, combinando informazioni relative a \textbf{tutte le possibili istanze} dello stesso p.to
@@ -841,7 +840,7 @@ Combinando gli effetti delle singole istr.~si definiscono gli \textbf{effetti di
 
 \newpage
 \begin{example}
-\noindent \begin{minipage}[c]{.45\textwidth}
+  \noindent \begin{minipage}[c]{.45\textwidth}
     \begin{lstlisting}[numbers=right,numbersep=-10pt]
 t1 = r1+r2
 r2 = t1
@@ -852,27 +851,27 @@ r2 = t3
 if r2>100 goto L1\end{lstlisting}
 \end{minipage}\hfill
 \begin{minipage}[c]{.55\textwidth}
-\begin{itemize}
-  \item usi loc.~esposti: 1 (\lstinline|r1,r2|), 3 (\lstinline|r2|), ...
-  \item kill: 2 (\lstinline|r2|), ...
-  \item definizioni loc.~disponibili: 6 (\lstinline|r2|), 5 (\lstinline|t3|), ...
-\end{itemize}
+  \begin{itemize}
+    \item usi loc.~esposti: 1 (\lstinline|r1,r2|), 3 (\lstinline|r2|), ...
+    \item kill: 2 (\lstinline|r2|), ...
+    \item definizioni loc.~disponibili: 6 (\lstinline|r2|), 5 (\lstinline|t3|), ...
+  \end{itemize}
 \end{minipage}
 \end{example}
 
 \subsection{Reaching Definitions}
 
 \noindent \begin{minipage}[c]{.6\textwidth}
-Primo esempio di problema inquadrabile e risolvibile mediante DFA
-\begin{itemize}
-  \item ogni istruzione di assegnamento \`e una definizione
-  \item una definizione \textit{d} raggiunge (reaches) un punto it\textit{p} se esiste un percorso da \textit{d} a \textit{p} tale per chu d non \`e uccisa (sovrascritta) lungo quel percorso
-\end{itemize}
+  Primo esempio di problema inquadrabile e risolvibile mediante DFA
+  \begin{itemize}
+    \item ogni istruzione di assegnamento \`e una definizione
+    \item una definizione \textit{d} raggiunge (reaches) un punto it\textit{p} se esiste un percorso da \textit{d} a \textit{p} tale per chu d non \`e uccisa (sovrascritta) lungo quel percorso
+  \end{itemize}
 \end{minipage}
 \hfill
 \begin{minipage}[c]{.3\textwidth}
-\includegraphics[width=\textwidth]{dfa_2.png}
-\captionof{figure}{Esempio}
+  \includegraphics[width=\textwidth]{dfa_2.png}
+  \captionof{figure}{Esempio}
 \end{minipage}
 
 Definizione del problema:
@@ -882,33 +881,33 @@ Definizione del problema:
 \end{itemize}
 
 \begin{example}
-      \centering
-      \includegraphics[width=.45\textwidth]{dfa_3.png}\hfill
-      \includegraphics[width=.35\textwidth]{dfa_4.png}\\
-      \includegraphics[width=.45\textwidth]{dfa_5.png}\hfill
-      \includegraphics[width=.45\textwidth]{dfa_6.png}
+  \centering
+  \includegraphics[width=.45\textwidth]{dfa_3.png}\hfill
+  \includegraphics[width=.35\textwidth]{dfa_4.png}\\
+  \includegraphics[width=.45\textwidth]{dfa_5.png}\hfill
+  \includegraphics[width=.45\textwidth]{dfa_6.png}
 \end{example}
 
 
 \subsubsection{Schema DFA}
 
 \noindent\begin{minipage}[c]{.67\textwidth}
-Consideriamo un flow graph:
-\begin{itemize}
-  \item aggiungiamo un \textbf{BB entry} e uno \textbf{exit} $\rightarrow$ garantisco \textit{single-entry} e \textit{single-exit} points
-  \item per stabilire l'effetto del codice \textbf{in ciascun BB} uso delle \textbf{funzioni di trasferimento} $f_{B}$, che correlano $out[B], in[B]$ per un dato BB $B$
-  \item stabilisco l'effetto \textbf{del flusso di controllo} in base alla vicinanza dei blocchi: correlo $out[B_{i}], in[B_{j}]$ di blocchi adiacenti
-  \item infine dobbiamo solo risolvere le equazioni 
-\end{itemize}
+  Consideriamo un flow graph:
+  \begin{itemize}
+    \item aggiungiamo un \textbf{BB entry} e uno \textbf{exit} $\rightarrow$ garantisco \textit{single-entry} e \textit{single-exit} points
+    \item per stabilire l'effetto del codice \textbf{in ciascun BB} uso delle \textbf{funzioni di trasferimento} $f_{B}$, che correlano $out[B], in[B]$ per un dato BB $B$
+    \item stabilisco l'effetto \textbf{del flusso di controllo} in base alla vicinanza dei blocchi: correlo $out[B_{i}], in[B_{j}]$ di blocchi adiacenti
+    \item infine dobbiamo solo risolvere le equazioni 
+  \end{itemize}
 \end{minipage}
 \hfill
 \begin{minipage}[c]{.3\textwidth}
-\includegraphics[width=\textwidth]{dfa_7.png}
+  \includegraphics[width=\textwidth]{dfa_7.png}
 \end{minipage}
 
 \vspace{-1em}
 \begin{emphasize}
-    Nota: stabiliamo anche una cosiddetta \textbf{boundary condition}, ovvero qual \`e l'informazione che riceve il primo BB dall'\textit{entry block} $\rightarrow$ per le Reaching Definitions stabiliamo $out[entry] = \emptyset$
+  Nota: stabiliamo anche una cosiddetta \textbf{boundary condition}, ovvero qual \`e l'informazione che riceve il primo BB dall'\textit{entry block} $\rightarrow$ per le Reaching Definitions stabiliamo $out[entry] = \emptyset$
 \end{emphasize}
 
 
@@ -917,20 +916,20 @@ Consideriamo un flow graph:
 \begin{itemize}
   \item la fz.~di trasferimento di uno statement astrae l'esecuzione rispetto al problema di interesse
   \item per uno statement $s$ (\lstinline|d: x = y + z|):
-  \begin{itemize}
-    \item $Gen[s]$: definizioni \textbf{generate} ($Gen[s] = \lbrace\texttt{d}\rbrace$)
-    \item definizioni \textbf{propagate}: $in[s] - Kill[s]$ dove $Kill[s]$ sono le altre definizioni di \lstinline|x| nel resto del programma
-    \item funzione di trasferimento di uno statement $s$:
-    \begin{equation*}
-      out[s] = f_{s}(in[s]) = Gen[s] \cup (in[s] - Kill[s]) 
-    \end{equation*}
-    
-  \end{itemize}
-  
+    \begin{itemize}
+      \item $Gen[s]$: definizioni \textbf{generate} ($Gen[s] = \lbrace\texttt{d}\rbrace$)
+      \item definizioni \textbf{propagate}: $in[s] - Kill[s]$ dove $Kill[s]$ sono le altre definizioni di \lstinline|x| nel resto del programma
+      \item funzione di trasferimento di uno statement $s$:
+        \begin{equation*}
+          out[s] = f_{s}(in[s]) = Gen[s] \cup (in[s] - Kill[s]) 
+        \end{equation*}
+
+    \end{itemize}
+
   \item in altre parole, $Gen$ \`e l'insieme di propriet\`a \textbf{generate} dal blocco, $Kill$ l'insieme di quelle \textbf{eliminate} nel blocco e $in$ l'insieme di quelle \textbf{ereditate}
-  \begin{emphasize}
+    \begin{emphasize}
       Stiamo lavorando su bit vector $\rightarrow$ una $f_{s}$ riempie $out[s]$ a partire da $in[s]$ e applicando qualche tipo di calcolo
-  \end{emphasize}
+    \end{emphasize}
 \end{itemize}
 
 \vspace{-2em}
@@ -969,10 +968,10 @@ In caso di predecessori multipli, devo decidere con che criterio unire l'informa
 \begin{itemize}
   \item nodo di unione (\textbf{join}): nodo con \textbf{predecessori} multipli
   \item operatore di \textbf{meet} ($\wedge$): $in[B] = out[p_1] \cup \ldots \cup out[p_n]$ con $p_1,\ldots,p_n$ tutti predecessori di $B$
-  \begin{emphasize}
-    Il meet operator \`e \textbf{specifico del problema}, non dell'analisi mediante DFA!
-    \noindent $\rightarrow$ Per il problema delle reaching definitions, usiamo $\wedge = \cup$ in quanto la condizione deve essere verificata per \textit{almeno un percorso}
-  \end{emphasize}
+    \begin{emphasize}
+      Il meet operator \`e \textbf{specifico del problema}, non dell'analisi mediante DFA!
+      \noindent $\rightarrow$ Per il problema delle reaching definitions, usiamo $\wedge = \cup$ in quanto la condizione deve essere verificata per \textit{almeno un percorso}
+    \end{emphasize}
 \end{itemize}
 
 \begin{figure}[h]
@@ -1004,25 +1003,25 @@ input: control flow graph CFG = (N, E, Entry, Exit)
   while (changes to any out[] occur) {
     in[B] = $\cup$ (out[p]), for all predecessors p of B
     out[B] = f$_B$(in[B])   // $\textcolor{codeblue}{out[B] = Gen[B] \cup (in[B] - Kill[B])}$
-  }\end{lstlisting}
+}\end{lstlisting}
 
 \begin{example}[frametitle={Esempio di eseguzione}]
-    \noindent\begin{minipage}[c]{.45\textwidth}
+  \noindent\begin{minipage}[c]{.45\textwidth}
     \begin{emphasize-blue}
       La rappresentazione del bit-vector segue l'ordine di numerazione delle definizioni: \lstinline|IN[B1] = <000 00 0 0>| con \lstinline|d1| primo bit, ...
     \end{emphasize-blue}
-    
+
     Nota: dopo la seconda iterazione $out[B2]$ non cambia pi\`u
-    \end{minipage}
+  \end{minipage}
   \begin{minipage}[c]{.55\textwidth}
-  \includegraphics[width=\textwidth]{dfa_10.png}
+    \includegraphics[width=\textwidth]{dfa_10.png}
   \end{minipage}
 \end{example}
 
 \subsubsection{Algoritmo Worklist}
 
 La worklist contiene le variabili che devono ancora essere processate. Quando la worklist \`e vuota l'algoritmo termina.
-  
+
 \begin{lstlisting}
 input: control flow graph CFG = (N, E, Entry, Exit)
 
@@ -1050,24 +1049,24 @@ input: control flow graph CFG = (N, E, Entry, Exit)
 \subsubsection{Live Variable Analysis}
 
 \noindent\begin{minipage}[c]{.7\textwidth}
-\paragraph{Definizione:}
+  \paragraph{Definizione:}
 
-Una variabile \lstinline|v| \`e \textbf{viva} (\textit{live}) in un punto \textit{p} del programma se il valore di \lstinline|v| \`e usato lungo qualche percorso del FG a partire da \textit{p} (altrimenti \`e \textbf{morta})\\
+  Una variabile \lstinline|v| \`e \textbf{viva} (\textit{live}) in un punto \textit{p} del programma se il valore di \lstinline|v| \`e usato lungo qualche percorso del FG a partire da \textit{p} (altrimenti \`e \textbf{morta})\\
 
-\paragraph{Motivi dell'analisi:}
+  \paragraph{Motivi dell'analisi:}
 
-(oltre alla DCE) es. \textit{register allocation}: i registri reali sono limitati - la \textit{ra} \`e l'operazione che cerca di evitare le spill in cache e in memoria, cercando i casi in cui risulta possibile \textbf{riutilizzare} un certo registro $\rightarrow$ dipende evidentemente dalla liveness di una variabile\\
+  (oltre alla DCE) es. \textit{register allocation}: i registri reali sono limitati - la \textit{ra} \`e l'operazione che cerca di evitare le spill in cache e in memoria, cercando i casi in cui risulta possibile \textbf{riutilizzare} un certo registro $\rightarrow$ dipende evidentemente dalla liveness di una variabile\\
 
-\paragraph{Definizione del problema DFA}
+  \paragraph{Definizione del problema DFA}
 
-\begin{itemize}
-  \item devo stabilire $\forall$ BB quali sono le variabili \textbf{vive} in ciascuno di essi
-  \item bit-vector di lunghezza pari al numero di variabili
-\end{itemize}
+  \begin{itemize}
+    \item devo stabilire $\forall$ BB quali sono le variabili \textbf{vive} in ciascuno di essi
+    \item bit-vector di lunghezza pari al numero di variabili
+  \end{itemize}
 \end{minipage}
 \begin{minipage}[c]{.3\textwidth}
-\includegraphics[width=\textwidth]{dfa_11.png}
-\includegraphics[width=\textwidth]{dfa_12.png}
+  \includegraphics[width=\textwidth]{dfa_11.png}
+  \includegraphics[width=\textwidth]{dfa_12.png}
 \end{minipage}
 
 \subsubsection{Forward e Backward analysis}
@@ -1084,9 +1083,9 @@ Per la formulazione pi\`u tipica della \textit{LA} (ce ne sono diverse, a second
   \item l'insieme delle variabili \textbf{definite} nel BB ($Def[B]$)
   \item le variabili vive in ingresso che il bb pu\`o propagare ($Out[B] - Def[B]$)
   \item[$\rightarrow$] \textbf{funzione di trasferimento} per il blocco $B$:
-  \begin{equation*}
-    In[B] = Use[B] \cup (Out[B] Def[B]) 
-  \end{equation*}
+    \begin{equation*}
+      In[B] = Use[B] \cup (Out[B] Def[B]) 
+    \end{equation*}
 \end{itemize}
 
 \paragraph{Flow Graph}
@@ -1101,15 +1100,15 @@ Per la formulazione pi\`u tipica della \textit{LA} (ce ne sono diverse, a second
 \subsubsection{Algoritmo iterativo}
 
 \noindent\begin{minipage}[c]{.3\textwidth}
-\begin{itemize}
-  \item \textbf{boundary condition}: $\emptyset$
-  \item \textbf{starting conditions}: $\emptyset$
-\end{itemize}
+  \begin{itemize}
+    \item \textbf{boundary condition}: $\emptyset$
+    \item \textbf{starting conditions}: $\emptyset$
+  \end{itemize}
 \end{minipage}\hfill
 \begin{minipage}[c]{.67\textwidth}
-\begin{emphasize}
-  La scelta delle condizioni iniziali deriva principalmente dalla scelta del meet operator - se per qualsiasi motivo scegliessimo come meet operator $\cap$, usare $\emptyset$ impedirebbe qualsiasi propagazione dell'informazione
-\end{emphasize}
+  \begin{emphasize}
+    La scelta delle condizioni iniziali deriva principalmente dalla scelta del meet operator - se per qualsiasi motivo scegliessimo come meet operator $\cap$, usare $\emptyset$ impedirebbe qualsiasi propagazione dell'informazione
+  \end{emphasize}
 \end{minipage}
 
 \vspace{1em}
@@ -1156,24 +1155,24 @@ Altro problema modellabile tramite DFA, utile ad es.~per la Common Subexpression
 \begin{center}
   \begin{minipage}[c]{.4\textwidth}
     \begin{lstlisting}[linewidth=.6\linewidth]
-  if (...) {
-    x = m + n;
-  } else {
-    y = m + n;
-  }
-    z = m + n;\end{lstlisting}
-    \lstinline|m + n| \`e ridondante perch\'e gi\`a calcolato
-  \end{minipage}\quad
-  \begin{minipage}[c]{.5\textwidth}
+if (...) {
+  x = m + n;
+} else {
+  y = m + n;
+}
+z = m + n;\end{lstlisting}
+  \lstinline|m + n| \`e ridondante perch\'e gi\`a calcolato
+\end{minipage}\quad
+\begin{minipage}[c]{.5\textwidth}
     \begin{lstlisting}[linewidth=.48\linewidth]
-  if (...) {
-    x = m + n;
-  } else {
-    ...
-  }
-    z = m + n;\end{lstlisting}
-    Cosa cambia se non viene calcolato nel ramo \lstinline|else|?
-  \end{minipage}
+if (...) {
+  x = m + n;
+} else {
+  ...
+}
+z = m + n;\end{lstlisting}
+Cosa cambia se non viene calcolato nel ramo \lstinline|else|?
+\end{minipage}
 \end{center}
 
 Il concetto di available expr.~\`e necessario come maniera rigorosa di ragionare sulla \textbf{ridondanza}
@@ -1208,31 +1207,31 @@ Il concetto di available expr.~\`e necessario come maniera rigorosa di ragionare
 \end{itemize}
 
 \noindent\begin{minipage}[c]{.5\textwidth}
-\begin{itemize}
-  \item \textbf{boundary conditions}: $Out[Entry] = \emptyset$
-  \item \textbf{initial conditions}:
-    \begin{itemize}
-      \item $\textcolor{red}{\xcancel{\textcolor{black}{Out[B_{i}] = \emptyset}}}$ $\rightarrow$ il meet op.~\`e $\cap$
-      \item $Out[B_{i}] = \mathcal{U}$
-    \end{itemize}
-\end{itemize}
+  \begin{itemize}
+    \item \textbf{boundary conditions}: $Out[Entry] = \emptyset$
+    \item \textbf{initial conditions}:
+      \begin{itemize}
+        \item $\textcolor{red}{\xcancel{\textcolor{black}{Out[B_{i}] = \emptyset}}}$ $\rightarrow$ il meet op.~\`e $\cap$
+        \item $Out[B_{i}] = \mathcal{U}$
+      \end{itemize}
+  \end{itemize}
 \end{minipage}\hfill
 \begin{minipage}[c]{.4\textwidth}
-\includegraphics[width=\textwidth]{dfa_17.png}
-\captionof{figure}{Tabella completa}
+  \includegraphics[width=\textwidth]{dfa_17.png}
+  \captionof{figure}{Tabella completa}
 \end{minipage}
 
 \begin{example}
-\noindent\begin{minipage}[c]{.65\textwidth}
-  Risolto su fogli, dominio $\lbrace$\lstinline|a=b,a*b,a-1|$\rbrace$
-\begin{emphasize}
-  Essendo la DFA per natura \textbf{statica}, considera sempre il caso \textbf{peggiore} di esecuzione.\\
-  Il risultato dell'analisi sarebbe diverso se conoscessi l'istanza specifica - sapendo ad es.~che BB4 sar\`a falso potrei fare delle assunzioni che, staticamente, non posso fare $\rightarrow$ ritorno conservativamente al caso peggiore che il loop esegua almeno una volta
-\end{emphasize}
-\end{minipage}\hfill
-\begin{minipage}[c]{.3\textwidth}
-\includegraphics[width=\textwidth]{dfa_16.png}
-\end{minipage}
+  \noindent\begin{minipage}[c]{.65\textwidth}
+    Risolto su fogli, dominio $\lbrace$\lstinline|a=b,a*b,a-1|$\rbrace$
+    \begin{emphasize}
+      Essendo la DFA per natura \textbf{statica}, considera sempre il caso \textbf{peggiore} di esecuzione.\\
+      Il risultato dell'analisi sarebbe diverso se conoscessi l'istanza specifica - sapendo ad es.~che BB4 sar\`a falso potrei fare delle assunzioni che, staticamente, non posso fare $\rightarrow$ ritorno conservativamente al caso peggiore che il loop esegua almeno una volta
+    \end{emphasize}
+  \end{minipage}\hfill
+  \begin{minipage}[c]{.3\textwidth}
+    \includegraphics[width=\textwidth]{dfa_16.png}
+  \end{minipage}
 \end{example}
 
 \section{Loops e UD-DU chains}
@@ -1242,21 +1241,21 @@ Il concetto di available expr.~\`e necessario come maniera rigorosa di ragionare
 Sapendo che un programma spende la maggior parte del tempo nei loop, l'obiettivo \`e definire un loop \textbf{in termini di teoria dei grafi} (CFG), ovvero \textbf{indipendentemente dalla loro sintassi e dal tipo} (\lstinline|for|, \lstinline|while|, \lstinline|goto|, costrutti stile assembly con salti condizionati e non...)\\
 
 \noindent\begin{minipage}[c]{.45\textwidth}
-\textbf{Elementi chiave per riconoscere un loop}:
-\begin{itemize}
-  \item gli archi devono formare almeno un ciclo
-  \item (fondamentale) \textbf{singolo entry point} (tutti gli archi, se multipli, devono entrare nello stesso punto)
-\end{itemize}
+  \textbf{Elementi chiave per riconoscere un loop}:
+  \begin{itemize}
+    \item gli archi devono formare almeno un ciclo
+    \item (fondamentale) \textbf{singolo entry point} (tutti gli archi, se multipli, devono entrare nello stesso punto)
+  \end{itemize}
 \end{minipage}\hfill
 \begin{minipage}[c]{.5\textwidth}
-\begin{example}[frametitle={}]
-  \noindent\begin{minipage}[c]{.7\textwidth}
-    Generalmente, non tutti i \textit{cicli} sono un "loop" da un p.to di vista dell'ottimizzazione: $\textcolor{red}{c\rightarrow d}$ \`e un loop, $\textcolor{blue}{a\rightarrow c \rightarrow d}$ no
-  \end{minipage}\hfill
-  \begin{minipage}[c]{.25\textwidth}
-  \includegraphics[width=\textwidth]{uddu_1.png}
-  \end{minipage}
-\end{example}
+  \begin{example}[frametitle={}]
+    \noindent\begin{minipage}[c]{.7\textwidth}
+      Generalmente, non tutti i \textit{cicli} sono un "loop" da un p.to di vista dell'ottimizzazione: $\textcolor{red}{c\rightarrow d}$ \`e un loop, $\textcolor{blue}{a\rightarrow c \rightarrow d}$ no
+    \end{minipage}\hfill
+    \begin{minipage}[c]{.25\textwidth}
+      \includegraphics[width=\textwidth]{uddu_1.png}
+    \end{minipage}
+  \end{example}
 \end{minipage}
 
 \subsubsection{Definizioni formali}
@@ -1282,16 +1281,16 @@ Modo per rappresentare la propriet\`a di dominanza \textbf{in forma di albero}
 \end{itemize}
 
 \begin{example}[frametitle={Esempi di DT}]
-   \begin{minipage}[c]{.24\textwidth}
-   \includegraphics[width=\textwidth]{uddu_2.png}
-   \end{minipage}
-   \begin{minipage}[c]{.24\textwidth}
-   \includegraphics[width=\textwidth]{uddu_3.png}
-   \end{minipage}\hfill\vline\hfill
-   \begin{minipage}[c]{.48\textwidth}
-   \includegraphics[width=\textwidth]{uddu_4.png}
-   \label{example-dt}
-   \end{minipage}
+  \begin{minipage}[c]{.24\textwidth}
+    \includegraphics[width=\textwidth]{uddu_2.png}
+  \end{minipage}
+  \begin{minipage}[c]{.24\textwidth}
+    \includegraphics[width=\textwidth]{uddu_3.png}
+  \end{minipage}\hfill\vline\hfill
+  \begin{minipage}[c]{.48\textwidth}
+    \includegraphics[width=\textwidth]{uddu_4.png}
+    \label{example-dt}
+  \end{minipage}
 \end{example}
 
 
@@ -1318,21 +1317,21 @@ Lo impostiamo in termini di DFA (vedi secondo assignment)
 \subsubsection{Trovare i back edges}
 
 \noindent \begin{minipage}[c]{.67\textwidth}
-Usiamo un algoritmo basato su \textit{depth-first traversal
-}
-\begin{itemize}
-  \item inizio alla radice e visito \textbf{ricorsivamente} i figli di ogni nodo \textbf{in qualsiasi ordine}
-  \item importante la "velocit\`a di discesa": prima scendo ed esploro \textbf{in profondit\`a}, a prescindere dall'ordine
-\end{itemize}
+  Usiamo un algoritmo basato su \textit{depth-first traversal
+  }
+  \begin{itemize}
+    \item inizio alla radice e visito \textbf{ricorsivamente} i figli di ogni nodo \textbf{in qualsiasi ordine}
+    \item importante la "velocit\`a di discesa": prima scendo ed esploro \textbf{in profondit\`a}, a prescindere dall'ordine
+  \end{itemize}
 
-Il percorso della visita definisce un \textbf{depth-first spanning tree (DFST)}:
-\begin{itemize}
-  \item archi \textbf{solidi}: struttura del DT
-  \item archi \textbf{tratteggiati}: altri archi del CFG
-\end{itemize}
+  Il percorso della visita definisce un \textbf{depth-first spanning tree (DFST)}:
+  \begin{itemize}
+    \item archi \textbf{solidi}: struttura del DT
+    \item archi \textbf{tratteggiati}: altri archi del CFG
+  \end{itemize}
 \end{minipage}\hfill
 \begin{minipage}[c]{.3\textwidth}
-\includegraphics[width=\textwidth]{uddu_5.png}
+  \includegraphics[width=\textwidth]{uddu_5.png}
 \end{minipage}
 
 \paragraph{Categorizzazione degli archi}
@@ -1344,24 +1343,24 @@ Il percorso della visita definisce un \textbf{depth-first spanning tree (DFST)}:
 \end{itemize}
 
 \begin{emphasize}
-    Se disegniamo il DFST in modo che i figli siano aggiunti da sx a dx nell'ordine di visita, allora i cross edges vanno sempre da dx a sx
+  Se disegniamo il DFST in modo che i figli siano aggiunti da sx a dx nell'ordine di visita, allora i cross edges vanno sempre da dx a sx
 \end{emphasize}
 
 \noindent \begin{minipage}[c]{.67\textwidth}
-\paragraph{Algoritmo}
+  \paragraph{Algoritmo}
 
-\begin{itemize}
-  \item esegui una depth-first search
-  \item $\forall$ retreating edge $t \rightarrow h$ controlla se \textit{h dom t}
-\end{itemize}
+  \begin{itemize}
+    \item esegui una depth-first search
+    \item $\forall$ retreating edge $t \rightarrow h$ controlla se \textit{h dom t}
+  \end{itemize}
 
 
-\begin{emphasize}
-  Vado a riconoscere i \textit{back edges} come casi specifici di \textit{retreating edges} $\rightarrow$ la maggior parte dei programmi hanno control flow \textbf{riducibili}, ovvero tutti i \textit{retreating edges} sono anche back
-\end{emphasize}
+  \begin{emphasize}
+    Vado a riconoscere i \textit{back edges} come casi specifici di \textit{retreating edges} $\rightarrow$ la maggior parte dei programmi hanno control flow \textbf{riducibili}, ovvero tutti i \textit{retreating edges} sono anche back
+  \end{emphasize}
 \end{minipage}\hfill
 \begin{minipage}[c]{.3\textwidth}
-\includegraphics[width=\textwidth]{uddu_5b.png}
+  \includegraphics[width=\textwidth]{uddu_5b.png}
 \end{minipage}
 
 \subsubsection{Trovare il loop naturale associato}
@@ -1380,11 +1379,11 @@ $\rightarrow$ genericamente rappresento i loop in maniera "header-centrica"
 \subsection{Preheader}
 
 \noindent\begin{minipage}[c]{.65\textwidth}
-Spesso (propedeutico a varie ott.) \`e necessario garantire che, quando arrivo all'header, ci arrivo tramite arco \textit{fallthrough}: es.~LICM (caso di code hoisting), che sposta un'istr.~in un punto comune al control flow di tutte le iterazioni del loop\\
-$\rightarrow$ tipicamente inserisco un blocco \textit{preheader} appena prima del loop, apposta per inserire le istr.~"hoistate"
+  Spesso (propedeutico a varie ott.) \`e necessario garantire che, quando arrivo all'header, ci arrivo tramite arco \textit{fallthrough}: es.~LICM (caso di code hoisting), che sposta un'istr.~in un punto comune al control flow di tutte le iterazioni del loop\\
+  $\rightarrow$ tipicamente inserisco un blocco \textit{preheader} appena prima del loop, apposta per inserire le istr.~"hoistate"
 \end{minipage}\hfill
 \begin{minipage}[c]{.3\textwidth}
-\includegraphics[width=\textwidth]{uddu_6.png}
+  \includegraphics[width=\textwidth]{uddu_6.png}
 \end{minipage}
 
 \begin{emphasize}
@@ -1412,34 +1411,34 @@ Le definizioni di DU e UD chain \textbf{precedono quella di SSA} $\rightarrow$ l
     \includegraphics[width=\textwidth]{uddu_7.png}
   \end{minipage}
 
-\noindent A questo tipo di ottimizzazioni beneficia molto poter scorrere agevolmente le relazioni DU delle variabili $\rightarrow$ vogliamo un'IR che lo preveda e dunque permetta una \textbf{forma di analisi "sparsa"} (ignoro tutte le istruzioni non relative alla var.~correntemente analizzata)
+  \noindent A questo tipo di ottimizzazioni beneficia molto poter scorrere agevolmente le relazioni DU delle variabili $\rightarrow$ vogliamo un'IR che lo preveda e dunque permetta una \textbf{forma di analisi "sparsa"} (ignoro tutte le istruzioni non relative alla var.~correntemente analizzata)
 \end{example}
 
 In generale le catene possono essere onerose (per $N$ defs e $M$ uses, $O(NM)$ spazio e tempo) $\rightarrow$ Possiamo semplificare ulteriormente se riusciamo a \textbf{ridefinire completamente anche il nome della variabile ad ogni sua ridefinizione} (ci avviciniamo a SSA) (permette catene sensibilmente pi\`u corte)
 
 \noindent\begin{minipage}[b]{.45\textwidth}
   \centering
-\includegraphics[width=.65\textwidth]{uddu_8.png}
-\captionof{figure}{Un altro motivo per rinominare le ridefinizioni \`e che occorrenze della stessa variabile potrebbero essere scorrelate e dunque ottimizzabili separatamente}
+  \includegraphics[width=.65\textwidth]{uddu_8.png}
+  \captionof{figure}{Un altro motivo per rinominare le ridefinizioni \`e che occorrenze della stessa variabile potrebbero essere scorrelate e dunque ottimizzabili separatamente}
 \end{minipage}\hfill
 \begin{minipage}[b]{.5\textwidth}
   \centering
-\includegraphics[width=.65\textwidth]{uddu_9.png}
-\captionof{figure}{Esempio di catena onerosa. Ulteriore soluzione \`e \underline{limitare ogni variabile a una definizione}}
+  \includegraphics[width=.65\textwidth]{uddu_9.png}
+  \captionof{figure}{Esempio di catena onerosa. Ulteriore soluzione \`e \underline{limitare ogni variabile a una definizione}}
 \end{minipage}
 
 \section{Static Single Assignment (SSA)}
 
 \noindent\begin{minipage}[t]{.4\textwidth}
   \vspace{.5em}
-Forma di IR dove ad ogni variabile viene \textbf{assegnato un valore solo una volta}\\ $\rightarrow$ Facile dentro ad un BB, ma cosa succede nei punti di \textbf{join} di un CFG?\\
-$\rightarrow$ \textbf{usiamo una notazione fittizia: la $\Phi$ function}
+  Forma di IR dove ad ogni variabile viene \textbf{assegnato un valore solo una volta}\\ $\rightarrow$ Facile dentro ad un BB, ma cosa succede nei punti di \textbf{join} di un CFG?\\
+  $\rightarrow$ \textbf{usiamo una notazione fittizia: la $\Phi$ function}
 \end{minipage}\hfill
 \begin{minipage}[t]{.58\textwidth}
-\begin{example}[frametitle={Local value numbering}]
-  \begin{center}
-    \includegraphics[width=\textwidth]{uddu_10.png}
-  \end{center}
+  \begin{example}[frametitle={Local value numbering}]
+    \begin{center}
+      \includegraphics[width=\textwidth]{uddu_10.png}
+    \end{center}
 
     All'interno di un BB posso fare \textit{local value numbering}, visitando ogni istruzione in ordine:
     \begin{itemize}
@@ -1447,11 +1446,11 @@ $\rightarrow$ \textbf{usiamo una notazione fittizia: la $\Phi$ function}
       \item RHS: usa la versione pi\`u recente della stessa
     \end{itemize}
 
-\end{example}
+  \end{example}
 \end{minipage}
 
 \noindent\begin{minipage}[c]{.4\textwidth}
-\begin{lstlisting}
+  \begin{lstlisting}
 c $\leftarrow$ 12
 if (i) {
   a $\leftarrow$ x + y
@@ -1462,30 +1461,30 @@ if (i) {
 }
 a $\leftarrow$ c + a\end{lstlisting}
 \end{minipage} \hfill $\rightarrow$ \hfill
-\begin{minipage}[c]{.4\textwidth}
-\includegraphics[width=\textwidth]{uddu_10b.png}
+\begin{minipage}[c]{.35\textwidth}
+  \includegraphics[width=\textwidth]{uddu_10b.png}
 \end{minipage}
 
 \subsection{La funzione $\Phi$}
 
 \noindent\begin{minipage}[c]{.65\textwidth}
-\begin{itemize}
-  \item $\Phi$ fonde multiple definizioni derivanti da multipli percorsi in una singola definizione
-  \item per un BB con \textit{p} predecessori ci sono \textit{p} argomenti nella funzione $\Phi$:
-  \begin{lstlisting}
+  \begin{itemize}
+    \item $\Phi$ fonde multiple definizioni derivanti da multipli percorsi in una singola definizione
+    \item per un BB con \textit{p} predecessori ci sono \textit{p} argomenti nella funzione $\Phi$:
+      \begin{lstlisting}
 xnew $\leftarrow \Phi$(x1, x2, ..., xp)\end{lstlisting}
-\item tipicamente \textbf{non ci interessa quale \lstinline|xi| usare} $\rightarrow$ se rilevante, usiamo le definizioni derivanti dall'arco di interesse
-\end{itemize}
+    \item tipicamente \textbf{non ci interessa quale \lstinline|xi| usare} $\rightarrow$ se rilevante, usiamo le definizioni derivanti dall'arco di interesse
+  \end{itemize}
 \end{minipage}\hfill
 \begin{minipage}[c]{.3\textwidth}
-\includegraphics[width=\textwidth]{uddu_11.png}
+  \includegraphics[width=\textwidth]{uddu_11.png}
 \end{minipage}
 
 \begin{example}[frametitle={Come si implementa $\Phi$}]
   \noindent \begin{minipage}[c]{.5\textwidth}
     Di fatto, a tempo di esecuzione ci sar\`a sempre un percorso \textbf{effettivamente eseguito} $\rightarrow$ per questo consideriamo $\Phi$ come notazione fittizia
   \end{minipage}\hfill
-  \begin{minipage}[c]{.3\textwidth}
+  \begin{minipage}[c]{.25\textwidth}
     \includegraphics[width=\textwidth]{uddu_12.png}
   \end{minipage}
 \end{example}
@@ -1493,60 +1492,60 @@ xnew $\leftarrow \Phi$(x1, x2, ..., xp)\end{lstlisting}
 \subsection{SSA triviale}
 
 \noindent \begin{minipage}[c]{.4\textwidth}
-\begin{itemize}
-  \item ogni assegnamento genera una nuova versione della variabile
-  \item aggiungiamo una fz.~$\Phi$ \textbf{ad ogni p.to di join $\forall$ le variabili \textit{live}}  
-\end{itemize}
+  \begin{itemize}
+    \item ogni assegnamento genera una nuova versione della variabile
+    \item aggiungiamo una fz.~$\Phi$ \textbf{ad ogni p.to di join $\forall$ le variabili \textit{live}}  
+  \end{itemize}
 \end{minipage}\hfill
 \begin{minipage}[c]{.55\textwidth}
   \centering
-\includegraphics[width=.7\textwidth]{uddu_13.png}
-\captionof{figure}{Molte di queste funzioni $\Phi$ non sono necessarie}
+  \includegraphics[width=.7\textwidth]{uddu_13.png}
+  \captionof{figure}{Molte di queste funzioni $\Phi$ non sono necessarie}
 \end{minipage}
 
 \subsection{SSA minimale}
 
 \noindent \begin{minipage}[c]{.6\textwidth}
-\begin{itemize}
-  \item ogni assegnamento genera una nuova versione della variabile
-  \item aggiungiamo una fz.~$\Phi$ ad ogni p.to di join $\forall$ le variabili \textit{live} \textbf{con definizioni multiple} 
-\end{itemize}
+  \begin{itemize}
+    \item ogni assegnamento genera una nuova versione della variabile
+    \item aggiungiamo una fz.~$\Phi$ ad ogni p.to di join $\forall$ le variabili \textit{live} \textbf{con definizioni multiple} 
+  \end{itemize}
 \end{minipage}\hfill
 \begin{minipage}[c]{.25\textwidth}
-\includegraphics[width=\textwidth]{uddu_14.png}
+  \includegraphics[width=\textwidth]{uddu_14.png}
 \end{minipage}
 
 \begin{example}[frametitle={Esempio con loop}]
   \noindent\begin{minipage}[c]{.5\textwidth}
-  \lstinline|c1| altro non \`e che la rappresentazione del valore iniziale che assume \lstinline|c| a tempo del primo assegnamento (prima esecuzione del loop), mentre \lstinline|c2| il valore della variabile all'iterazione precedente
+    \lstinline|c1| altro non \`e che la rappresentazione del valore iniziale che assume \lstinline|c| a tempo del primo assegnamento (prima esecuzione del loop), mentre \lstinline|c2| il valore della variabile all'iterazione precedente
   \end{minipage}\hfill
   \begin{minipage}[c]{.45\textwidth}
-  \includegraphics[width=\textwidth]{uddu_15.png}
+    \includegraphics[width=\textwidth]{uddu_15.png}
   \end{minipage}
 \end{example}
 
 \subsection{Dove inserire le funzioni $\Phi$}
 
 \noindent \begin{minipage}[c]{.7\textwidth}
-Inserisco una $\Phi$ per una variabile \lstinline|a| nel blocco \textit{Z} $\iff$:
-\begin{itemize}
-  \item \lstinline|a| \`e stata definita pi\`u di una volta (es.~in \textit{X} e \textit{Y}, $X\neq Y$)
-  \item $\exists$ due percorsi da \textit{X} a \textit{Z} e da \textit{Y} a \textit{Z} t.c.
+  Inserisco una $\Phi$ per una variabile \lstinline|a| nel blocco \textit{Z} $\iff$:
   \begin{itemize}
-    \item $Pxz \cap Pyz = \left\lbrace Z \right\rbrace$ (\textbf{\textit{Z} unico BB comune} tra i percorsi)
-    \item $Z \notin Pxq \lor Z \notin Pyr,\, \text{dove}\, Pxz = Pxq \rightarrow Z, Pyz = Pyr \rightarrow Z$ (almeno un percorso \textbf{raggiunge \textit{Z} per la prima volta})
+    \item \lstinline|a| \`e stata definita pi\`u di una volta (es.~in \textit{X} e \textit{Y}, $X\neq Y$)
+    \item $\exists$ due percorsi da \textit{X} a \textit{Z} e da \textit{Y} a \textit{Z} t.c.
+      \begin{itemize}
+        \item $Pxz \cap Pyz = \left\lbrace Z \right\rbrace$ (\textbf{\textit{Z} unico BB comune} tra i percorsi)
+        \item $Z \notin Pxq \lor Z \notin Pyr,\, \text{dove}\, Pxz = Pxq \rightarrow Z, Pyz = Pyr \rightarrow Z$ (almeno un percorso \textbf{raggiunge \textit{Z} per la prima volta})
+      \end{itemize}
   \end{itemize}
-\end{itemize}
 \end{minipage}\hfill
 \begin{minipage}[c]{.25\textwidth}
-\includegraphics[width=\textwidth]{uddu_17.png}
+  \includegraphics[width=\textwidth]{uddu_17.png}
 \end{minipage}
 
 \begin{emphasize}[frametitle={Note}]
   \begin{itemize}
     \item\textit{ENTRY} contiene una definizione implicita di tutte le variabili
     \item\lstinline|v = |$\Phi$\lstinline|(...)| \`e una definizione di \lstinline|v|
-\end{itemize}
+  \end{itemize}
 \end{emphasize}
 
 \subsection{Propriet\`a di dominanza della forma SSA}
@@ -1566,14 +1565,14 @@ Risulta interessante considerare i BB "appena prima" o "appena dopo" i blocchi d
 \noindent\textbf{Dominance Frontier} di un nodo \textit{x}: $\boxed{DF(x) = \left\lbrace w | x\, dom\, pred(w) \land !(x\, sdom\, w)\right\rbrace}$
 
 \noindent $\rightarrow$ ovvero, l'insieme di tutti i BB che sono successori immediati dei blocchi dominati da \textit{x}, ma che non sono strettamente dominati da \textit{x}
-
+\newpage
 \begin{example}
-    \noindent\begin{minipage}[c]{.5\textwidth}
-      Per il CFG di esempio, \underline{$DF(5) = \left\lbrace 4,5,12,13 \right\rbrace$}: osservando il DT (pag.~\pageref{example-dt}), notiamo che 4, 12, 13 sono successori di 6, 7, 8 (prima parte della condizione), e non sono dominati da 5 (dunque neppure strettamente, seconda parte). Anche 5 \`e successore di 8, e poich\'e un nodo non domina strettamente se stesso, lo includiamo nella $DF$
-    \end{minipage}
-    \begin{minipage}[c]{.5\textwidth}
+  \noindent\begin{minipage}[c]{.5\textwidth}
+    Per il CFG di esempio, \underline{$DF(5) = \left\lbrace 4,5,12,13 \right\rbrace$}: osservando il DT (pag.~\pageref{example-dt}), notiamo che 4, 12, 13 sono successori di 6, 7, 8 (prima parte della condizione), e non sono dominati da 5 (dunque neppure strettamente, seconda parte). Anche 5 \`e successore di 8, e poich\'e un nodo non domina strettamente se stesso, lo includiamo nella $DF$
+  \end{minipage}
+  \begin{minipage}[c]{.5\textwidth}
     \includegraphics[width=\textwidth]{uddu_18.png}
-    \end{minipage}
+  \end{minipage}
 \end{example}
 
 \subsection{Utilizzo della Dominance Frontier per calcolare la forma SSA}
@@ -1589,16 +1588,16 @@ I passaggi da seguire sono
 \begin{itemize}
   \item identifico tutti i siti dove vengono definite le variabili 
   \item $\forall$ variabile \lstinline|v|:
-  \begin{itemize}
-    \item $\forall$ sito di definizione \textit{n} (\textbf{non siamo ancora in forma SSA, la stiamo costruendo}):
     \begin{itemize}
-      \item $\forall$ nodo in \textit{DF(n)}
-      \begin{itemize}
-        \item se non c'\`e una $\Phi()$ nel nodo, mettiamone una
-        \item se questo nodo non definiva la variabile in precedenza, aggiungiamo questo nodo alla lista dei siti di definizione
-      \end{itemize}
+      \item $\forall$ sito di definizione \textit{n} (\textbf{non siamo ancora in forma SSA, la stiamo costruendo}):
+        \begin{itemize}
+          \item $\forall$ nodo in \textit{DF(n)}
+            \begin{itemize}
+              \item se non c'\`e una $\Phi()$ nel nodo, mettiamone una
+              \item se questo nodo non definiva la variabile in precedenza, aggiungiamo questo nodo alla lista dei siti di definizione
+            \end{itemize}
+        \end{itemize}
     \end{itemize}
-  \end{itemize}
 \end{itemize}
 
 \paragraph{Algoritmo}~\\
@@ -1688,109 +1687,155 @@ define Rename (node X) {
 
 \section{Ottimizzazioni sulla memoria}
 
-6 maggio
+\subsection{Memorie, tecnologie RAM}
 
-ricordiamo alcune cose sulla memoria come funziona (vedi architettura calcolatori)
+Le ottimizzazioni sulla memoria sono solitamente \textbf{architecture dependent} (si effettuano nel backend), ma alcune si possono gi\`a fare nel middle end, conoscendo le \textbf{problematiche generali di efficienza} della DRAM (memoria principale)
 
-\paragraph{dram technology}~\\
-
-in generale le ott sulla mem sono architecture dependent e quindi effettuate nel backend?? ma alcune si possono gia fare nel middle end, dovendo conoscere "alcune, poche" caratteristiche fisiche (???????)
-
-problematica di efficienza della dram: partiamo da come funziona la dram (ricordiamo)
+\subsubsection{Tecnologia DRAM}
 
 \begin{itemize}
-  \item ram: celle, condensatori, in cui c'\`e o non c'\`e carica elettrica, e i dati vengono immagazzinati in questo modo
-  \item inoltre, la carica non rimane per sempre: man mano diminuisce, e dunque va effettuata periodicamente una operazione di \textit{refresh}
-  \item altro concetto: riga dram $\rightarrow$ un insieme di condensatori, solitamente lunga un certo numero di \textit{words}
-  \item essendo gli accessi in memoria costosi, si cerca di minimizzare gli accessi, e in particolare si cerca di massimizzare gli accessi nella riga acceduta attualmente
-  \item negli anni si sono studiate varie possibili ottimizzazioni, in particolare per il modo in cui si accede
+  \item Dati immagazzinati in condensatori, in cui c'\`e o non c'\`e carica elettrica; va effettuata periodicamente una operazione di \textit{refresh}
+  \item bit in DRAM organizzati come \textbf{array rettangolari}
+  \item accesso effettuato su righe: insieme di condensatori lungo un certo numero di \textit{words}
+  \item \textbf{accessi costosi}: cerco di minimizzarli, e in particolare massimizzare quelli nella riga attuale 
+  \item negli anni si sono studiate varie possibili ottimizzazioni, in particolare sulle modalit\`a di accesso
     \begin{itemize}
-      \item es burst mode (recupera)
+      \item \textbf{burst mode}: latenza ridotta per accessi a parole successive nella stessa riga
+      \item \textbf{DDR} (Double Data Rate) RAM: sfrutta i fronti di salita e discesa del clock del circuito elettronico come momenti di trasferimento dati
+      \item \textbf{QDR} (Quad DR): separa input e output di DDR
     \end{itemize}
 
-  \item ddr dram: double data rate dram: sfrutta sia il fronte di salita che di discesa del clock del circuito elettronico come momenti di trasferimento dati (accesso alle righe?)
-  \item rec, in ogni caso: sono tutti trucchi per migliorare i tempi delle operazioni su hw che di base \`e "lento"
-  \item breve slide su questioni sviluppo/storiche: costo si e abbassato moltissimo, e soprattutto molto cost effective (costo per unita di memoria); la latenza di accesso invece e diminuita di meno (decremento dei tempi non lineare)
-  \item $\rightarrow$ scarsa in termini di performance
-  \item altri performance factors e tecniche:
-    \begin{itemize}
-      \item row buffer: mantengo un buffer delle righe accedute di frequente
-      \item dram sincrona: sfrutta accessi in burst per migliorare la banda (quantita di mem acceduta in un periodo di tempo, o trasferita)
-      \item dram banking: 
-        \begin{itemize}
-          \item concetto di \textit{master}: processore, ma anche periferiche, altri dispositivi, tutti quelli che possono essere utilizzatori della memoria
-          \item gia e lenta, se poi abbiamo tanti master che devono accedervi, la dram diventa il collo di bottiglia delle prestazioni
-          \item il concetto di banking sfrutta il concetto di parallelismo: ho piu "banchi" di dram che operano \textbf{indipendentemente} tra loro $\rightarrow$ mediamente il tempo di accesso diventa piu basso, perche i diversi master accederanno a risorse che non necessariamente si trovano sullo stesso banco
-        \end{itemize}  
-    \end{itemize}
-
-  \item the memory wall: uno dei "muri" tecnologici che hanno portato alla rivoluzione dei primi 2000 sul passaggio da single a multicore cpu
-    \begin{itemize}
-      \item negli anni cresce la performance delle cpu, \textbf{molto di piu rispetto a quella della dram} (55\% annuo rispetto al 7\% della dram!) $\rightarrow$ il divario cresce di molto
-      \item problema: cpi ideale per un istruzione = 1 (o meno se possibile) minimo sindacale, \textbf{MA} le istr di tipo load e store (ricordiamo che sono le uniche in riscv che interagiscono con la dram) hanno un cpi molto piu alto di 1! (circa 100 cicli)
-      \item per questo ovviamente c'e la presenza delle cache, che abbassano il cpi medio
-      \item naturalmente non esistono programmi che non usano load e store
-      \item in base a tutto questo, ci si e posto il problema di cambiare qualcosa (evidentemente negli anni 80 le cache non esistevano, essendo il costo di op su dram equivalente a quello di op sulla cpu)
-      \item le cache
-        \begin{itemize}
-          \item sono un tipo di tecnologia diverso dalla dram: sono SRAM (static ram), che alla base ha un transistor: decido se far passare o meno corrente $\rightarrow$ "cittadino dello stesso livello della cpu" $\rightarrow$ sono sulla motherboard molto vicino alla cpu, dunque gia per questo sono molto piuveloci!
-          \item dunque tempi di accesso estremamente ridotti
-          \item inoltre densita molto piu alta
-          \item ovviamente, a discapito del costo
-          \item quindi chiaramente abbiamo tempi di accesso incredibilmente piu veloci (ordine dei ns, dunque frequenze di GHz, veloci tanto quanto la CPU!!), posso metterne molti tutti vicini, ma mi costano incredibilmente di piu (costi inversamente proporzionali)
-          \item per questo usiamo le gerarchie di memoria!
-            \begin{itemize}
-              \item L1: 1 o 2 cicli per accesso (pari a cpu), ma molto molto piccola
-              \item perche l1 risponde in 1 ciclo, mentre l2 in media 1 ordine di grandezza in piu (tra 5 e 10)? (nonostante usino la stessa tecnologia) certo il fatto che aumento la dimensione della cache, ma anche la questione del \textbf{critical path} $\rightarrow$ il path fisico piu lungo che potrebbe dover percorrere la corrente nel circuito elettrico - il clock rate deve evidentemente adattarsi al critical path (piu e lungo piu lungo il clock rate e dunque minore la frequenza)
-              \item scelta di design basilare: spezzare il critical path con dei registri intermedi $\rightarrow$ per evitare di avere un critical path enorme per via dell'accesso in l2, spezzo con registri intermedi, tutti segmenti lunghi come il critical path della cpu
-              \item hit e miss: concetti legati al recupero di informazioni tramite cache, in base al fatto se il dato e presente nell'attuale livello di cache o meno - se non lo e devo fermare la loadstore unit e scendere di un livello di cache, avanti cosi
-              \item miss penalty: tempo necessario per gestire la miss
-
-            \end{itemize}
-
-          \item tutto questo per sfruttare il principio di localita spaziale e temporale:
-            \begin{itemize}
-              \item si basa su come solitamente funzionano i programmi
-              \item temporale: probabilita che accedo piu volte ad uno stesso elemento piu volte nel tempo seguente
-              \item spaziale: es. array, probabilita di accedere a elementi vicini e successivi al primo nel tempo seguente
-              \item esempio a slide 14-15: esempio di esecuzione di un programma, con asse x gli indirizzi della memoria e y il tempo
-                  \item pattern di no locality: segmenti in cui non ho accessi o non ho pattern di accesso
-                  \item temporal locality: righe dritte orizzontali: accedo ripetutamente allo stesso indirizzo
-                  \item spatial locality: righe diagonali: accedo a elementi successivi
-            \end{itemize}
-
-          \item notiamo che il concetto di cache viene usato in vari casi e a vari livelli (concettualmente parlando proprio): es la dram di fatto e una cache per il disco
-          \item oppure la cache del browser, ec ec ec
-          \item ricordiamo ora diversi tipi di cache miss:
-            \begin{itemize}
-              \item un compilatore puo aiutarmi per cosa? per risolvere alcuni problemi di accesso alla memoria $\rightarrow$ dunque risulta utile ottenere alcune informazioni sulle diverse tipologie di miss per risolvere correttamente il rproblema della miss (?)
-              \item cold cache (compulsory): non ci sono dati nella cella della cache (tipicamente appena eseguo il programma)
-              \item conflict: quando due indirizzi in dram sono mappati alla stessa linea di cache
-              \item capacity: ho finito lo spazio disponibile in cache
-              \item di abse le ultime due, avvengono in tipi specifici di cache:
-              \item direct mapping: sfrutto parti dell'indirizzo per decidere dove mappare in cache: non avro mai capacity misses? $\rightarrow$ mentre possono avere conflicts, esempio quando i bit delle locazioni sono gli stessi $\rightarrow$ ho una sola scelta riguardo a dove inserire il dato nella cache $\rightarrow$ rete logica semplicissima, pochi gate, dunque poca area occupata, dunque meno costose e velocissime $\rightarrow$ contro: posso avere le conflict misses
-              \item fully associative: altra tecnica, ovvero continuo ad inserire uno dopo l'altro i dati $\rightarrow$ il dato potrebbe finire in qualsiasi locazione della cache $\rightarrow$ devo scorrere tutte le entry della cache, in termini di rete logica dunque ho tanti circuiti comparatori quante sono le righe della cache, ovvero approccio molto costoso in termini di area $\rightarrow$ pro: gestisce molto meglio i problemi relativi alle conflict misses
-              \item n-way set associative: mantiene il concetto di bit di indice, per indicare non un indirizzo unico ma un \textbf{set} di indirizzi, e poi tanti comparatori quanti gli elementi del set 
-            \end{itemize}
-        \end{itemize}
-    \end{itemize}
+  \item[$\rightarrow$] sono tutti trucchi per migliorare i tempi delle operazioni su HW che di base \`e "lento"
 \end{itemize}
 
-\subsection{memory hierarchy optimizations}
+\paragraph{DRAM generations}~\\
 
-queste ottimizzazioni vogliono
+Negli anni la tecnologia DRAM si \`e dimostrata estremamente \textbf{cost effective} (costo/unit\`a di memoria), mentre la \textbf{latenza} di accesso (sia a righe nuove che quelle gi\`a caricate) decresce molto pi\`u lentamente $\rightarrow$ scarsa in termini di performance
+
+\subsubsection{DRAM performance factors}
+
+Vediamo altre tecniche per migliorare le prestazioni:
 \begin{itemize}
-  \item ridurre la latenza di accesso alla memoria: ovvero ottenere un cpi piu basso
-  \item massimizzare la banda di memoria: poter accedere a piu dati nella stessa unita di tempo (stesso concetto della pipeline: non riduco il tempo totale di un'esecuzione di una singola istruzione, ma a regime riesco ad avere piu istruzioni diverse che eseguono e dunque posso aumentare il throughput) (throughput usato specifico per operazioni di calcolo, analogamente uso bandwidth per gli accessi alla memoria)
-  \item gestire overhead: i costi addizionali dovuti all'ottimizzazione, per operazioni che senza non avrei dovuto fare ; il compilatore puo mascherare questo tempo psasato a fare queste operazioni aggiuntive facendogli fare anche altre cose nel mentre (?)
+  \item \textbf{row buffer}: mantengo un buffer delle righe accedute di frequente
+  \item \textbf{DRAM sincrona}: sfrutta accessi in burst per migliorare la banda (quantita di mem acceduta o trasferita in un periodo di tempo)
+  \item \textbf{DRAM banking}: 
+    \begin{itemize}
+      \item \textit{master}: qualsiasi device (CPU, periferiche, ecc.) che pu\`o essere utilizzatore della memoria
+      \item se tanti master devono accedervi (gia \`e lenta), la DRAM diventa bottleneck per le prestazioni
+      \item il concetto di banking sfrutta quello di parallelismo: ho piu "banchi" di DRAM che operano \textbf{indipendentemente} tra loro
+      \item abbasso il \textbf{tempo medio} di accesso: i master accederanno a risorse che non necessariamente si trovano sullo stesso banco
+    \end{itemize}  
+\end{itemize}
+
+\subsubsection{Memory wall}
+
+Uno dei "muri" tecnologici che hanno portato alla rivoluzione dei primi 2000 sul passaggio da single a multicore CPU
+\begin{itemize}
+  \item Cresce moltissimo il divario tra CPU e DRAM performance (\textbf{55\% aumento annuo vs 7\%})
+  \item $CPI_{\text{ideale}} \leq 1$, mentre \lstinline|load| e \lstinline|store| (uniche a interagire con DRAM) hanno $CPI_{l/s} \simeq 100$
+  \item naturalmente $\nexists$ programmi che non accedono alla memoria, e negli anni 80 non ci si poneva questi problemi ($\nexists$ cache, il costo di op.~su DRAM era equiv.~a quello di op.~su CPU)
+  \item[$\rightarrow$] cambio di approccio: si introducono le cache
+\end{itemize}
+
+\subsection{Cache}
+
+\begin{itemize}
+  \item Usano tecnologia SRAM (Static R.), basata su transistor che decide se far passare o meno corrente
+  \item si trovano sulla motherboard \textbf{molto vicino alla CPU}: anche questo aumenta la velocit\`a 
+  \item[$\rightarrow$] \textbf{t.~di accesso} molto ridotti (ordine dei \textit{ns}, freq.~di GHz - come la CPU) e \textbf{densit\`a} molto pi\`u alta
+  \item ovviamente, a discapito del costo $\rightarrow$ per questo usiamo le \textbf{gerarchie di memoria}
+\end{itemize}
+
+\subsubsection{Gerarchie di memoria}
+\begin{itemize}
+  \item \textbf{block} (\textbf{line}): unit\`a di copia, solitam.~multiple \textit{word}
+  \item in base alla presenza o meno del dato nell'attuale livello di cache, ottengo una \textbf{hit} o una \textbf{miss} - quando \textit{misso} devo fermare la loadstore unit e copiare il dato dalla cache inferiore (e cos\`i via)
+  \begin{itemize}
+    \item hit ratio: $hits\over accesses$
+    \item miss penalty: tempo necessario per gestire la miss
+    \item miss ratio: $1 - hit\,ratio$
+  \end{itemize}
+\end{itemize}
+
+  \begin{example}[frametitle={Velocit\`a delle cache}]
+    \begin{itemize}
+      \item L1: 1-2 \textit{cicli per accesso} ($=$CPU), ma molto piccola
+      \item L2 $\sim$ 5-10 (nonostante stessa tecnologia): in parte per dimensioni maggiori, ma soprattutto perch\'e devo \textbf{spezzare il critical path}
+      \item \textbf{c.~path}: path fisico pi\`u lungo nel circuito - il clock rate deve adattarvisi (CPU monolitiche devono garantire l'esecuzione di tutti gli stadi di un'istr.~in 1 ciclo), dunque per \textit{cp} $> \implies $ freq.~$<$
+      \item scelta di design basilare: spezzare il critical path verso L2 con dei registri intermedi $\rightarrow$ aumenta il \textit{CPaccess} ma non penalizza il clock r.
+    \end{itemize}
+  \end{example}
+
+\subsubsection{Principi di localit\`a}
+
+Si basano sulla conoscenza generale di memoria e cache (HW), e sui tipici pattern di accesso ai dati (a liv.~SW)
+
+\begin{itemize}
+  \item \textbf{l.~temporale}: el.~acceduti recentemente sono probabilmente necessari di nuovo in breve (es.~istr.~in loop)
+  \item \textbf{l.~spaziale}: probabilit\`a di accedere in successione a el.~contigui (es.~accesso ad array)
+\end{itemize}
+\begin{example}[frametitle={Visualizzazione grafica delle localit\`a}]
+ 
+  \noindent\begin{minipage}[c]{.5\textwidth}
+  \begin{itemize}
+    \item no locality: segmenti in cui non ho accessi o non ho pattern di accesso
+    \item temporal locality: righe dritte orizzontali
+    \item spatial locality: righe diagonali
+  \end{itemize}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[c]{.5\textwidth}
+  \includegraphics[width=\textwidth]{mem_2.png}
+  \end{minipage}
+\end{example}
+
+\subsubsection{Cache misses}
+
+\begin{itemize}
+  \item \textbf{cold cache} (\textbf{compulsory}): non ci sono dati nella cella della cache (tipicamente appena eseguo il programma)
+  \item \textbf{conflict}: quando due indirizzi in DRAM sono mappati alla stessa linea di cache
+  \item \textbf{capacity}: ho finito lo spazio disponibile in cache
+\end{itemize}
+
+\subsubsection{Cache types}
+
+\paragraph{Direct mapped}
+
+\begin{itemize}
+  \item linee mappate in base agli ultimi bit dell'indirizzo in DRAM
+  \item \textit{valid bit} garantisce la validit\`a di una linea
+  \item schema di indirizzamento e rete logica semplice (area, costo, velocit\`a $<$) $\rightarrow$ \textbf{\textit{hit time} basso}
+  \item uso non ottimale dello spazio: frequenti \textit{conflict} (1 sola possibile locazione in cache $\forall$ linea)
+\end{itemize}
+
+\paragraph{Fully associative}
+
+\begin{itemize}
+  \item nessun indirizzamento fisso, la nuova entry occupa la prossima linea libera
+  \item richiede la ricerca \textbf{in tutte le linee} contemporan.~$\rightarrow$ \textbf{costoso} (1 comparatore $\forall$ entry)
+\end{itemize}
+
+\paragraph{N-way set associative}
+
+\begin{itemize}
+  \item mantiene il concetto di bit di indice, per indicare non un indirizzo unico ma un \textbf{set} di indirizzi, e poi tanti comparatori quanti gli elementi del set 
+\end{itemize}
+
+\subsection{Memory Hierarchy optimizations}
+
+Queste ottimizzazioni vogliono
+\begin{itemize}
+  \item \textbf{ridurre la latenza di accesso} alla memoria e ottenere un CPI minore
+  \item \textbf{massimizzare la banda} di memoria: poter accedere a piu dati nella stessa unita di tempo (stesso concetto della pipeline: non riduco il tempo di esec.~di una singola istruzione, ma a regime aumento il throughput) 
+  \item \textbf{gestire overhead}, i costi addizionali dovuti all'ottimizzazione: maschero il tempo "perso" sovrapponendo altre operazioni
 \end{itemize}
 
 \subsection{reuse and locality}
 
 consideriamo come accediamo ai dati:
 \begin{itemize}
-  \item data reuse: sfrutta la localita temporale, dunque il riuso di degli stessi dati o molto vicini tra loro - il compilatore puo ad esempio assicurare che il dato acceduto rimanga sempre in cache
-  \item data locality: quando es accedo agli array : il compilatore si deve assicurare che questi dati vengano acceduti in questo modo, e poi garantire la loro presenza??
+  \item \textbf{data reuse}: sfrutta la localit\`a temporale, dunque il riuso di degli stessi dati o molto vicini tra loro - posso assicurare che il dato acceduto rimanga sempre in cache
+  \item \textbf{data locality}: (es.~accesso ad array) il compilatore si deve assicurare che questi dati vengano acceduti in questo modo, e poi garantire la loro presenza
 \end{itemize}
 
 \subsection{optimizing cache performance}
@@ -1805,34 +1850,31 @@ rec
   \item array
 \end{itemize}
 
-\subsubsection{scalari}
+\subsubsection{Scalari}
 
-a loro volta diverse tipologie:
 \begin{itemize}
-  \item var locali (scope e tempo di vita locale alla funzione in cui sono definite)
-  \item var globali (scope e tempo di vita globali pari alla vita del programma)
-  \item argomenti delle funzioni
+  \item var.~\textbf{locali} (scope e tempo di vita locale alla funzione in cui sono definite)
+  \item var.~\textbf{globali} (scope e tempo di vita globali pari alla vita del programma)
+  \item \textbf{argomenti} delle funzioni
 \end{itemize}
 
-tipicamente gli scalari sono gestiti sempre tramite registri $\rightarrow$ non dobbiamo gestire gli accessi alla memoria! mi trovo gia in cpu e non devo "uscirne" durante le operazioni (di fatto sto saltando la fase di memory, e la load store unit non esegue nulla per questa istruzione)
+Tipicamente sono gestiti sempre tramite registri $\rightarrow$ non dobbiamo gestire gli accessi alla memoria (salto la fase di MEM, e la load-store unit non esegue nulla per questa istruzione)
 
-unico caso in cui potremmo doverci preoccupare della cache: finiscono i registri utilizzabili $\rightarrow$ devo fare uno spill sulla memoria, in particolare sullo stack frame (ovvero faccio una store, e poi una load) , esattamente come funzionano i save registers (quelli modificati da una chiamata a funzione, che alla fine dell'esecuzione deve ripristinarli)
+\begin{emphasize}
+  Unico caso problematico: finiscono i registri utilizzabili $\rightarrow$ devo fare uno spill sulla memoria, in particolare sullo stack frame (ovvero faccio una store, e poi una load , esattamente come per i save registers (modificati da una chiamata a funzione, che alla fine dell'esecuzione deve ripristinarli)
+\end{emphasize}
 
-ma poiche la conoscenza della calling convention e del register file e dell'isa (...?) sono specifici al hw, sono ottimizzazioni di backend 
+$\rightarrow$ ottimizzazioni di backend (calling convention, register file, ISA sono HW specific)
 
-\subsubsection{strutture dati e puntatori}
+\subsubsection{Strutture dati e puntatori}
 
 cosa puo fare il compilatore per migliorare l'esecuzione di un programma che usa strutture dati? dove posso avere rallentamenti dovuti alla cache? es. struct a slide 14-45
 
-struct: di base e un'aggregazione di bytes $\rightarrow$ i suoi elementi sono contigui in memoria
+Struct: di base \`e un'aggregazione di bytes $\rightarrow$ elem.~\textbf{contigui in memoria} $\rightarrow$ In generale un oggetto complesso potrebbe non essere grande un multiplo di word o cache line, dunque \textbf{non posso sfruttare la spatial locality}
 
-dall esempio delle slide, notiamo che in generale un oggetto complesso potrebbe non essere grande un multiplo di una word, o di una riga di cache! dunque non posso sftuttare il principio di localita spaziale
+L'ottimizzazione potrebbe comprendere il \textbf{trasformare} la struttura del dato, ad esempio \textbf{estraendo dati di tipi primitivi} (nel caso di array di tipi composti) e costruendo array separati (devo conoscere la struttura della str.~dati)
 
-dunque l'ottimizzazione potrebbe comprendere il trasformare completamente la struttura del dato, ad esempio estraendo dati di tipi primitivi (nel caso di array di tipi composti) e costruendo separatamente array di questi 
-
-per farlo devo avere a disposizione la struttura della struttura dati
-
-\subsubsection{array}
+\subsubsection{Array}
 
 evidentemente qui abbiamo le maggiori possibilita di ottimizzazione
 
@@ -1853,9 +1895,9 @@ immaginiamo una cache vuota in partenza, e una cache di 4 parole per riga e 8 ri
   \item accade nuovamente per 5, e poi 6 7 8, eccetera
   \item a partire dalla nona miss (17), avro una conflict miss (i bit usati per indexing si sovrappongono)
 \end{itemize}
- notiamo pero che non cambia il pattern di miss! rimane sempre 1 ogni 4
+notiamo pero che non cambia il pattern di miss! rimane sempre 1 ogni 4
 
- per quanto riguarda la matrice \lstinline|B| invece, vediamo che gli accessi avvengono in modo diverso - stiamo forzando una situazione di miss sistematica, e questo appunto e una situaizone rilevabile e che si puo correggere
+per quanto riguarda la matrice \lstinline|B| invece, vediamo che gli accessi avvengono in modo diverso - stiamo forzando una situazione di miss sistematica, e questo appunto e una situaizone rilevabile e che si puo correggere
 
 7 maggio
 
@@ -1864,9 +1906,9 @@ recupera inizio lezione
 notiamo proprio dal secondo esempio di accessi che iteration space $\neq$ data space (o meglio, non sempre appunto?) $\rightarrow$ dunque possiamo distinguere tra accessi \textbf{cache friendly} e non
 
 \begin{emphasize}
-    ricordiamo che il comportamento dell'indexing della cache \`e simile a quello che fa l'operatore di modulo $\rightarrow$ tanti indirizzi in memoria condivdono la stessa configurazione di bit di index (in ogni caso recupera discorso anche da appunti vecchi)
+  ricordiamo che il comportamento dell'indexing della cache \`e simile a quello che fa l'operatore di modulo $\rightarrow$ tanti indirizzi in memoria condivdono la stessa configurazione di bit di index (in ogni caso recupera discorso anche da appunti vecchi)
 
-    inoltre, poi uso dei bit di offset per poter accedere separatamente a ciascun byte all'interno della riga (nel nostro caso righe da 4 word, supponendo 4B per word ho 16B per riga e dunque ho bisogno di 4byte di offset)
+  inoltre, poi uso dei bit di offset per poter accedere separatamente a ciascun byte all'interno della riga (nel nostro caso righe da 4 word, supponendo 4B per word ho 16B per riga e dunque ho bisogno di 4byte di offset)
 \end{emphasize}
 
 
@@ -1879,75 +1921,71 @@ ripetiamo comportamento relativo agli accessi a \lstinline|B|:
 
 \subsubsection{cache behavior of array accesses}
 
-dobbiamo dunque chiederci, per ottimizzare questi accessi, 
+Per ottimizzare gli accessi ci chiediamo 
 \begin{itemize}
   \item \textbf{quando} avvengono le miss $\rightarrow$ usiamo la \textbf{locality analysis}, che naturalmente rimane una stima ma non possiamo averne certezza! sono ottimizzazioni di tipo "best effort", e dunque in generale vanno ad ottimizzare, e nel caso peggiore non ottimizzano nulla ma \textbf{non peggiorano l'esecuzione}
   \item possiamo cambiare \textbf{ordine delle iterazioni (o possibilmente il data layout)} per migliorare il comportamento degli accessi? $\rightarrow$ devo anche valutare il \textbf{costo} di tutte le varie ipotesi, per stimare il beneficio ottenuto (es.: creo una copia della matrice e ne calcolo la trasposta $\rightarrow$ ovviamente l'operazione \`e giustificata solo se ne ho bisogno abbastanza volte da non aumentare il costo totale - in qualche modo devo coprire il costo aggiuntivo in poche parole)
-  \item ottengo sempre risultati corretti? $\rightarrow$ devo verificare (come sempre) gli effetti "collaterali": devo verificare che le istruzioni affette dall'ottimizzazione siano indipendenti da altre
-  \begin{itemize}
+  \item ottengo sempre risultati corretti? $\rightarrow$ verifico gli effetti "collaterali" (indipendenza delle istr.~ottimizzate)
+    \begin{itemize}
+      \item dipendenza intesa come \textbf{vincolo nell'ordine di esecuzione delle istruzioni}, dunque un vincolo nell'iteration space
     \item caso di loop-carried dependency semplice: \lstinline|A[i] = A[i+1]|
-    \item dipendenza intesa come \textbf{vincolo nell'ordine di esecuzione delle istruzioni}: dunque un vincolo nell'iteration space, che previene 
-    \item esistono framework di analisi molto sofisticati, basati solitamente sul \textit{polyhedral model}
-  \end{itemize}
+      \item esistono framework di analisi molto sofisticati, basati solitamente sul \textit{polyhedral model}
+    \end{itemize}
 \end{itemize}
 
-\begin{emphasize}
-    se ho variabili di cui non conosco il valore staticamente? 2 approcci:
-    \begin{itemize}
-      \item conservativo: non so determinare il valore, dunque pessimisticamente non faccio nulla
-      \item altrimenti, posso generare entrambe le versioni del codice, e stabilire poi \textbf{a runtime} quale eseguire, aggiungendo una semplice condizione che stabilisce quando eseguire (es. con \lstinline|N|, la condizione far\`a eseguire il programma con ottimizzazione solo se questo \lstinline|N| \`e abbastanza grande da giustificare il costo aggiuntivo)
-    \end{itemize}
-    
+\begin{emphasize}[frametitle={Approcci per variabili di cui non conosco il valore staticamente}]
+  \begin{itemize}
+    \item conservativo: non so determinare il valore, dunque (pessimisticamente) non faccio nulla
+    \item genero entrambe le versioni del codice, e stabilisco \textbf{a runtime} quale eseguire (aggiungo un controllo condizionale che esegue il pr.~ottimizzato solo per qualche \lstinline|N| abbastanza grande da giustificare il costo aggiuntivo)
+  \end{itemize}
+
 \end{emphasize}
 
-\subsection{esempi di trasformazioni di loop}
+\subsection{Trasformazioni di loop pi\`u usate}
 
-principali usate: loop interchange e loop tiling/blocking
+\subsubsection{Loop interchange}
 
-\subsubsection{loop interchange}
+\textbf{Scambio} (o permuto) l'ordine dei loop: in assenza di dipendenze, non altero in nessun modo il risultato finale e \textbf{miglioro la performance} (magari non accedendo nello stesso ordine di prima, ma se indipendente non importa)
 
-fondamentalmente, \textbf{scambio} (o permuto) l'ordine dei loop
-\begin{itemize}
-  \item in assenza di dipendenze, non altero in nessun modo il risultato finale e evidentemente miglioro la performance (pur magari non accedendo nello stesso ordine di prima, ma appunto non ci interessa in assenza di dipendenze)
-\end{itemize}
-
-\paragraph{goal della permutazione}~\\
+\paragraph{Obiettivi della permutazione}~\\
 
 \begin{itemize}
   \item locality optimization (specialmente quella spaziale)
-  \item riarrangiare i loop nest per "migliorare" la \textbf{granularit\`a} del parallelismo (arrivare a quella necessaria)
-  \begin{itemize}
-    \item verso l'interno: sto andando verso un parallelismo \textit{fine-grain} $\rightarrow$ pro: sto spezzettando la quantita di lavoro in mattoncini piu piccoli, e dunque posso mantenere piu stabile e paragonabile tra loro la quantita di lavoro tra i diversi thread e tra i diversi processori (caso diametralmente opposto: pochi pezzi rispetto ai processori disponibili: se un processore si ritrova un blocco "lento" da eseguire es con un sacco di miss, allora gli altri processori dovranno aspettarlo una volta finito il loro lavoro) $\rightarrow$ allora come mai non scegliere sempre la grana fina? ovviamente per l'overhead generato, come ad es creare i thread, assegnare il lavoro, sincronizzare i processori; inoltre, tipicamente il costo di creazione di un thread ha costo fisso $\rightarrow$ task sempre piu piccoli significa che durano sempre meno, e dunque posso arrivare a un overhead maggiore del tempo di esecuzione della task assegnata $\rightarrow$ per questo dobbiamo assegnare il giusto carico di lavoro, e trovare la giusta granularita $\rightarrow$ solitamente, sono questioni gestite dall'hardware rispetto all'overhead!!! e dunque se ne occupera poi lui, ad es nel caso delle schede grafiche moderne che hanno hw dedicato proprio a decidere la granularita? e dunque es per chi inizia a programmare in cuda, viene detto sempre di scrivere i task piu piccoli possibile, sara poi la gpu a gestire la granularita
-    \item esterno: \textit{coarse-grain} parallelism
-  \end{itemize}
-  
+  \item riarrangiare i loop nest per ottenere la giusta \textbf{granularit\`a} del parallelismo:
+    \begin{itemize}
+      \item verso l'interno: parallelismo \textit{fine-grain} $\rightarrow$ frammento il lavoro da svolgere in blocchi pi\`u piccoli, e dunque posso mantenere piu stabile la quantit\`a di lavoro tra thread e processori
+      \item esterno: \textit{coarse-grain} parallelism
+      \item caso estremo: pochi task rispetto ai proc.~disponibili: se un proc.~si ritrova un blocco "lento" (es.~molte miss), gli altri dovranno aspettarlo una volta finito il loro lavoro
+      \item non scelgo sempre la grana pi\`u fina per l'overhead generato: creare i thread, assegnare il lavoro, sincronizzare i proc.; inoltre, tipicamente il costo di creazione di un thread ha costo fisso $\rightarrow$ task pi\`u piccoli durano sempre meno, dunque l'overhead pu\`o superare il tempo di esecuzione
+      \item questioni gestite tipicamente dall'HW, es.~come fanno le GPU moderne 
+    \end{itemize}
 \end{itemize}
 
-\subsubsection{loop tiling/blocking}
+\subsubsection{Loop tiling/blocking}
 
 matrix multiplication: esempio di come applicare il tiling
 \begin{example}
-    matrix multiplication: 3 matrici di uguali dimensioni (ricorda da calcolo), ogni casella della matrice risultante contiene la somma dei prodotti tra iesima riga della prima con jesima colonna della seconda
-    
-    dunque, ho 3 loop innestati, di cui i primi due iterano sugli elementi della risultante, e il terzo permette lo scorrere la riga e colonna corrispondenti
+  matrix multiplication: 3 matrici di uguali dimensioni (ricorda da calcolo), ogni casella della matrice risultante contiene la somma dei prodotti tra iesima riga della prima con jesima colonna della seconda
 
-    cosa succede se le matrici sono abbastanza grandi da non stare per intero all'interno della cache?
+  dunque, ho 3 loop innestati, di cui i primi due iterano sugli elementi della risultante, e il terzo permette lo scorrere la riga e colonna corrispondenti
 
-    notiamo che questo programma ha un sacco di riuso:
-    \begin{itemize}
-      \item bloccando una riga di A, noto che i suoi dati mi servono per ciascuna colonna di B (e viceversa, ma sappiamo che scorrere righe risulta molto piu cache friendly)
-      \item supponiamo inoltre che una riga di matrice sia piu lunga di una linea di cache, e dunque per accedere a una riga intera servano multipli accessi in cache
-      \item per massimizzare il riuso dei dati, vado a cercare una dimensione ottimale di "blocco" che mi permette di \textbf{avvicinare temporalmente il riuso dei dati}
+  cosa succede se le matrici sono abbastanza grandi da non stare per intero all'interno della cache?
+
+  notiamo che questo programma ha un sacco di riuso:
+  \begin{itemize}
+    \item bloccando una riga di A, noto che i suoi dati mi servono per ciascuna colonna di B (e viceversa, ma sappiamo che scorrere righe risulta molto piu cache friendly)
+    \item supponiamo inoltre che una riga di matrice sia piu lunga di una linea di cache, e dunque per accedere a una riga intera servano multipli accessi in cache
+    \item per massimizzare il riuso dei dati, vado a cercare una dimensione ottimale di "blocco" che mi permette di \textbf{avvicinare temporalmente il riuso dei dati}
       \begin{itemize}
         \item riuso di un dato: proprieta del programma
         \item iteration space: recupera
       \end{itemize}
 
     \item cambiare l'ordine delle iterazioni e iterare "a blocchi" permette dunque di sfruttare al massimo il riuso dei dati - se non lo usassimo, siamo sicuri che i dati siano talmente lontani che verranno per forza sovrascritti causa conflict miss (spero si capisca nel futuro)
-    \end{itemize}
+  \end{itemize}
 
-    la soluzione dunque \`e semplicemente aggiungere dei loop nest, che permettono di iterare blocco per blocco invece che a dimensione intera
-    
+  la soluzione dunque \`e semplicemente aggiungere dei loop nest, che permettono di iterare blocco per blocco invece che a dimensione intera
+
 \end{example}
 
 in generale, il tiling viene usato a "tutti" i livelli di memoria (registri, caches, buffer software, memorie principali piccole, ...), e puo essere applicato in maniera gerarchica su tutti i vari livelli
@@ -1966,45 +2004,36 @@ $\rightarrow$ quindi, praticamente io sto valutando se conviene cambiare il prog
 
 \subsection{software prefetching}
 
-ultimo concetto relativo alle ottimizzazioni in memoria che vediamo (?)
+Ottimizzazione non lazy che \textbf{"tollera" la latenza} (non tenta di ridurla): inserisco a liv.~SW il pref.~dei dati (in src o tramite compilatore) $\rightarrow$ per "nascondere" le latenze (\textit{latency hiding}, svolto bene dalle GPU) "infilando" il pref.~sotto ad altre operazioni
 
-prefetching inteso come caricare dei dati in memoria prima che siano riutilizzati $\rightarrow$ noto che e esattamente quello che facciamo caricando le linee intere in cache invece che solo il dato che ci serve!
+In contesto di CPU, faccio prefetching riscrivendo il programma e sapendo quando avr\`o bisogno di fare gli accessi in memoria; inoltre, le istr.~di prefetch sono di fatto load \textbf{non bloccanti} $\rightarrow$ non stalla la load-store unit quando devo fare la load richiesta, avendo gi\`a gestito miss e dunque gi\`a caricato il dato in cache
 
-i modi per gestire la latenza della memoria sono appunto 1 ridurre la latenza tramite locality optimizations, ma poi anche 2 tollerare la latenza e fare ad es prefetching, ovvero spostare i dati prima che effettivamente mi servano!
+\begin{emphasize}
+  Tutti i sistemi HW moderni permettono di disaccoppiare e \textbf{sovrapporre la computazione con gli accessi in memoria}
+\end{emphasize}
 
-dunque stiamo operando in maniera non lazy
+\begin{emphasize-blue}[frametitle={FINISCI}]
+  Nella teoria sono "certo" dei tempi in cui ho bisogno di un dato, e d\`o per scontato che nessun altro processo va in conflitto con quella linea di cache (sono risorse condivise)
 
-software prefetching: si intende che il prefetching viene inserito direttamente all'interno del software ovvero non avviene con le cache ma viene specificato nel programma, o manualmente gia nel sorgente oppure specificandolo al compilatore!
+  Dunque, in pratica e ad alto livello, come faccio? parto con il calcolare la \textbf{distanza di prefetch} (tempo di prefetch) $\rightarrow$ tipicamente lo faccio nei loop ??? (sono strutture a esecuzione regolare)
 
-ottimizzazione mirata a "nascondere" le latenze: certo che l'operazione non mi costa meno, ma la infilo sotto ad altre operazioni e dunque "non la vedo" (appartiene a quella categoria di ottimizzazioni che si chiamano latency hiding, ottimizzazioni che sono molto brave a fare le gpu)
+  loop sono regolari dunque posso esprimere il tempo di prefetch come il numero di iterazioni del loop stesso ??
 
-tornando alle cpu, come faccio a fare prefetching? $\rightarrow$ 13-108 grafico che mostra come spostando il fetching (prefetching) a prima del momento in cui ho bisogno del dato, io posso averlo poi gia disponibile al momento dell'uso
+  dunque io cosa faccio, conosco la latenza della memoria e blabla recupera
 
-come lo faccio? riscrivendo il programma, e sapendo quando avro bisogno di fare gli accessi in memoria
+  insomma, io vado a risolvere il problema suddividendo il loop in 3 parti: 
+  \begin{itemize}
+    \item prolog: faccio solo prefetch, 5 volte perche ho stabilito che mi servono 5 iterazioni del loop per avere a disposizione il dato
+    \item steady state ovvero stato a regime: qui vado avanti a prefetchare ma anche accedo ai dati pronti
+    \item epilog: semplicemente finisco di lavorare sugli ultimi dati prefetchati
+  \end{itemize}
 
-un istruzione di prefetch e di fatto una load non bloccante $\rightarrow$ questa la differenza da prima, perche non sto facendo stallare la loadstore unit quando devo fare la load richiesta, avendo gia gestito precedentemente la miss e avendo dunque gia caricato il dato in cache
+  (13-111)
+\end{emphasize-blue}
 
-concetto di \textbf{sovrapporre computazione con accessi in memoria} $\rightarrow$ tutti i sistemi hw moderni hanno la possibilita di disaccoppiare le due operazioni
-
-ovviamente, realizzarla in pratica non risulta per nulla lineare: il concetto di prefetch si basa sul fatto che sono "certo" dei tempi in cui ho bisogno di un certo dato, e da per scontato che nessun altro processo non vada in conflitto con quella particolare linea di cache (ricordiamo che sono risorse condivise)
-
-dunque, in pratica e ad alto livello, come faccio? parto con il calcolare la \textbf{distanza di prefetch} (tempo di prefetch) $\rightarrow$ tipicamente lo faccio nei loop ??? (sono strutture la cui esecuzione e lineare?? regolare forse)
-
-loop sono regolari dunque posso esprimere il tempo di prefetch come il numero di iterazioni del loop stesso ??
-
-dunque io cosa faccio, conosco la latenza della memoria e blabla recupera
-
-insomma, io vado a risolvere il problema suddividendo il loop in 3 parti: 
-\begin{itemize}
-  \item prolog: faccio solo prefetch, 5 volte perche ho stabilito che mi servono 5 iterazioni del loop per avere a disposizione il dato
-  \item steady state ovvero stato a regime: qui vado avanti a prefetchare ma anche accedo ai dati pronti
-  \item epilog: semplicemente finisco di lavorare sugli ultimi dati prefetchati
-\end{itemize}
-
-(13-111)
-
-sono tutte euristiche che si basano sul caso best effort $\rightarrow$ nel caso peggiore "non c'e danno", ovvero il programma esegue come eseguiva prima, mentre nel caso medio aumenta la prestazione (a volte sono anche disposto a perderci un poco nel worst case, visto che stiamo lavorando su ottimizzazioni sulla media) 
-
-ovviamente sono ottimizzazioni che non posso fare su feature e sistemi ritenuti critici!!!!
+\begin{emphasize}
+  Sono euristiche che si basano sul caso \textbf{best effort} $\rightarrow$ nel caso peggiore "non c'\`e danno" (il programma esegue come prima), mentre nel caso medio aumenta la prestazione (a volte sono disposto a perderci un po' nel worst case, essendo ottimizzazioni sulla media) 
+  Ovviamente sono ott.~che \textbf{non posso fare su feature e sistemi ritenuti critici}
+\end{emphasize}
 
 \end{document}
