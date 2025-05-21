@@ -1234,6 +1234,79 @@ Il concetto di available expr.~\`e necessario come maniera rigorosa di ragionare
   \end{minipage}
 \end{example}
 
+\subsection{Very Busy Expressions (Assignment 2)}
+
+\noindent\begin{minipage}[c]{.6\textwidth}
+\begin{itemize}
+  \item Un'espressione \`e \textbf{very busy} in un punto \textit{p} se, indipendentemente dal percorso preso da \textit{p}, l'espressione viene usata prima che uno dei suoi operandi venga definito.
+  \item Un'espressione \lstinline|a+b| \`e \textbf{very busy} in un punto \textit{p} se \lstinline|a+b| \`e valutata in tutti i percorsi da \textit{p} a \textit{Exit} e non c'\`e una definizione di \lstinline|a| o \lstinline|b| lungo tali percorsi
+\end{itemize}
+\end{minipage}\hfill
+\begin{minipage}[c]{.35\textwidth}
+\includegraphics[width=\textwidth]{dfa_18.png}
+\end{minipage}
+\\
+
+Dove
+\begin{itemize}
+  \item $Gen[b]$: espressioni valutate all'interno del Basic Block
+  \item $Kill[b]$: un'espressione viene uccisa quando un suo operando viene ridefinito all'interno di \textit{b}
+\end{itemize}
+
+\subsection{Dominator Analysis (Assignment 2)}
+
+\noindent \begin{minipage}[c]{.6\textwidth}
+\begin{itemize}
+  \item In un CFG diciamo che un nodo \textit{X} \textbf{domina} un altro nodo \textit{Y} se il nodo \textit{X} appare in ogni percorso del grafo che porta dal blocco \textit{Entry} al blocco \textit{Y}
+  \item annotiamo ogni basic block $B_{i}$ con un insieme $Dom[B_{i}]$:
+  \begin{itemize}
+    \item $B_{i}\in Dom[B_{j}] \iff B_{i}$ domina $B_{j}$
+    \item $B_{i}\in Dom[B_{i}]$: per definizione un nodo domina se stesso
+  \end{itemize}
+\end{itemize}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{.35\textwidth}
+\includegraphics[width=\textwidth]{dfa_19.png}
+\end{minipage}
+
+\subsection{Constant Propagation (Assignment 2)}
+
+\begin{itemize}
+  \item L'obiettivo della \textit{constant propagation} \`e quello di determinare in quali punti del programma le variabili hanno un valore costante.
+\end{itemize}
+\noindent \begin{minipage}[c]{.6\textwidth}
+\begin{itemize}
+  \item L'informazione da calcolare per ogni nodo del CFG \`e un insieme di coppie del tipo\\\lstinline|<variabile,valore costante>|.
+  \item Se abbiamo la coppia \lstinline|<x,c>| al nodo \textit{n}, significa che \lstinline|x| \`e garantito avere il valore \lstinline|c| ogni volta che \textit{n} viene raggiunto durante l'esecuzione del programma.
+\end{itemize}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{.35\textwidth}
+\includegraphics[width=\textwidth]{dfa_20.png}
+\end{minipage}
+\begin{itemize}
+  \item $Gen[b]$ rappresenta l'insieme di nuovi assegnamenti (all'interno di \textit{b}) con valore costante. I casi di interesse sono:
+    \begin{itemize}
+      \item \lstinline|x = c| con \lstinline|c| costante: $Gen[b] = Gen[b] \cup (x,c)$
+      \item \lstinline|x = c1|$\oplus$\lstinline|c2| con \lstinline|c1,c2| costanti: $Gen[b] = Gen[b] \cup (x,c1\oplus c2)$ (calcolando il valore dell'espressione)
+      \item \lstinline|x = c|$\oplus$\lstinline|y| o \lstinline|x = y|$\oplus$\lstinline|c| con \lstinline|c| costante:
+        \begin{enumerate}
+          \item controlliamo che y sia presente nell'insieme in input: $\exists (y,v_{y}) \in In[b]$
+          \item se \`e vero, $Gen[b] = Gen[b] \cup (x,e)$ con $e = c\oplus v_{y}$ (o $v_{y}\oplus c$)
+        \end{enumerate}
+      \item \lstinline|x = y|$\oplus$\lstinline|z|, valutando \lstinline|y| e \lstinline|z| allo stesso modo del caso precedente:
+        \begin{equation*}
+          \exists (y,v_{y}), (z,v_{z})\in In[b] \implies Gen[b] = Gen[b] \cup (x,e) \text{~con~} e=v_{y}\oplus v_{z}
+        \end{equation*}
+
+        \begin{mdframed}
+          Nel caso di definizioni multiple di \lstinline|x|, riteniamo valida solamente l'ultima all'interno di \textit{b}
+        \end{mdframed}
+    \end{itemize}
+  \item $Kill[b]$: ogni definizione \lstinline|x = expr| uccide le coppie $(x,c)\in \mathcal{D}$ (dominio)
+\end{itemize}
+
 \section{Loops e UD-DU chains}
 
 \subsection{Cos'\`e un loop}
@@ -1276,6 +1349,7 @@ Modo per rappresentare la propriet\`a di dominanza \textbf{in forma di albero}
 \begin{itemize}
   \item $a \rightarrow b$ nel dominator tree $\iff$ \textit{a sdom b}
   \item \textbf{non compaiono} le relazioni di \textbf{"auto-dominazione"} (ogni nodo domina sempre se stesso, ma nell'albero non serve rappresentarlo)
+  \newpage
   \item \textit{ENTRY} \`e la \textbf{radice}
   \item ogni nodo \textit{d} domina solo \textbf{i suoi discendenti} nell'albero
 \end{itemize}
@@ -1797,7 +1871,7 @@ Si basano sulla conoscenza generale di memoria e cache (HW), e sui tipici patter
   \item \textbf{capacity}: ho finito lo spazio disponibile in cache
 \end{itemize}
 
-\subsubsection{Cache types}
+\subsubsection{Tipologie di cache}
 
 \paragraph{Direct mapped}
 
@@ -1821,28 +1895,86 @@ Si basano sulla conoscenza generale di memoria e cache (HW), e sui tipici patter
   \item mantiene il concetto di bit di indice, per indicare non un indirizzo unico ma un \textbf{set} di indirizzi, e poi tanti comparatori quanti gli elementi del set 
 \end{itemize}
 
+\noindent
+\begin{minipage}[b]{.4\textwidth}
+  \includegraphics[width=\textwidth]{mem_3.png}
+  \captionof{figure}{Cache direct mapped}
+\end{minipage}
+\hfill
+\begin{minipage}[b]{.5\textwidth}
+  \includegraphics[width=\textwidth]{mem_4.png}
+  \captionof{figure}{Le tre tipologie di cache}
+\end{minipage}
+
+  \begin{emphasize}
+      Per sfruttare la spatial l.~le linee di cache devono essere pi\`u grandi di una word (in seguito a una miss carico molti dati adiacenti e riduco miss rate), ma per cache di dim.~fissa blocchi molto grandi aumentano la competizione e inquinano la cache
+  \end{emphasize}
+
 \subsection{Memory Hierarchy optimizations}
 
 Queste ottimizzazioni vogliono
 \begin{itemize}
-  \item \textbf{ridurre la latenza di accesso} alla memoria e ottenere un CPI minore
-  \item \textbf{massimizzare la banda} di memoria: poter accedere a piu dati nella stessa unita di tempo (stesso concetto della pipeline: non riduco il tempo di esec.~di una singola istruzione, ma a regime aumento il throughput) 
+  \item \textbf{ridurre la latenza di accesso} alla memoria e diminuire CPI per \lstinline|load| e \lstinline|store|
+  \item \textbf{massimizzare la banda} di memoria: poter accedere a pi\`u dati nella stessa unit\`a di tempo (stesso concetto della pipeline: non riduco il tempo di esec.~di una singola istruzione, ma a regime aumento il throughput) 
   \item \textbf{gestire overhead}, i costi addizionali dovuti all'ottimizzazione: maschero il tempo "perso" sovrapponendo altre operazioni
 \end{itemize}
 
-\subsection{reuse and locality}
+\subsection{Reuse and locality}
 
-consideriamo come accediamo ai dati:
+Consideriamo come accediamo ai dati:
 \begin{itemize}
   \item \textbf{data reuse}: sfrutta la localit\`a temporale, dunque il riuso di degli stessi dati o molto vicini tra loro - posso assicurare che il dato acceduto rimanga sempre in cache
   \item \textbf{data locality}: (es.~accesso ad array) il compilatore si deve assicurare che questi dati vengano acceduti in questo modo, e poi garantire la loro presenza
 \end{itemize}
+\begin{emphasize}
+  Le miss dipendono dai pattern di accesso, dunque anche dal comportamento dell'algoritmo e delle ottimizzazioni del compilatore
+\end{emphasize}
 
-\subsection{optimizing cache performance}
+\subsection{Optimizing cache performance}
+\label{cache-opt}
 
-rec
+Se una computazione ha del riuso, posso ottimizzarlo tramite
+\begin{itemize}
+  \item layout e posizionamento ottimale dei dati
+  \item trasformazioni sul codice (\textit{reordering} delle operazioni)
+\end{itemize}
 
-\subsection{tipi di oggetti da considerare}
+\noindent
+\begin{minipage}[t]{.45\textwidth}
+\paragraph{Cosa migliorare}
+\begin{itemize}
+  \item l.~spaziale
+  \item l.~temporale
+\end{itemize}
+\end{minipage}\hfill\vline\hfill
+\begin{minipage}[t]{.45\textwidth}
+\paragraph{Cosa minimizzare}
+\begin{itemize}
+  \item conflitti (es.~rimpiazzamenti sbagliati)
+\end{itemize}
+\end{minipage}
+
+\subsubsection{Il ruolo del compilatore}
+
+Con il compilatore possiamo ottimizzare
+\begin{itemize}
+  \item \textbf{tempo} (\textit{quando accedo a un dato?}) $\rightarrow$ riordino delle operazioni
+  \begin{itemize}
+    \item \textit{cosa rende difficile sapere \textbf{quando} accedo ad un oggetto?}
+    \item \textit{come possiamo predire un momento di accesso \textbf{migliore}?}
+    \item \textit{come possiamo essere sicuri che il riordino sia \textbf{safe}?}
+  \end{itemize}
+  
+  \item \textbf{spazio} (\textit{dove esiste il dato nell'address space?}) $\rightarrow$ modifica del layout dei dati
+  \begin{itemize}
+    \item \textit{cosa sappiamo della \textbf{locazione} del dato? (dipende dal tipo)}
+    \item \textit{come possiamo stabilire un layout \textbf{migliore} e quanto possiamo \textbf{alterare quello attuale}?}
+  \end{itemize}
+  
+\end{itemize}
+
+
+\subsection{Tipi di oggetti da considerare}
 
 \begin{itemize}
   \item scalari: tipi di dato semplici, non aggregati
@@ -1852,11 +1984,25 @@ rec
 
 \subsubsection{Scalari}
 
+\noindent\begin{minipage}[c]{.6\textwidth}
 \begin{itemize}
-  \item var.~\textbf{locali} (scope e tempo di vita locale alla funzione in cui sono definite)
-  \item var.~\textbf{globali} (scope e tempo di vita globali pari alla vita del programma)
-  \item \textbf{argomenti} delle funzioni
+  \item var.~\textcolor{ForestGreen}{\textbf{locali}} (scope e tempo di vita locale alla funzione in cui sono definite)
+  \item var.~\textcolor{BurntOrange}{\textbf{globali}} (scope e tempo di vita globali pari alla vita del programma)
+  \item \textcolor{Cyan}{\textbf{argomenti}} delle funzioni
 \end{itemize}
+\end{minipage}\hfill
+\begin{minipage}[c]{.3\textwidth}
+\begin{lstlisting}
+int $\color{BurntOrange}\texttt{x}$;
+double $\color{BurntOrange}\texttt{y}$;
+foo(int $\color{Cyan}\texttt{a}$){
+  int $\color{ForestGreen}\texttt{i}$;
+  $\ldots$
+  $\color{BurntOrange}\texttt{x}$ = $\color{Cyan}\texttt{a}$*$\color{ForestGreen}\texttt{i}$;
+  $\ldots$
+}\end{lstlisting}
+\end{minipage}
+
 
 Tipicamente sono gestiti sempre tramite registri $\rightarrow$ non dobbiamo gestire gli accessi alla memoria (salto la fase di MEM, e la load-store unit non esegue nulla per questa istruzione)
 
@@ -1864,176 +2010,332 @@ Tipicamente sono gestiti sempre tramite registri $\rightarrow$ non dobbiamo gest
   Unico caso problematico: finiscono i registri utilizzabili $\rightarrow$ devo fare uno spill sulla memoria, in particolare sullo stack frame (ovvero faccio una store, e poi una load , esattamente come per i save registers (modificati da una chiamata a funzione, che alla fine dell'esecuzione deve ripristinarli)
 \end{emphasize}
 
-$\rightarrow$ ottimizzazioni di backend (calling convention, register file, ISA sono HW specific)
+$\rightarrow$ \textbf{ottimizzazioni di backend} (calling convention, register file, ISA sono HW specific)
 
 \subsubsection{Strutture dati e puntatori}
 
-cosa puo fare il compilatore per migliorare l'esecuzione di un programma che usa strutture dati? dove posso avere rallentamenti dovuti alla cache? es. struct a slide 14-45
+\noindent\begin{minipage}[c]{.6\textwidth}
+  \begin{itemize}
+    \item struct: di base un'\textbf{aggregazione di bytes} $\rightarrow$ elem.~\textbf{contigui in memoria} $\rightarrow$ in generale un oggetto complesso potrebbe non essere grande un multiplo di word o cache line, dunque \textbf{non posso sfruttare la spatial locality}
+    \item posso \textbf{trasformare} la struttura del dato, ad esempio \textbf{estraendo dati di tipi primitivi} (nel caso di array di tipi composti) e costruendo array separati (devo conoscere la struttura della str.~dati)
+\end{itemize}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{.35\textwidth}
+\begin{lstlisting}
+struct {
+  int count;
+  double vel;
+  double inertia;
+  struct node *neighb[N];
+} node;\end{lstlisting}
+\end{minipage}
 
-Struct: di base \`e un'aggregazione di bytes $\rightarrow$ elem.~\textbf{contigui in memoria} $\rightarrow$ In generale un oggetto complesso potrebbe non essere grande un multiplo di word o cache line, dunque \textbf{non posso sfruttare la spatial locality}
-
-L'ottimizzazione potrebbe comprendere il \textbf{trasformare} la struttura del dato, ad esempio \textbf{estraendo dati di tipi primitivi} (nel caso di array di tipi composti) e costruendo array separati (devo conoscere la struttura della str.~dati)
 
 \subsubsection{Array}
 
-evidentemente qui abbiamo le maggiori possibilita di ottimizzazione
 
-solitamente vi accediamo tramite loop nests (per array multidimensionali ad es ma anche per operazioni matriciali o altro)
-
-dunque che possibilita abbiamo di ott? staticamente, possiamo analizzare l'andamento es della posizione relativa dell'elemento acceduto, ovvero l'evoluzione dell'\textbf{iteration space}
-
-concetto di iteration space, e visualizzazione a partire dalla slide 14-47
-
-una volta fatto questo, possiamo pensare di analizzare l'andamento del \textbf{data space} e dunque capire come mai avvengono le miss
-
-\paragraph{cache miss in questo caso}~\\
-
-immaginiamo una cache vuota in partenza, e una cache di 4 parole per riga e 8 righe
+\noindent\begin{minipage}[c]{.6\textwidth}
 \begin{itemize}
-  \item inizialmente avro una cold cache miss
-  \item per gli elementi 2 3 4 ho delle hit avendo caricato l'intera riga !
-  \item accade nuovamente per 5, e poi 6 7 8, eccetera
-  \item a partire dalla nona miss (17), avro una conflict miss (i bit usati per indexing si sovrappongono)
+  \item posso ottimizzarli sfruttando principi di l.~spaziale
+  \item solitamente accesso tramite loop nests (array multidim., op.~matriciali, ...)
+  \item staticamente, possiamo analizzare l'andamento della posizione relativa dell'elemento acceduto, ovvero l'evoluzione dell'\textbf{iteration space}
+
 \end{itemize}
-notiamo pero che non cambia il pattern di miss! rimane sempre 1 ogni 4
+\end{minipage}
+\hfill
+\begin{minipage}[c]{.35\textwidth}
+\begin{lstlisting}
+double A[N][N], B[N][N];
+$\ldots$
+for i = 0 to N-1
+  for j = 0 to N-1
+    A[i][j] = B[j][i];\end{lstlisting}
 
-per quanto riguarda la matrice \lstinline|B| invece, vediamo che gli accessi avvengono in modo diverso - stiamo forzando una situazione di miss sistematica, e questo appunto e una situaizone rilevabile e che si puo correggere
+\end{minipage}
 
-7 maggio
+\subsection{Iteration space}
 
-recupera inizio lezione
+\noindent\begin{minipage}[c]{.6\textwidth}
+\begin{lstlisting}
+for $\color{blue}\texttt{i}$ = 0 to N-1
+  for $\color{red}\texttt{j}$ = 0 to N-1
+    A[i][j] = B[j][i];\end{lstlisting}
 
-notiamo proprio dal secondo esempio di accessi che iteration space $\neq$ data space (o meglio, non sempre appunto?) $\rightarrow$ dunque possiamo distinguere tra accessi \textbf{cache friendly} e non
-
-\begin{emphasize}
-  ricordiamo che il comportamento dell'indexing della cache \`e simile a quello che fa l'operatore di modulo $\rightarrow$ tanti indirizzi in memoria condivdono la stessa configurazione di bit di index (in ogni caso recupera discorso anche da appunti vecchi)
-
-  inoltre, poi uso dei bit di offset per poter accedere separatamente a ciascun byte all'interno della riga (nel nostro caso righe da 4 word, supponendo 4B per word ho 16B per riga e dunque ho bisogno di 4byte di offset)
-\end{emphasize}
-
-
-ripetiamo comportamento relativo agli accessi a \lstinline|B|:
 \begin{itemize}
-  \item \lstinline|B[0][0]| cold cache miss
-  \item sono tutte cold cache misses fino a \lstinline|B[7][0]| ???
-  \item no in realta no, stiamo inserendo una riga ogni 2? e quindi ogni 4 righe per forza andiamo a sovrascrivere una riga precedente per via di una prima conflict miss (ripeti!)
+  \item ogni posizione rappresenta un'iterazione
+  \item \textbf{iteration s.~$\neq$ data s.}
 \end{itemize}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{.3\textwidth}
+\includegraphics[width=\textwidth]{mem_5.png}
+\end{minipage}
 
-\subsubsection{cache behavior of array accesses}
+\begin{example}[frametitle={Dall'esempio: cache miss per accessi ad \lstinline|A|}]
+
+  \noindent\begin{minipage}[c]{.7\textwidth}
+  Immaginiamo una cache di 4 parole per riga e 8 righe, vuota in partenza
+  \begin{itemize}
+    \item \lstinline|A[0][0]|: \textit{cold cache} m.
+    \item \lstinline|A[0][1]-A[0][3]|: \textit{hit} avendo caricato l'intera riga
+    \item si ripete fino a \lstinline|A[0][15]|
+    \item a partire da \lstinline|A[1][0]|: \textit{conflict} m.~(i bit di indexing si sovrappongono)
+  \end{itemize}
+  \textbf{NB}: non cambia il pattern di miss (1 ogni 4)
+  \end{minipage}
+  \begin{minipage}[c]{.3\textwidth}
+    \centering
+  \includegraphics[width=.65\textwidth]{mem_6.png}
+  \includegraphics[width=.65\textwidth]{mem_7.png}
+  \end{minipage}
+\end{example}
+
+\begin{example}[frametitle={Dall'esempio: cache miss per accessi ad \lstinline|B|}]
+
+  \noindent\begin{minipage}[c]{.7\textwidth}
+    \begin{itemize}
+      \item \lstinline|B[0][0]-B[3][0]| \textit{cold cache}, seguono \textit{conflict} (suppongo stesso indexing per $1^{a}$ e $5^{a}$ riga)
+      \item \lstinline|B[0][1]|: \textbf{conflict} $\rightarrow$ la linea attualmente caricata \`e quella con \lstinline|B[3][1]|
+      \item situazione di \textbf{miss sistematica}, rilevabile e da correggere
+      \item possiamo distinguere accessi \textbf{cache friendly} e non \underline{anche} dalla discordanza tra \textit{iteration} e \textit{data} s.
+    \end{itemize}
+  \end{minipage}
+  \begin{minipage}[c]{.3\textwidth}
+    \centering
+  \includegraphics[width=.65\textwidth]{mem_8.png}
+  \includegraphics[width=.65\textwidth]{mem_9.png}
+  \end{minipage}
+\end{example}
+
+\subsection{Cache behavior of array accesses}
 
 Per ottimizzare gli accessi ci chiediamo 
 \begin{itemize}
-  \item \textbf{quando} avvengono le miss $\rightarrow$ usiamo la \textbf{locality analysis}, che naturalmente rimane una stima ma non possiamo averne certezza! sono ottimizzazioni di tipo "best effort", e dunque in generale vanno ad ottimizzare, e nel caso peggiore non ottimizzano nulla ma \textbf{non peggiorano l'esecuzione}
-  \item possiamo cambiare \textbf{ordine delle iterazioni (o possibilmente il data layout)} per migliorare il comportamento degli accessi? $\rightarrow$ devo anche valutare il \textbf{costo} di tutte le varie ipotesi, per stimare il beneficio ottenuto (es.: creo una copia della matrice e ne calcolo la trasposta $\rightarrow$ ovviamente l'operazione \`e giustificata solo se ne ho bisogno abbastanza volte da non aumentare il costo totale - in qualche modo devo coprire il costo aggiuntivo in poche parole)
-  \item ottengo sempre risultati corretti? $\rightarrow$ verifico gli effetti "collaterali" (indipendenza delle istr.~ottimizzate)
+  \item \textbf{quando avvengono} le miss? $\rightarrow$ \textit{locality analysis}
+  \item possiamo cambiare \textbf{ordine delle iterazioni (o data layout)} per migliorare il comportamento degli accessi? 
     \begin{itemize}
-      \item dipendenza intesa come \textbf{vincolo nell'ordine di esecuzione delle istruzioni}, dunque un vincolo nell'iteration space
+      \item valuto il \textbf{costo} delle alternative, per stimare il beneficio ottenuto $\rightarrow$ giustificato solo se il riuso \textbf{copre il costo aggiuntivo} (es.: precalcolo di una matrice trasposta) 
+    \end{itemize}
+  \item ottengo sempre \textbf{risultati corretti}? $\rightarrow$ verifico gli effetti "collaterali" (\textit{dependence analysis})
+    \begin{itemize}
+      \item dipendenza: \textbf{vincolo nell'ordine di esecuzione delle istr.}, dunque nell'iteration space
     \item caso di loop-carried dependency semplice: \lstinline|A[i] = A[i+1]|
-      \item esistono framework di analisi molto sofisticati, basati solitamente sul \textit{polyhedral model}
+      \item framework di analisi solitamente basati sul \textit{polyhedral model}
     \end{itemize}
 \end{itemize}
 
-\begin{emphasize}[frametitle={Approcci per variabili di cui non conosco il valore staticamente}]
-  \begin{itemize}
-    \item conservativo: non so determinare il valore, dunque (pessimisticamente) non faccio nulla
-    \item genero entrambe le versioni del codice, e stabilisco \textbf{a runtime} quale eseguire (aggiungo un controllo condizionale che esegue il pr.~ottimizzato solo per qualche \lstinline|N| abbastanza grande da giustificare il costo aggiuntivo)
-  \end{itemize}
-
+\begin{emphasize}
+  Sono ottimizzazioni di tipo "best effort" basate su euristiche $\rightarrow$ ottimizzano l'esec.~del caso \textbf{medio}, e nel caso peggiore non ottimizzano nulla ma \textbf{non peggiorano l'esecuzione}
 \end{emphasize}
 
-\subsection{Trasformazioni di loop pi\`u usate}
+\subsubsection{Approcci per variabili di cui non conosco il valore staticamente}
+\begin{itemize}
+    \item \textbf{conservativo}: non so determinare il valore, dunque (pessimisticamente) non faccio nulla
+    \item genero entrambe le versioni del codice, e \textbf{stabilisco a runtime quale eseguire} (aggiungo un condizionale che esegue il pr.~ottimizzato solo per qualche \lstinline|N| abbastanza grande da giustificare il costo aggiuntivo)
+  \end{itemize}
+
+
+\subsection{Esempi di trasformazioni per i loop}
 
 \subsubsection{Loop interchange}
 
+\noindent\begin{minipage}[c]{.45\textwidth}
 \textbf{Scambio} (o permuto) l'ordine dei loop: in assenza di dipendenze, non altero in nessun modo il risultato finale e \textbf{miglioro la performance} (magari non accedendo nello stesso ordine di prima, ma se indipendente non importa)
+\end{minipage}\hfill
+\begin{minipage}[c]{.5\textwidth}
+\includegraphics[width=\textwidth]{mem_10.png}
+\end{minipage}
 
-\paragraph{Obiettivi della permutazione}~\\
+
+\paragraph{Obiettivi della permutazione}
 
 \begin{itemize}
   \item locality optimization (specialmente quella spaziale)
   \item riarrangiare i loop nest per ottenere la giusta \textbf{granularit\`a} del parallelismo:
     \begin{itemize}
-      \item verso l'interno: parallelismo \textit{fine-grain} $\rightarrow$ frammento il lavoro da svolgere in blocchi pi\`u piccoli, e dunque posso mantenere piu stabile la quantit\`a di lavoro tra thread e processori
+      \item verso l'interno: parallelismo \textit{fine-grain} $\rightarrow$ frammento il lavoro da svolgere in blocchi pi\`u piccoli, e mantengo pi\`u stabile la q.t\`a di lavoro tra thread e proc.
+      \begin{emphasize}
+          Caso estremo: task talmente piccoli che l'overhead (costo per creare thread, assegnare lavoro, proc.~sync) supera il tempo di esecuzione (tipicamente il costo di creazione di un thread ha costo fisso $\rightarrow$ \textbf{dipende da HW})
+      \end{emphasize}
       \item esterno: \textit{coarse-grain} parallelism
-      \item caso estremo: pochi task rispetto ai proc.~disponibili: se un proc.~si ritrova un blocco "lento" (es.~molte miss), gli altri dovranno aspettarlo una volta finito il loro lavoro
-      \item non scelgo sempre la grana pi\`u fina per l'overhead generato: creare i thread, assegnare il lavoro, sincronizzare i proc.; inoltre, tipicamente il costo di creazione di un thread ha costo fisso $\rightarrow$ task pi\`u piccoli durano sempre meno, dunque l'overhead pu\`o superare il tempo di esecuzione
-      \item questioni gestite tipicamente dall'HW, es.~come fanno le GPU moderne 
+        \begin{emphasize}
+        Caso estremo: pochi task rispetto ai proc.~disponibili: se un proc.~si ritrova un blocco "lento" (es.~molte miss), gli altri dovranno aspettarlo una volta finito il loro lavoro
+        \end{emphasize}
     \end{itemize}
 \end{itemize}
 
 \subsubsection{Loop tiling/blocking}
 
-matrix multiplication: esempio di come applicare il tiling
-\begin{example}
-  matrix multiplication: 3 matrici di uguali dimensioni (ricorda da calcolo), ogni casella della matrice risultante contiene la somma dei prodotti tra iesima riga della prima con jesima colonna della seconda
+\begin{emphasize-blue}
+  In generale, il tiling viene usato gerarchicamente a "tutti" i livelli di memoria (registri, caches, buffer SW-managed, memorie piccole, ...) per gestire limiti di spazio
+\end{emphasize-blue}
+\begin{example}[frametitle={Esempio: Matrix multiplication}]
 
-  dunque, ho 3 loop innestati, di cui i primi due iterano sugli elementi della risultante, e il terzo permette lo scorrere la riga e colonna corrispondenti
-
-  cosa succede se le matrici sono abbastanza grandi da non stare per intero all'interno della cache?
-
-  notiamo che questo programma ha un sacco di riuso:
+  \noindent \begin{minipage}[]{.5\textwidth}
+  \begin{lstlisting}
+for i = 0 to N-1
+  for j = 0 to N-1
+    for k = 0 to N-1
+      C[i][j] += A[i][k] * B[k][j]\end{lstlisting}
+  \end{minipage}\hfill
+  \begin{minipage}[c]{.4\textwidth}
+  \includegraphics[width=\textwidth]{mem_13.png}
+  \end{minipage}
+  
+  Consideriamo il caso in cui non posso ospitare l'intera struttura in cache
   \begin{itemize}
-    \item bloccando una riga di A, noto che i suoi dati mi servono per ciascuna colonna di B (e viceversa, ma sappiamo che scorrere righe risulta molto piu cache friendly)
-    \item supponiamo inoltre che una riga di matrice sia piu lunga di una linea di cache, e dunque per accedere a una riga intera servano multipli accessi in cache
-    \item per massimizzare il riuso dei dati, vado a cercare una dimensione ottimale di "blocco" che mi permette di \textbf{avvicinare temporalmente il riuso dei dati}
-      \begin{itemize}
-        \item riuso di un dato: proprieta del programma
-        \item iteration space: recupera
-      \end{itemize}
+    \item 3 matrici \lstinline|A,B,C| $N\times N$, con $c_{ij}=\sum_{k=1}^{N}a_{ik}b_{kj},\, i,j=1,\ldots,N$
+    \item 3 loop innestati, di cui i primi due iterano sugli el.~di \lstinline|C|, e il terzo scorre sulla riga e colonna corrispondenti
+    \item supponiamo che $N > dim(line_{cache})$ $\rightarrow$ linee multiple per una riga intera
+    \item ogni riga di A viene usata $\forall$ colonna di B (e viceversa, ma iterare su colonne \`e meno \textit{cache friendly}) $\rightarrow$ conviene tenerla in cache
+\end{itemize}
 
-    \item cambiare l'ordine delle iterazioni e iterare "a blocchi" permette dunque di sfruttare al massimo il riuso dei dati - se non lo usassimo, siamo sicuri che i dati siano talmente lontani che verranno per forza sovrascritti causa conflict miss (spero si capisca nel futuro)
+  Nel loop pi\`u interno:
+  \begin{itemize}
+    \item \lstinline|C[i][j]| acceduto 1 volta, nessun riuso
+    \item \lstinline|A[i][k]| comporta accesso all'intera riga (che non sta in line singola)
+    \item \lstinline|B[k][j]| comporta accesso all'intera colonna (non sta in cache e ha bassa \textit{spatial l.})
+  \end{itemize}
+  Miss totali - $\boxed{2N^3 + N^2}$ :
+  \begin{itemize}
+    \item \lstinline|C|: $N^{2}$: ogni el.~viene scritto $N$ volte in sequenza (ma rimane in cache)
+    \item \lstinline|A|: $N^{3}$: riga letta $N$ volte in sequenza (ma non resta in cache)
+    \item \lstinline|B|: $N^{3}$: col.~letta $N$ volte in sequenza (non resta e accedo in \textit{column-major} order)
   \end{itemize}
 
-  la soluzione dunque \`e semplicemente aggiungere dei loop nest, che permettono di iterare blocco per blocco invece che a dimensione intera
+  \begin{itemize}
+    \item[$\rightarrow$] cerco una dim.~ottimale di blocco che permette di \textbf{avvicinare temporalmente il riuso dei dati}
+    \item cambiare l'ordine delle iterazioni e iterare "a blocchi" permette di sfruttare al massimo il riuso dei dati (altrimenti siamo sicuri che gli usi sono talmente lontani da causare \textit{conflict})
+    \item[$\rightarrow$] aggiungo dei loop nest, che permettono di iterare blocco per blocco invece che a dimensione intera
+  \end{itemize}
+
+\begin{center}
+  \begin{minipage}[c]{.4\textwidth}
+  \includegraphics[width=\textwidth]{mem_14.png}
+  \end{minipage}
+  \begin{minipage}[c]{.4\textwidth}
+  \includegraphics[width=\textwidth]{mem_15.png}
+  \end{minipage}
+  
+\end{center}
+
 
 \end{example}
 
-in generale, il tiling viene usato a "tutti" i livelli di memoria (registri, caches, buffer software, memorie principali piccole, ...), e puo essere applicato in maniera gerarchica su tutti i vari livelli
+\subsection{Loop fusion}
 
-\subsection{loop fusion}
-
-vedremo meglio nell'assignment: in sostanza, si tratta di fondere tra loro 2 o piu loop che riutilizzano gli stessi dati
-
-esempio a 13-102: che dati sono riutilizzati tra i due loop? \lstinline|a| e \lstinline|c|
-
-vedendo poi la soluzione, come mai siamo sicuri di stare ottimizzando? proprio perche stiamo avvicinando sensibilmente l'uso degli stessi dati!!! dunque abbiamo annullato la distanza tra le due occorrenze di uso di uno stesso indirizzo, e dunque possiaom essere sicuri che sia in cache (prima dovevamo eseguire l'intero loop precedente pria di arrivarci, e dunque praticamente sicuramente non lo ritroveremo in cache)
-
-come faccio ad essere sicuro che ne valga la pena? quando proprio sicuramente non ne vale la pena di applicare l'ottimizzazione?? $\rightarrow$ quando sono sicuro che l'ottimizzazione non sara migliore della versione non ottimizzata, ovvero $\rightarrow$ quando sono sicuro che tutte le matrici stanno contemporaneamente in cache!!! ovvero quando la somma delle dimensioni delle matrici e minore della dimensione delle cache, e quindi avro comunque i dati ancora presenti quando eseguo il secondo loop
-
-$\rightarrow$ quindi, praticamente io sto valutando se conviene cambiare il programma o no (aumentando quindi il compile time? ma non solo? fa parte dell'overhead?)
-
-\subsection{software prefetching}
-
-Ottimizzazione non lazy che \textbf{"tollera" la latenza} (non tenta di ridurla): inserisco a liv.~SW il pref.~dei dati (in src o tramite compilatore) $\rightarrow$ per "nascondere" le latenze (\textit{latency hiding}, svolto bene dalle GPU) "infilando" il pref.~sotto ad altre operazioni
-
-In contesto di CPU, faccio prefetching riscrivendo il programma e sapendo quando avr\`o bisogno di fare gli accessi in memoria; inoltre, le istr.~di prefetch sono di fatto load \textbf{non bloccanti} $\rightarrow$ non stalla la load-store unit quando devo fare la load richiesta, avendo gi\`a gestito miss e dunque gi\`a caricato il dato in cache
+\noindent\begin{minipage}[c]{.65\textwidth}
+Obiettivo: "fondere" tra loro loop separati del programma che accedono alle stesse strutture, per \textbf{garantire il riuso dei dati caricati in cache} (annullo la distanza tra gli usi degli stessi dati)
 
 \begin{emphasize}
-  Tutti i sistemi HW moderni permettono di disaccoppiare e \textbf{sovrapporre la computazione con gli accessi in memoria}
+    Quando non conviene ottimizzare? Quando sono sicuro che la somma delle dimensioni dei dati (le matrici in questo caso) \`e \textbf{minore della dim.~della cache} (i dati saranno ancora disponibili)
+\end{emphasize}
+\end{minipage}\hfill
+\begin{minipage}[c]{.3\textwidth}
+  \centering
+\includegraphics[width=\textwidth]{mem_11.png}
+$\downarrow$
+\includegraphics[width=\textwidth]{mem_12.png}
+\end{minipage}
+
+\subsection{Software prefetching}
+
+\subsubsection{Coping with memory latency}
+
+\begin{itemize}
+  \item \textbf{ridurre la l.}: \textit{locality optimizations} (sez.~\ref{cache-opt})  - riordino iterazioni e layout per migliorare il riuso
+  \item \textbf{tollerare la l.}: \textit{SW prefetching} - carico i dati in cache prima dell'uso per evitare stalli della load-store u. (comportamento \textbf{non lazy})
+\end{itemize}
+
+\subsubsection{Tollerare la latenza con il prefetching}
+
+I sistemi HW moderni permettono di disaccoppiare e \textbf{sovrapporre la computazione con gli accessi in memoria} $\rightarrow$ nascondo le latenze "infilando" il prefetching sotto ad altre operazioni
+
+\vspace{.5em}
+\noindent\begin{minipage}[b]{.5\textwidth}
+\begin{itemize}
+  \item Posso eseguire il pref.~sia come ottimizzazione che direttamente nel sorgente
+  \item un'istr.~di prefetching agisce come una \lstinline|load| non bloccante
+\end{itemize}
+\end{minipage}\hfill
+\begin{minipage}[c]{.4\textwidth}
+\includegraphics[width=\textwidth]{mem_16.png}
+\end{minipage}
+
+\begin{emphasize}[frametitle={Problemi pratici nel calcolo del prefetching}]
+    Nella teoria sono "certo" di quando ho bisogno di un dato, mentre in pratica \textbf{le risorse sono condivise} (possibili conflitti di accesso tra processi)
+    \begin{itemize}
+      \item pref.~\textbf{troppo in anticipo} $\implies$ la mem.~potrebbe essere sovrascritta
+      \item pref.~\textbf{"tardi"} $\implies$ inutile
+    \end{itemize}
+    
 \end{emphasize}
 
-\begin{emphasize-blue}[frametitle={FINISCI}]
-  Nella teoria sono "certo" dei tempi in cui ho bisogno di un dato, e d\`o per scontato che nessun altro processo va in conflitto con quella linea di cache (sono risorse condivise)
+\subsubsection{Algoritmo di prefetching del compilatore}
 
-  Dunque, in pratica e ad alto livello, come faccio? parto con il calcolare la \textbf{distanza di prefetch} (tempo di prefetch) $\rightarrow$ tipicamente lo faccio nei loop ??? (sono strutture a esecuzione regolare)
+Tipicamente lavoro su \textbf{loop} (sono strutture ad esec.~regolare), e svolgo
+\begin{itemize}
+  \item \textbf{analisi} (cosa prefetchare) $\rightarrow$ \textit{analisi di localit\`a}
+  \item \textbf{scheduling} (quando/come eseguirlo) $\rightarrow$ \textit{loop splitting} e \textit{SW pipelining}
+\end{itemize}
 
-  loop sono regolari dunque posso esprimere il tempo di prefetch come il numero di iterazioni del loop stesso ??
+\paragraph{Loop splitting}~\\
 
-  dunque io cosa faccio, conosco la latenza della memoria e blabla recupera
+  \textbf{Decompongo i loop} per \textbf{isolare istanze di \textit{cache miss}} (meno costoso di inserire \lstinline|if|)
 
-  insomma, io vado a risolvere il problema suddividendo il loop in 3 parti: 
-  \begin{itemize}
-    \item prolog: faccio solo prefetch, 5 volte perche ho stabilito che mi servono 5 iterazioni del loop per avere a disposizione il dato
-    \item steady state ovvero stato a regime: qui vado avanti a prefetchare ma anche accedo ai dati pronti
-    \item epilog: semplicemente finisco di lavorare sugli ultimi dati prefetchati
-  \end{itemize}
+\begin{center}
+  \includegraphics[width=.45\textwidth]{mem_17.png}
+\end{center}
 
-  (13-111)
-\end{emphasize-blue}
+Applico ricorsivam.~per loop \textbf{innestati}, sopprimo per loop \textbf{troppo grandi} (evito \textit{code explosion})
+
+\paragraph{Sofware pipelining}~\\
+
+\begin{minipage}[c]{.55\textwidth}
+Data la regolarit\`a dei loop, posso esprimere la \textbf{distanza di pre-fetch} come un n$^{o}$ di loro it.:
+
+\begin{example}[frametitle={}]
+    \begin{itemize}
+      \item \textit{l}: mem.~latency (tempo di lettura)
+      \item \textit{s}: shortest path attraverso il loop body
+      \item [$\implies$] \textbf{it.~necessarie per coprire il pref.}~$It = \left\lceil {l\over s} \right\rceil$
+    \end{itemize}
+\end{example}
+
+A questo punto suddivido il loop in 3 parti: 
+\begin{itemize}
+  \item \textbf{prolog}: solo prefetch, \textit{It} volte (es.~$It=5$)
+  \item \textbf{steady state} (s.~a regime): pref.~e accedo ai dati pronti
+  \item \textbf{epilog}: finisco di usare gli ultimi dati prefetchati
+\end{itemize}
 
 \begin{emphasize}
-  Sono euristiche che si basano sul caso \textbf{best effort} $\rightarrow$ nel caso peggiore "non c'\`e danno" (il programma esegue come prima), mentre nel caso medio aumenta la prestazione (a volte sono disposto a perderci un po' nel worst case, essendo ottimizzazioni sulla media) 
-  Ovviamente sono ott.~che \textbf{non posso fare su feature e sistemi ritenuti critici}
+  Sono ottimizzaz.~che si basano sempre su euristiche \textbf{best effort} $\rightarrow$ ovviamente \textbf{non posso eseguirle su feature e sistemi ritenuti critici}
 \end{emphasize}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{.35\textwidth}
+  \centering
+\begin{lstlisting}
+for (i = 0; i<100; i++) {
+  a[i] = 0;
+}\end{lstlisting}
+$\Downarrow$
+\begin{lstlisting}
+/* Prolog */
+for (i = 0; i<5; i++) {
+  prefetch(&a[i]);
+}
+/* Steady State */
+for (i = 0; i<95; i++) {
+  prefetch(&a[i+5]);
+  a[i] = 0;
+}
+/* Epilog */
+for (i = 95; i<100; i++) {
+  a[i] = 0;
+}\end{lstlisting}
+\end{minipage}
 
 \end{document}
