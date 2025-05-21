@@ -34,3 +34,55 @@ per fare il controllo verifico nuovamente condizioni di dominanza:
 - per la seconda: devo controllare le condizioni di **postdominanza** (recupero tramite `AM.getResult<PostDominatorTreeAnalysis>(F)`)
 
 > ovviamente devo includere header file necessari
+
+## loop trip count
+
+tipo di analisi che risponde a domande tipo quante volte itera il mio loop, ma anche cose piu sofisticate tipo l'evoluzione di scalari durante il loop
+
+se riesco a farne unanalisi statica riesco a tirarne fuori ottimizzazioni particolarmente importanti e utili?
+
+esemipio slide scalar evolution
+
+### scalar evolution
+
+da esempio: ci sono casi in cui i valori intermedi non sono mai usati, e dunque possiamo determinare il valore finale dello scalare senza nemmeno eseguire il loop
+
+vedi slide successive con esempi di llvm ir ssa
+
+la scalar evolution analysis ragiona in termini di **ricorrenze**: esempio tipico numero di fibonacci
+
+dunque cerca di identificare le ricorrenze, definite come una tripla : valore di base, operatore applicato, valore da ?
+
+le catene possono anche essere concatenate
+
+studiando quetso genere di espressioni siamo ingrado di capire come evolve la variabile ed evenutlamente modificare il loop (semplificare)
+
+dall'esempio ci si rende conto che il valore di tk è esattamente tk al di fuori del loop, e lo posso descrivere come k * n (?), allora posso direttamente sostituire con una mul l'operazione
+
+possiamo recuperare i dati che ci servono da questa analisi tramite `AM.getResult<ScalarEvolutionAnalysis>(F)`
+
+in particolare cosa dice la docu per il tripcount e numero di volte che incontriamo preheader
+
+## passo 4: dipendenze a distanza negativa
+
+suggerimento di 2 strumenti: 
+
+- scalar evolution: analizzando le ricorrenze permette di verificare se ci sono distanze negative nell'accesso al target
+- dependence analysis
+
+### dependence analysis
+
+`AM.getResult<DependenceAnalysis>(F)`
+
+abbiamo a disposizione primitive di tipo `depends` per controllare possibili dipendenze tra istruzioni
+
+attenzione all'algoritmo usato per analizzare le dipendenze tra loop! approccio bruteforce diventa molto pesante, dunque valuta bene **quali sono le coppie da analizzare**
+
+# generazione del codice
+
+operazioni di base da fare
+
+1. modifico usi di induction variable tra i 2 loop (sono diverse tra i 2 loop)
+1. modifico il cfg tra i blocchi dei 2 loop
+
+ovviamente in questo modo avremo dei blocchi morti, scollegati dal cfg principale - **non serve che facciamo noi nulla per eliminarli, anche perche basterebbe usare passi appositi di sanificazione del cfg**
