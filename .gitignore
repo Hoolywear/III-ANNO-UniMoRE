@@ -79,4 +79,4 @@ modules.xml
 build/
 
 # LaTeX preamble (every local copy should have its own one, because of conflicting image directories)
-preamble.tex
+./preamble.tex
